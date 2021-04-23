@@ -1,0 +1,14 @@
+#ifndef _UTILS_HPP_
+#define _UTILS_HPP_
+
+#include <string>
+#include <vector>
+
+namespace kwik {
+	namespace utils {
+		std::vector<std::string> split(std::string, char);
+		uint64_t timestamp();
+	}
+};
+
+#endif

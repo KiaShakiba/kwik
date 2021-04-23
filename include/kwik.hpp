@@ -2,5 +2,10 @@
 #define _KWIK_HPP_
 
 #include <list.hpp>
+#include <utils.hpp>
+#include <file.hpp>
+#include <csv.hpp>
+#include <progress.hpp>
+#include <format.hpp>
 
 #endif
