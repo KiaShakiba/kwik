@@ -1,27 +1,18 @@
+#include <cstring>
 #include <chrono>
 #include <utils.hpp>
 
-std::vector<std::string> kwik::utils::split(std::string input, char delimiter) {
+std::vector<std::string> kwik::utils::split(std::string const &input, char delimiter) {
 	std::vector<std::string> values;
 
-	std::string value;
+	char *save_ptr;
+	char *token;
 
-	// loop through every character in the input
-	for (int i = 0; i < input.length(); i++) {
-		// if the character is not the delimiter or a new line,
-		// add it to the current value
-		// otherwise, if there is a current value, add it to the values
-		if (input[i] != delimiter && input[i] != '\n') {
-			value += input[i];
-		} else if (!value.empty()) {
-			values.push_back(value);
-			value = "";
-		}
-	}
+	for (token = strtok_r((char *)input.c_str(), &delimiter, &save_ptr);
+		token != NULL;
+		token = strtok_r(NULL, &delimiter, &save_ptr)) {
 
-	// handle the last value that is not followed by a delimiter
-	if (!value.empty()) {
-		values.push_back(value);
+		values.push_back(std::string(token));
 	}
 
 	return values;
