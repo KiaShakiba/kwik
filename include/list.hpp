@@ -43,7 +43,7 @@ public:
 	size_t size() { return this->list_size; }
 
 	void push_front(T data) {
-		list<T>::node *node = this->new_node(data);
+		list<T>::node *node = list<T>::new_node(data);
 		this->push_front(node);
 	}
 
@@ -60,7 +60,7 @@ public:
 	}
 
 	void push_back(T data) {
-		list<T>::node *node = this->new_node(data);
+		list<T>::node *node = list<T>::new_node(data);
 		this->push_back(node);
 	}
 
@@ -92,20 +92,36 @@ public:
 		this->list_tail = node;
 	}
 
+	void place_before(list<T>::node *node, list<T>::node *new_node) {
+		if (node->prev != nullptr) node->prev->next = new_node;
+
+		this->dislodge(new_node);
+
+		new_node->next = node;
+		new_node->prev = node->prev;
+
+		node->prev = new_node;
+
+		if (this->list_head == node) this->list_head = new_node;
+	}
+
+	void place_after(list<T>::node *node, list<T>::node *new_node) {
+		if (node->next != nullptr) node->next->prev = new_node;
+
+		this->dislodge(new_node);
+
+		new_node->next = node->next;
+		new_node->prev = node;
+
+		node->next = new_node;
+
+		if (this->list_tail == node) this->list_tail = new_node;
+	}
+
 	void erase(list<T>::node *node) {
 		this->dislodge(node);
 		delete node;
 		this->list_size--;
-	}
-
-	list<T>::node * new_node(T data) {
-		list<T>::node *node = new list<T>::node(data, nullptr, nullptr);
-
-		node->data = data;
-		node->next = nullptr;
-		node->prev = nullptr;
-
-		return node;
 	}
 
 	void print() {
@@ -124,6 +140,16 @@ public:
 		}
 
 		std::cout << '>' << std::endl;
+	}
+
+	static list<T>::node * new_node(T data) {
+		list<T>::node *node = new list<T>::node(data, nullptr, nullptr);
+
+		node->data = data;
+		node->next = nullptr;
+		node->prev = nullptr;
+
+		return node;
 	}
 
 private:
