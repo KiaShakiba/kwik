@@ -78,6 +78,8 @@ public:
 	}
 
 	void move_front(list<T>::node *node) {
+		if (this->list_head == node) return;
+
 		this->dislodge(node);
 
 		node->next = this->list_head;
@@ -86,6 +88,8 @@ public:
 	}
 
 	void move_back(list<T>::node *node) {
+		if (this->list_tail == node) return;
+
 		this->dislodge(node);
 
 		node->prev = this->list_tail;
@@ -94,6 +98,7 @@ public:
 	}
 
 	void place_before(list<T>::node *node, list<T>::node *new_node) {
+		if (new_node->next == nullptr && new_node->prev == nullptr) this->list_size--;
 		if (node->prev != nullptr) node->prev->next = new_node;
 
 		this->dislodge(new_node);
@@ -107,6 +112,7 @@ public:
 	}
 
 	void place_after(list<T>::node *node, list<T>::node *new_node) {
+		if (new_node->next == nullptr && new_node->prev == nullptr) this->list_size--;
 		if (node->next != nullptr) node->next->prev = new_node;
 
 		this->dislodge(new_node);
