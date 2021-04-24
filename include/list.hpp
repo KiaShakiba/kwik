@@ -1,6 +1,7 @@
 #ifndef _LIST_HPP_
 #define _LIST_HPP_
 
+#include <iostream>
 #include <string>
 
 namespace kwik {
