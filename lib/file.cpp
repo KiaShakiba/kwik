@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 #include <file.hpp>
 #include <format.hpp>
 

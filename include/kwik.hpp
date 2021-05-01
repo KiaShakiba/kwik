@@ -7,5 +7,6 @@
 #include <csv.hpp>
 #include <progress.hpp>
 #include <format.hpp>
+#include <arg_parser.hpp>
 
 #endif

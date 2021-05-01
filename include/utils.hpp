@@ -8,6 +8,9 @@ namespace kwik {
 	namespace utils {
 		std::vector<std::string> split(std::string const &, char);
 		uint64_t timestamp();
+
+		template <typename T>
+		T cast(std::string);
 	}
 };
 
