@@ -8,6 +8,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include_directories(${PROJECT_SOURCE_DIR}/include/)
 
+find_package(Threads)
+
 file(GLOB HPP_FILES ${PROJECT_SOURCE_DIR}/include/*.hpp)
 file(GLOB CPP_FILES ${PROJECT_SOURCE_DIR}/lib/*.cpp)
 
@@ -16,3 +18,5 @@ add_executable(${PROJECT_NAME}
 	main.cpp
 	${CPP_FILES}
 )
+
+target_link_libraries(${PROJECT_NAME} Threads::Threads)

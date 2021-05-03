@@ -8,5 +8,6 @@
 #include <progress.hpp>
 #include <format.hpp>
 #include <arg_parser.hpp>
+#include <thread_pool.hpp>
 
 #endif
