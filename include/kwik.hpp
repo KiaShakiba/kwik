@@ -9,5 +9,6 @@
 #include <format.hpp>
 #include <arg_parser.hpp>
 #include <thread_pool.hpp>
+#include <binary_tree.hpp>
 
 #endif

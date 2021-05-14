@@ -18,7 +18,7 @@ public:
 		struct node *next;
 		struct node *prev;
 
-		node(T data, struct node *next, struct node *prev) :
+		node(T data, struct node *next = nullptr, struct node *prev = nullptr) :
 			data(data), next(next), prev(prev) {}
 	};
 
@@ -150,13 +150,7 @@ public:
 	}
 
 	static list<T>::node * new_node(T data) {
-		list<T>::node *node = new list<T>::node(data, nullptr, nullptr);
-
-		node->data = data;
-		node->next = nullptr;
-		node->prev = nullptr;
-
-		return node;
+		return new list<T>::node(data);
 	}
 
 private:
