@@ -50,6 +50,9 @@ public:
 		this->destroy(this->tree_root);
 	}
 
+	binary_tree<T>::node * root() { return this->tree_root; }
+	size_t size() { return this->tree_size; }
+
 	void insert(T data) {
 		binary_tree<T>::node *node = binary_tree<T>::new_node(data);
 		this->insert(node);
