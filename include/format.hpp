@@ -6,7 +6,7 @@
 namespace kwik {
 	namespace format {
 		std::string number(uint64_t const &);
-	}
-}
+	};
+};
 
 #endif

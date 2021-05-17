@@ -8,7 +8,7 @@
 
 namespace kwik {
 	class arg_parser;
-}
+};
 
 class kwik::arg_parser {
 private:

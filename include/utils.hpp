@@ -11,7 +11,7 @@ namespace kwik {
 
 		template <typename T>
 		T cast(std::string);
-	}
+	};
 };
 
 #endif

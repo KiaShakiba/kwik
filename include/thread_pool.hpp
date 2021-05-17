@@ -11,7 +11,7 @@
 
 namespace kwik {
 	class thread_pool;
-}
+};
 
 class kwik::thread_pool {
 private:
@@ -24,6 +24,7 @@ private:
 
 	std::atomic<int> num_running = 0;
 	std::atomic<bool> stop_work = false;
+
 public:
 	thread_pool(size_t = std::thread::hardware_concurrency());
 
