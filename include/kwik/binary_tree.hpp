@@ -30,7 +30,7 @@ public:
 
 	typedef std::function<int(T, T)> comparator;
 
-private:
+protected:
 	binary_tree<T>::node *tree_root = nullptr;
 	size_t tree_size = 0;
 
@@ -52,6 +52,7 @@ public:
 
 	binary_tree<T>::node * root() { return this->tree_root; }
 	size_t size() { return this->tree_size; }
+	uint64_t height() { return this->height(this->tree_root); }
 
 	void insert(T data) {
 		binary_tree<T>::node *node = binary_tree<T>::new_node(data);
@@ -60,7 +61,7 @@ public:
 
 	void insert(binary_tree<T>::node *node) {
 		this->tree_size++;
-		this->tree_root = insert(this->tree_root, node);
+		this->tree_root = this->insert(this->tree_root, node);
 	}
 
 	void remove(T data) {
@@ -105,7 +106,7 @@ public:
 		return new binary_tree<T>::node(data);
 	}
 
-private:
+protected:
 	binary_tree<T>::node * insert(binary_tree<T>::node *root, binary_tree<T>::node *node) {
 		if (root == nullptr) return node;
 
@@ -128,12 +129,12 @@ private:
 			root->right = this->insert(root->right, node);
 		}
 
-		uint64_t left_height = root->left != nullptr ? root->left->height : 0;
-		uint64_t right_height = root->right != nullptr ? root->right->height : 0;
+		root->height = std::max(
+			this->height(root->left),
+			this->height(root->right)
+		) + 1;
 
-		root->height = std::max(left_height, right_height) + 1;
-
-		return root;
+		return this->balance(root);
 	}
 
 	void parent_relink(binary_tree<T>::node *root, binary_tree<T>::node *node) {
@@ -149,10 +150,10 @@ private:
 	void parent_refresh_height(binary_tree<T>::node *node) {
 		if (node == nullptr) return;
 
-		uint64_t left_height = node->left != nullptr ? node->left->height : 0;
-		uint64_t right_height = node->right != nullptr ? node->right->height : 0;
-
-		node->height = std::max(left_height, right_height) + 1;
+		node->height = std::max(
+			this->height(node->left),
+			this->height(node->right)
+		) + 1;
 
 		if (node->parent != nullptr) this->parent_refresh_height(node->parent);
 	}
@@ -181,6 +182,10 @@ private:
 		return this->find_max(node->right);
 	}
 
+	uint64_t height(binary_tree<T>::node *node) {
+		return node != nullptr ? node->height : 0;
+	}
+
 	void destroy(binary_tree<T>::node *root) {
 		if (root == nullptr) return;
 
@@ -197,7 +202,18 @@ private:
 
 		std::cout << root->data;
 
+		if (root->parent != nullptr) {
+			std::cout << " (" << root->parent->data << " - " << root->height << ")";
+		} else {
+			std::cout << " (null)";
+		}
+
 		if (root->right != nullptr) this->print(root->right, no_comma);
+	}
+
+private:
+	virtual binary_tree<T>::node * balance(binary_tree<T>::node *root) {
+		return root;
 	}
 };
 

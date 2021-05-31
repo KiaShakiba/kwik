@@ -1,6 +1,5 @@
-#include <thread_pool.hpp>
-
 #include <iostream>
+#include <kwik/thread_pool.hpp>
 
 kwik::thread_pool::thread_pool(size_t size) {
 	if (size == 0) {

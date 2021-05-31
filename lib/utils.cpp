@@ -1,7 +1,7 @@
 #include <cstring>
 #include <chrono>
 #include <stdexcept>
-#include <utils.hpp>
+#include <kwik/utils.hpp>
 
 std::vector<std::string> kwik::utils::split(std::string const &input, char delimiter) {
 	std::vector<std::string> values;

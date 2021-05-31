@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <set>
-#include <utils.hpp>
+#include <kwik/utils.hpp>
 
 namespace kwik {
 	class arg_parser;

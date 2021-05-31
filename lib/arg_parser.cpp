@@ -1,7 +1,6 @@
-#include <stdexcept>
-#include <arg_parser.hpp>
-
 #include <iostream>
+#include <stdexcept>
+#include <kwik/arg_parser.hpp>
 
 kwik::arg_parser::arg_parser(int argc, char **argv) {
 	this->argc = argc;

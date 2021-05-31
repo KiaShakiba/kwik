@@ -3,7 +3,7 @@
 
 #include <string>
 #include <fstream>
-#include <progress.hpp>
+#include <kwik/progress.hpp>
 
 namespace kwik {
 	class file;

@@ -1,8 +1,8 @@
 #include <iostream>
 #include <cmath>
-#include <progress.hpp>
-#include <utils.hpp>
-#include <format.hpp>
+#include <kwik/progress.hpp>
+#include <kwik/utils.hpp>
+#include <kwik/format.hpp>
 
 kwik::progress::progress(uint64_t total) {
 	this->total = total;

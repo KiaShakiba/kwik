@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdexcept>
-#include <file.hpp>
-#include <format.hpp>
+#include <kwik/file.hpp>
+#include <kwik/format.hpp>
 
 kwik::file::file(std::string path) {
 	this->path = path;
