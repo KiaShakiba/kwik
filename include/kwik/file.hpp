@@ -12,13 +12,15 @@ namespace kwik {
 class kwik::file {
 private:
 	std::string path;
+	bool quiet;
+
 	uint64_t num_lines;
 
 	FILE *file_stream;
-	kwik::progress *progress;
+	kwik::progress *progress = nullptr;
 
 public:
-	file(std::string);
+	file(std::string, bool = false);
 	~file();
 
 	bool read_line(std::string &);

@@ -3,8 +3,10 @@
 #include <kwik/file.hpp>
 #include <kwik/format.hpp>
 
-kwik::file::file(std::string path) {
+kwik::file::file(std::string path, bool show_progress) {
 	this->path = path;
+	this->quiet = !show_progress;
+
 	this->count_lines();
 
 	this->file_stream = fopen(path.c_str(), "r");
@@ -13,7 +15,9 @@ kwik::file::file(std::string path) {
 		throw std::invalid_argument("Could not open input file.");
 	}
 
-	this->progress = new kwik::progress(this->num_lines);
+	if (!this->quiet) {
+		this->progress = new kwik::progress(this->num_lines);
+	}
 }
 
 kwik::file::~file() {
@@ -21,7 +25,9 @@ kwik::file::~file() {
 		fclose(this->file_stream);
 	}
 
-	delete this->progress;
+	if (!this->quiet) {
+		delete this->progress;
+	}
 }
 
 bool kwik::file::read_line(std::string &line) {
@@ -33,7 +39,7 @@ bool kwik::file::read_line(std::string &line) {
 	if (got == -1) {
 		fclose(this->file_stream);
 		this->file_stream = NULL;
-	} else {
+	} else if (!this->quiet) {
 		this->progress->tick();
 	}
 
@@ -57,7 +63,7 @@ void kwik::file::count_lines() {
 	while (getline(&line, &length, file_stream) != -1) {
 		this->num_lines++;
 
-		if (this->num_lines % 100000 == 0 || this->num_lines == 1) {
+		if (!this->quiet && this->num_lines % 100000 == 0 || this->num_lines == 1) {
 			std::cout
 				<< "Loading file ("
 				<< kwik::format::number(this->num_lines) << ")\r"
@@ -67,8 +73,10 @@ void kwik::file::count_lines() {
 
 	fclose(file_stream);
 
-	std::cout
-		<< "Loading file ("
-		<< kwik::format::number(this->num_lines) << ')'
-		<< std::endl;
+	if (!this->quiet) {
+		std::cout
+			<< "Loading file ("
+			<< kwik::format::number(this->num_lines) << ')'
+			<< std::endl;
+	}
 }
