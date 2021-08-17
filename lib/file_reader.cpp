@@ -1,9 +1,9 @@
 #include <iostream>
 #include <stdexcept>
-#include <kwik/file.hpp>
+#include <kwik/file_reader.hpp>
 #include <kwik/format.hpp>
 
-kwik::file::file(std::string path, bool show_progress) {
+kwik::file_reader::file_reader(std::string path, bool show_progress) {
 	this->path = path;
 	this->quiet = !show_progress;
 
@@ -20,7 +20,7 @@ kwik::file::file(std::string path, bool show_progress) {
 	}
 }
 
-kwik::file::~file() {
+kwik::file_reader::~file_reader() {
 	if (this->file_stream != NULL) {
 		fclose(this->file_stream);
 	}
@@ -30,7 +30,7 @@ kwik::file::~file() {
 	}
 }
 
-bool kwik::file::read_line(std::string &line) {
+bool kwik::file_reader::read_line(std::string &line) {
 	char *c_str = NULL;
 	size_t length = 0;
 
@@ -48,7 +48,7 @@ bool kwik::file::read_line(std::string &line) {
 	return got != -1;
 }
 
-void kwik::file::count_lines() {
+void kwik::file_reader::count_lines() {
 	this->num_lines = 0;
 
 	FILE *file_stream = fopen(this->path.c_str(), "r");

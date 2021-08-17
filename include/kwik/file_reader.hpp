@@ -6,10 +6,10 @@
 #include <kwik/progress.hpp>
 
 namespace kwik {
-	class file;
+	class file_reader;
 };
 
-class kwik::file {
+class kwik::file_reader {
 private:
 	std::string path;
 	bool quiet;
@@ -20,8 +20,8 @@ private:
 	kwik::progress *progress = nullptr;
 
 public:
-	file(std::string, bool = false);
-	~file();
+	file_reader(std::string, bool = false);
+	~file_reader();
 
 	bool read_line(std::string &);
 
