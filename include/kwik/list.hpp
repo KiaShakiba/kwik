@@ -98,6 +98,7 @@ public:
 	}
 
 	void place_before(list<T>::node *node, list<T>::node *new_node) {
+		if (node->prev == new_node) return;
 		if (new_node->next == nullptr && new_node->prev == nullptr) this->list_size++;
 		if (node->prev != nullptr) node->prev->next = new_node;
 
@@ -112,6 +113,7 @@ public:
 	}
 
 	void place_after(list<T>::node *node, list<T>::node *new_node) {
+		if (node->next == new_node) return;
 		if (new_node->next == nullptr && new_node->prev == nullptr) this->list_size++;
 		if (node->next != nullptr) node->next->prev = new_node;
 

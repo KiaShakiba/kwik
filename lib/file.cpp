@@ -63,7 +63,7 @@ void kwik::file::count_lines() {
 	while (getline(&line, &length, file_stream) != -1) {
 		this->num_lines++;
 
-		if (!this->quiet && this->num_lines % 100000 == 0 || this->num_lines == 1) {
+		if (!this->quiet && (this->num_lines % 100000 == 0 || this->num_lines == 1)) {
 			std::cout
 				<< "Loading file ("
 				<< kwik::format::number(this->num_lines) << ")\r"
