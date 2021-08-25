@@ -1,5 +1,5 @@
-#ifndef _FILE_HPP_
-#define _FILE_HPP_
+#ifndef _FILE_READER_HPP_
+#define _FILE_READER_HPP_
 
 #include <string>
 #include <fstream>
