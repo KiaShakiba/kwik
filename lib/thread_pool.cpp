@@ -57,7 +57,11 @@ void kwik::thread_pool::worker(int id) {
 
 		job();
 
-		this->num_running--;
+		{
+			std::unique_lock<std::mutex> lock (this->pool_lock);
+			this->num_running--;
+		}
+
 		this->wait_condition.notify_all();
 	}
 }
