@@ -3,15 +3,15 @@
 #include <stdexcept>
 #include <kwik/utils.hpp>
 
-std::vector<std::string> kwik::utils::split(std::string const &input, char delimiter) {
+std::vector<std::string> kwik::utils::split(std::string const &input, const char *delimiter) {
 	std::vector<std::string> values;
 
 	char *save_ptr;
 	char *token;
 
-	for (token = strtok_r((char *)input.c_str(), &delimiter, &save_ptr);
+	for (token = strtok_r((char *)input.c_str(), delimiter, &save_ptr);
 		token != NULL;
-		token = strtok_r(NULL, &delimiter, &save_ptr)) {
+		token = strtok_r(NULL, delimiter, &save_ptr)) {
 
 		values.push_back(std::string(token));
 	}

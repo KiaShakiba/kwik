@@ -44,6 +44,7 @@ bool kwik::file_reader::read_line(std::string &line) {
 	}
 
 	line = c_str;
+	free(c_str);
 
 	return got != -1;
 }
@@ -72,6 +73,7 @@ void kwik::file_reader::count_lines() {
 	}
 
 	fclose(file_stream);
+	free(line);
 
 	if (!this->quiet) {
 		std::cout

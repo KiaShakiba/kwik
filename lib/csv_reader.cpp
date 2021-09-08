@@ -10,7 +10,7 @@ bool kwik::csv_reader::read_line(std::vector<std::string> &row) {
 		return false;
 	}
 
-	row = kwik::utils::split(line, ',');
+	row = kwik::utils::split(line, ",");
 
 	return true;
 }
