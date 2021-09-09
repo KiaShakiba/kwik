@@ -2,6 +2,7 @@
 #define _ARG_PARSER_HPP_
 
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <set>
 #include <kwik/utils.hpp>
@@ -46,8 +47,8 @@ private:
 
 public:
 	arg_parser(int, char **);
+	~arg_parser();
 
-	void add(std::string, std::string, bool = false, std::string = "");
 	void parse();
 
 	bool has(const std::string &) const;
@@ -56,10 +57,26 @@ public:
 	void add(
 		std::string short_tag,
 		std::string long_tag,
-		bool required,
-		T default_value
+		bool required = false,
+		T default_value = ""
 	) {
-		this->add(short_tag, long_tag, required, std::to_string(default_value));
+		if (this->get_entry(short_tag) != nullptr) {
+			kwik::arg_parser::throw_already_registered(short_tag);
+		}
+
+		if (this->get_entry(long_tag) != nullptr) {
+			kwik::arg_parser::throw_already_registered(long_tag);
+		}
+
+		std::stringstream ss;
+		ss << default_value;
+
+		this->entries.push_back(new kwik::arg_parser::entry(
+			long_tag,
+			short_tag,
+			required,
+			ss.str()
+		));
 	}
 
 	template <typename T = std::string>
@@ -72,9 +89,9 @@ public:
 private:
 	entry * get_entry(const std::string &) const;
 
-	void throw_invalid(const std::string &) const;
-	void throw_already_registered(const std::string &) const;
-	void throw_not_registered(const std::string &) const;
+	static void throw_invalid(const std::string &);
+	static void throw_already_registered(const std::string &);
+	static void throw_not_registered(const std::string &);
 };
 
 #endif
