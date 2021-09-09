@@ -53,7 +53,7 @@ public:
 
 	bool has(const std::string &) const;
 
-	template <typename T>
+	template <typename T = std::string>
 	void add(
 		std::string short_tag,
 		std::string long_tag,
