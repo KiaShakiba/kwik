@@ -7,10 +7,21 @@ kwik::arg_parser::arg_parser(int argc, char **argv) {
 	this->argv = argv;
 }
 
-void kwik::arg_parser::add(std::string short_tag, std::string long_tag, bool required) {
-	this->long_map[long_tag] = short_tag;
-	this->short_map[short_tag] = long_tag;
-	this->required[long_tag] = required;
+void kwik::arg_parser::add(
+	std::string short_tag,
+	std::string long_tag,
+	bool required,
+	std::string default_value
+) {
+	if (this->get_entry(short_tag) != nullptr) this->throw_already_registered(short_tag);
+	if (this->get_entry(long_tag) != nullptr) this->throw_already_registered(long_tag);
+
+	this->entries.push_back(new kwik::arg_parser::entry(
+		long_tag,
+		short_tag,
+		required,
+		default_value
+	));
 }
 
 void kwik::arg_parser::parse() {
@@ -19,77 +30,50 @@ void kwik::arg_parser::parse() {
 		bool is_long = key.find("--") == 0;
 		bool is_short = !is_long && key.find("-") == 0;
 
-		if (!is_long && !is_short) {
-			throw std::invalid_argument("Invalid arg <" + key + ">");
-		}
+		if (!is_long && !is_short) this->throw_invalid(key);
 
 		std::string tag = key;
 		tag.replace(0, is_long ? 2 : 1, "");
 
-		if (is_long && this->long_map.find(tag) == this->long_map.end() ||
-			is_short && this->short_map.find(tag) == this->short_map.end()) {
+		auto entry = this->get_entry(tag);
 
-			throw std::invalid_argument("Invalid arg <" + tag + ">");
-		}
+		if (entry == nullptr) this->throw_invalid(tag);
 
-		this->args[key] = i < argc - 1 && argv[i + 1][0] != '-' ?
-			argv[++i] : "";
+		entry->exists = true;
+		entry->arg_value = i < argc - 1 && argv[i + 1][0] != '-' ?  argv[++i] : "";
 	}
 
-	for (auto &it : this->required) {
-		if (it.second && this->args.find("--" + it.first) == this->args.end() &&
-			this->args.find("-" + this->long_map[it.first]) == this->args.end()) {
-
-			throw std::invalid_argument("Missing required arg <" + it.first + ">");
+	for (auto entry : this->entries) {
+		if (entry->required && !entry->exists) {
+			throw std::invalid_argument("Missing required arg <" + entry->long_tag + ">");
 		}
 	}
 }
 
-bool kwik::arg_parser::has(const std::string &tag) {
-	return this->args.find("--" + tag) != this->args.end() ||
-		this->args.find("-" + this->long_map[tag]) != this->args.end() ||
-		this->args.find("-" + tag) != this->args.end() ||
-		this->args.find("--" + this->short_map[tag]) != this->args.end();
+bool kwik::arg_parser::has(const std::string &tag) const {
+	auto entry = this->get_entry(tag);
+	if (entry == nullptr) this->throw_not_registered(tag);
+	return entry->exists;
 }
 
-std::string kwik::arg_parser::get_value(const std::string &tag) {
-	auto got_long = this->long_map.find(tag);
-	auto got_short = this->short_map.find(tag);
-
-	bool has_long = got_long != this->long_map.end();
-	bool has_short = got_short != this->short_map.end();
-
-	if (!has_long && !has_short) {
-		throw std::invalid_argument("Invalid arg <" + tag + ">");
-	}
-
-	std::unordered_map<std::string, std::string>::const_iterator got;
-
-	if (has_long) {
-		got = this->args.find("--" + tag);
-
-		if (got != this->args.end()) {
-			return got->second;
-		}
-
-		got = this->args.find("-" + got_long->second);
-
-		if (got != this->args.end()) {
-			return got->second;
+kwik::arg_parser::entry * kwik::arg_parser::get_entry(const std::string &tag) const {
+	for (auto entry : this->entries) {
+		if (entry->long_tag == tag || entry->short_tag == tag) {
+			return entry;
 		}
 	}
 
-	got = this->args.find("-" + tag);
+	return nullptr;
+}
 
-	if (got != this->args.end()) {
-		return got->second;
-	}
+void kwik::arg_parser::throw_invalid(const std::string &tag) const {
+	throw std::invalid_argument("Invalid arg <" + tag + ">");
+}
 
-	got = this->args.find("--" + got_short->second);
+void kwik::arg_parser::throw_already_registered(const std::string &tag) const {
+	throw std::invalid_argument("Arg already registered <" + tag + ">");
+}
 
-	if (got == this->args.end()) {
-		throw std::invalid_argument("Arg not found <" + tag + ">");
-	}
-
-	return got->second;
+void kwik::arg_parser::throw_not_registered(const std::string &tag) const {
+	throw std::invalid_argument("Arg not registered <" + tag + ">");
 }
