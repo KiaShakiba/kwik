@@ -28,24 +28,62 @@ public:
 
 	void push_front(K key, V data) {
 		hash_list<K, V>::node *node = hash_list<K, V>::new_node(data);
-		this->map.emplace(key, node);
+		this->emplace_node(key, node);
 		kwik::list<V>::push_front(node);
 	}
 
 	void push_front(K key, kwik::hash_list<K, V>::node *node) {
-		this->map.emplace(key, node);
+		this->emplace_node(key, node);
 		kwik::list<V>::push_front(node);
 	}
 
 	void push_back(K key, V data) {
 		hash_list<K, V>::node *node = hash_list<K, V>::new_node(data);
-		this->map.emplace(key, node);
+		this->emplace_node(key, node);
 		kwik::list<V>::push_back(node);
 	}
 
 	void push_back(K key, kwik::hash_list<K, V>::node *node) {
-		this->map.emplace(key, node);
+		this->emplace_node(key, node);
 		kwik::list<V>::push_back(node);
+	}
+
+	void place_before(kwik::hash_list<K, V>::node *node, K new_key, kwik::hash_list<K, V>::node *new_node) {
+		kwik::hash_list<K, V>::node *got_node = this->get(new_key);
+
+		if (got_node != nullptr && got_node != new_node) throw std::invalid_argument("Invalid <key, node> pair");
+		if (got_node == nullptr) this->emplace_node(new_key, new_node);
+
+		kwik::list<V>::place_before(node, new_node);
+	}
+
+	void place_after(kwik::hash_list<K, V>::node *node, K new_key, kwik::hash_list<K, V>::node *new_node) {
+		kwik::hash_list<K, V>::node *got_node = this->get(new_key);
+
+		if (got_node != nullptr && got_node != new_node) throw std::invalid_argument("Invalid <key, node> pair");
+		if (got_node == nullptr) this->emplace_node(new_key, new_node);
+
+		kwik::list<V>::place_after(node, new_node);
+	}
+
+	void move_before(K key, K new_key) {
+		kwik::hash_list<K, V>::node *node = this->get(key);
+		if (node == nullptr) throw std::invalid_argument("Invalid key");
+
+		kwik::hash_list<K, V>::node *new_node = this->get(new_key);
+		if (new_node == nullptr) throw std::invalid_argument("Invalid key");
+
+		kwik::list<V>::place_before(node, new_node);
+	}
+
+	void move_after(K key, K new_key) {
+		kwik::hash_list<K, V>::node *node = this->get(key);
+		if (node == nullptr) throw std::invalid_argument("Invalid key");
+
+		kwik::hash_list<K, V>::node *new_node = this->get(new_key);
+		if (new_node == nullptr) throw std::invalid_argument("Invalid key");
+
+		kwik::list<V>::place_after(node, new_node);
 	}
 
 	void erase(K key) {
@@ -54,6 +92,15 @@ public:
 		if (got != this->map.end()) {
 			this->map.erase(key);
 			kwik::list<V>::erase(got->second);
+		}
+	}
+
+private:
+	void emplace_node(K key, kwik::hash_list<K, V>::node *node) {
+		auto placed = this->map.emplace(key, node);
+
+		if (!placed.second) {
+			throw std::invalid_argument("Key already exists in hash list");
 		}
 	}
 };
