@@ -42,7 +42,7 @@ void kwik::arg_parser::parse() {
 bool kwik::arg_parser::has(const std::string &tag) const {
 	auto entry = this->get_entry(tag);
 	if (entry == nullptr) kwik::arg_parser::throw_not_registered(tag);
-	return entry->exists;
+	return entry->exists || !entry->default_value.empty();
 }
 
 kwik::arg_parser::entry * kwik::arg_parser::get_entry(const std::string &tag) const {
