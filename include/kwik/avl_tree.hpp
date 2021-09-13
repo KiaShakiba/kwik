@@ -12,9 +12,7 @@ namespace kwik {
 template <typename T>
 class kwik::avl_tree : public kwik::binary_tree<T> {
 using kwik::binary_tree<T>::binary_tree;
-
-private:
-	using node = typename kwik::binary_tree<T>::node;
+using node = typename kwik::binary_tree<T>::node;
 
 private:
 	int64_t difference(avl_tree<T>::node *node) {
