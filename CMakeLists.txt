@@ -14,7 +14,9 @@ file(GLOB TEST_FILES ${PROJECT_SOURCE_DIR}/tests/*.cpp)
 add_library(${PROJECT_NAME} ${CPP_FILES})
 add_executable(tests ${TEST_FILES})
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/extern/Catch2)
+if (NOT TARGET Catch2)
+	add_subdirectory(${PROJECT_SOURCE_DIR}/extern/Catch2)
+endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(${PROJECT_NAME} Threads::Threads)
