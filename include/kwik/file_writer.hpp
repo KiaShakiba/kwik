@@ -12,6 +12,8 @@ class kwik::file_writer {
 protected:
 	std::ofstream file;
 
+	file_writer(std::string, std::ios_base::openmode);
+
 public:
 	static const char endl = '\n';
 
@@ -23,6 +25,9 @@ public:
 		this->file << value;
 		return *this;
 	}
+
+private:
+	static void throw_file_error();
 };
 
 #endif
