@@ -9,11 +9,11 @@ kwik::progress::progress(uint64_t total) {
 	this->draw(0, 0);
 }
 
-void kwik::progress::tick() {
-	this->current++;
+void kwik::progress::tick(uint64_t amount) {
+	this->current += amount;
 
 	uint64_t progress = (uint64_t)(100 * (double)this->current / this->total);
-	uint64_t previous_progress = (uint64_t)(100 * (double)(this->current - 1) / this->total);
+	uint64_t previous_progress = (uint64_t)(100 * (double)(this->current - amount) / this->total);
 
 	uint64_t rate = this->get_rate();
 
@@ -60,7 +60,7 @@ uint64_t kwik::progress::get_rate() {
 void kwik::progress::draw(uint64_t progress, uint64_t rate) {
 	int position = kwik::progress::WIDTH * ((double)progress / 100);
 
-	std::cout << '[';
+	std::cout << "\33[2K\r[";
 
 	for (int i = 0; i<kwik::progress::WIDTH; i++) {
 		std::cout << (
@@ -73,19 +73,8 @@ void kwik::progress::draw(uint64_t progress, uint64_t rate) {
 	std::cout << "] " << progress << " %";
 
 	// if the current progress is 100, do not show a rate
-	std::string rate_string = progress < 100 ?
-		" (" + kwik::format::number(rate) + " rps)" : "";
-
-	std::cout << rate_string;
-
-	std::string previous_rate_string = " (" + kwik::format::number(this->previous_rate) + " rps)";
-
-	// if the current rate is less than the previous rate,
-	// cover the old characters with spaces to hide them
-	if (previous_rate_string.size() > rate_string.size()) {
-		for (int i=0; i<previous_rate_string.size() - rate_string.size(); i++) {
-			std::cout << ' ';
-		}
+	if (progress < 100) {
+		std::cout << " (" + kwik::format::number(rate) + " rps)";
 	}
 
 	std::cout << '\r' << std::flush;

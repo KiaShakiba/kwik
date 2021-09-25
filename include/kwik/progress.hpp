@@ -23,7 +23,7 @@ private:
 public:
 	progress(uint64_t);
 
-	void tick();
+	void tick(uint64_t = 1);
 
 private:
 	uint64_t get_rate();
