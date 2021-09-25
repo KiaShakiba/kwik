@@ -10,10 +10,15 @@ kwik::progress::progress(uint64_t total) {
 }
 
 void kwik::progress::tick(uint64_t amount) {
-	this->current += amount;
+	this->set(this->current + amount);
+}
+
+void kwik::progress::set(uint64_t value) {
+	uint64_t previous = this->current;
+	this->current = value;
 
 	uint64_t progress = (uint64_t)(100 * (double)this->current / this->total);
-	uint64_t previous_progress = (uint64_t)(100 * (double)(this->current - amount) / this->total);
+	uint64_t previous_progress = (uint64_t)(100 * (double)previous / this->total);
 
 	uint64_t rate = this->get_rate();
 

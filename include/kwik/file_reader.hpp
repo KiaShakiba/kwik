@@ -11,22 +11,23 @@ namespace kwik {
 
 class kwik::file_reader {
 private:
-	std::string path;
 	bool quiet;
-
-	uint64_t num_lines;
-
-	FILE *file_stream;
+	std::ifstream file;
 	kwik::progress *progress = nullptr;
 
+protected:
+	file_reader(std::string, std::ios_base::openmode, bool = false);
+
 public:
-	file_reader(std::string, bool = false);
+	file_reader(std::string path, bool show_progress = false) :
+		file_reader(path, std::ifstream::in, show_progress) {}
+
 	~file_reader();
 
 	bool read_line(std::string &);
 
 private:
-	void count_lines();
+	uint64_t get_total_size();
 };
 
 #endif

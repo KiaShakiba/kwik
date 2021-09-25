@@ -17,7 +17,7 @@ protected:
 public:
 	static const char endl = '\n';
 
-	file_writer(std::string);
+	file_writer(std::string path) : file_writer(path, std::ofstream::out) {}
 	~file_writer();
 
 	template <typename T>
@@ -25,9 +25,6 @@ public:
 		this->file << value;
 		return *this;
 	}
-
-private:
-	static void throw_file_error();
 };
 
 #endif
