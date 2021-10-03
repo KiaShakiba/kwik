@@ -1,5 +1,5 @@
-#ifndef _CSV_HPP_
-#define _CSV_HPP_
+#ifndef _CSV_READER_HPP_
+#define _CSV_READER_HPP_
 
 #include <string>
 #include <vector>

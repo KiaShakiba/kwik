@@ -12,8 +12,9 @@ kwik::file_reader::file_reader(std::string path, std::ios_base::openmode mode, b
 		throw std::invalid_argument("Could not open input file.");
 	}
 
+	this->total_size = this->get_total_size();
+
 	if (!this->quiet) {
-		uint64_t total_size = this->get_total_size();
 		this->progress = new kwik::progress(total_size);
 	}
 }

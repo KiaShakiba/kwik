@@ -10,12 +10,13 @@ namespace kwik {
 };
 
 class kwik::file_reader {
-private:
+protected:
 	bool quiet;
 	std::ifstream file;
 	kwik::progress *progress = nullptr;
 
-protected:
+	uint64_t total_size;
+
 	file_reader(std::string, std::ios_base::openmode, bool = false);
 
 public:
