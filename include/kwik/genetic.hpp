@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 #include <algorithm>
-#include <cstdlib>
+#include <kwik/utils.hpp>
 
 namespace kwik {
 	template <typename T>
