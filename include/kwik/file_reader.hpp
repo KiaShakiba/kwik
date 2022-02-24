@@ -27,6 +27,8 @@ public:
 
 	bool read_line(std::string &);
 
+	void close();
+
 private:
 	uint64_t get_total_size();
 };

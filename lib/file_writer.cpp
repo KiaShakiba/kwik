@@ -10,5 +10,11 @@ kwik::file_writer::file_writer(std::string path, std::ios_base::openmode mode) {
 }
 
 kwik::file_writer::~file_writer() {
-	this->file.close();
+	this->close();
+}
+
+void kwik::file_writer::close() {
+	if (this->file.is_open()) {
+		this->file.close();
+	}
 }

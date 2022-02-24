@@ -20,9 +20,7 @@ kwik::file_reader::file_reader(std::string path, std::ios_base::openmode mode, b
 }
 
 kwik::file_reader::~file_reader() {
-	if (this->file.is_open()) {
-		this->file.close();
-	}
+	this->close();
 
 	if (!this->quiet) {
 		delete this->progress;
@@ -47,4 +45,10 @@ uint64_t kwik::file_reader::get_total_size() {
 	this->file.seekg(0, this->file.beg);
 
 	return size;
+}
+
+void kwik::file_reader::close() {
+	if (this->file.is_open()) {
+		this->file.close();
+	}
 }

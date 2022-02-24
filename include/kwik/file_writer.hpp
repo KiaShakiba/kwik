@@ -25,6 +25,8 @@ public:
 		this->file << value;
 		return *this;
 	}
+
+	void close();
 };
 
 #endif

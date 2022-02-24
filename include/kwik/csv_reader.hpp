@@ -12,8 +12,11 @@ namespace kwik {
 class kwik::csv_reader : public kwik::file_reader {
 using kwik::file_reader::file_reader;
 
+private:
+	using kwik::file_reader::read_line;
+
 public:
-	bool read_line(std::vector<std::string> &);
+	bool read_row(std::vector<std::string> &);
 };
 
 #endif

@@ -1,7 +1,7 @@
 #include <kwik/csv_reader.hpp>
 #include <kwik/utils.hpp>
 
-bool kwik::csv_reader::read_line(std::vector<std::string> &row) {
+bool kwik::csv_reader::read_row(std::vector<std::string> &row) {
 	std::string line;
 
 	bool got = kwik::file_reader::read_line(line);
