@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <random>
+#include <stdexcept>
 
 namespace kwik {
 	namespace utils {
