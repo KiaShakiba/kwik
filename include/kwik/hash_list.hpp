@@ -102,6 +102,11 @@ public:
 		}
 	}
 
+	void erase(K key, kwik::hash_list<K, V>::node *node) {
+		this->map.erase(key);
+		kwik::list<V>::erase(node);
+	}
+
 private:
 	void emplace_node(K key, kwik::hash_list<K, V>::node *node) {
 		auto placed = this->map.emplace(key, node);
