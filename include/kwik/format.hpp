@@ -12,7 +12,7 @@
 
 namespace kwik {
 	namespace format {
-		std::string number(uint64_t const &);
+		std::string number(const uint64_t &);
 	};
 };
 

@@ -11,16 +11,15 @@
 #include <kwik/utils.hpp>
 #include <kwik/format.hpp>
 
-kwik::progress::progress(uint64_t total) {
-	this->total = total;
+kwik::progress::progress(const uint64_t total) : total(total) {
 	this->draw(0, 0);
 }
 
-void kwik::progress::tick(uint64_t amount) {
+void kwik::progress::tick(const uint64_t &amount) {
 	this->set(this->current + amount);
 }
 
-void kwik::progress::set(uint64_t value) {
+void kwik::progress::set(const uint64_t &value) {
 	uint64_t previous = this->current;
 	this->current = value;
 
@@ -69,7 +68,7 @@ uint64_t kwik::progress::get_rate() {
 	return this->previous_rate;
 }
 
-void kwik::progress::draw(uint64_t progress, uint64_t rate) {
+void kwik::progress::draw(const uint64_t &progress, const uint64_t &rate) {
 	int position = kwik::progress::WIDTH * ((double)progress / 100);
 
 	std::cout << "\33[2K\r[";

@@ -14,7 +14,7 @@ namespace kwik {
 
 class kwik::progress {
 private:
-	uint64_t total;
+	const uint64_t total;
 	uint64_t current = 0;
 
 	uint64_t rate_time = 0;
@@ -30,12 +30,12 @@ private:
 public:
 	progress(uint64_t);
 
-	void tick(uint64_t = 1);
-	void set(uint64_t);
+	void tick(const uint64_t & = 1);
+	void set(const uint64_t &);
 
 private:
 	uint64_t get_rate();
-	void draw(uint64_t, uint64_t);
+	void draw(const uint64_t &, const uint64_t &);
 };
 
 #endif

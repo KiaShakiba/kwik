@@ -15,7 +15,7 @@
 
 namespace kwik {
 	namespace utils {
-		std::vector<std::string> split(std::string const &, const char *);
+		std::vector<std::string> split(const std::string &, const char *);
 		uint64_t timestamp();
 
 		template <typename T>

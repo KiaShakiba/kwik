@@ -9,7 +9,7 @@
 #include <locale>
 #include <kwik/format.hpp>
 
-std::string kwik::format::number(uint64_t const &value) {
+std::string kwik::format::number(const uint64_t &value) {
 	std::stringstream ss;
 	ss.imbue(std::locale(""));
 	ss << std::fixed << value;

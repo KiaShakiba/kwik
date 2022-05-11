@@ -10,7 +10,7 @@
 #include <stdexcept>
 #include <kwik/utils.hpp>
 
-std::vector<std::string> kwik::utils::split(std::string const &input, const char *delimiter) {
+std::vector<std::string> kwik::utils::split(const std::string &input, const char *delimiter) {
 	std::vector<std::string> values;
 
 	char *save_ptr;
