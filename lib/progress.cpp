@@ -85,7 +85,7 @@ void kwik::progress::draw(const uint64_t &progress, const uint64_t &rate) {
 
 	// if the current progress is 100, do not show a rate
 	if (progress < 100) {
-		std::cout << " (" + kwik::format::number(rate) + " rps)";
+		std::cout << " (" + kwik::format::number(rate) + " tps)";
 	}
 
 	std::cout << '\r' << std::flush;
