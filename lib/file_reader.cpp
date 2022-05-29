@@ -38,7 +38,7 @@ bool kwik::file_reader::read_line(std::string &line) {
 	std::istream &got = getline(this->file, line);
 
 	if (!got) {
-		this->file.close();
+		this->close();
 	} else if (!this->quiet) {
 		this->progress->tick(line.size() + sizeof(char));
 	}
@@ -58,4 +58,16 @@ void kwik::file_reader::close() {
 	if (this->file.is_open()) {
 		this->file.close();
 	}
+}
+
+bool kwik::file_reader::exists(std::string path) {
+	std::ifstream file;
+	file.open(path, std::ifstream::in);
+
+	if (!file.is_open()) {
+		return false;
+	}
+
+	file.close();
+	return true;
 }

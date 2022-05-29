@@ -36,6 +36,8 @@ public:
 
 	void close();
 
+	static bool exists(std::string);
+
 private:
 	uint64_t get_total_size();
 };
