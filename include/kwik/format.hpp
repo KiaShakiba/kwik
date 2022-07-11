@@ -13,6 +13,8 @@
 namespace kwik {
 	namespace format {
 		std::string number(const uint64_t &);
+		std::string memory(double, const uint8_t & = 0);
+		std::string timespan(uint64_t);
 	};
 };
 
