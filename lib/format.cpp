@@ -76,7 +76,7 @@ std::string kwik::format::timespan(uint64_t milliseconds) {
 		started = true;
 	}
 
-	ss << std::setw(started ? 2 : 0) << milliseconds;
+	ss << std::setw(started ? 3 : 0) << milliseconds;
 
 	return ss.str();
 }
