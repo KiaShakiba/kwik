@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 indicatif = "0.17.3"
+num-format = "0.4.4"
