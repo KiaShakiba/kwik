@@ -2,3 +2,4 @@
 #![feature(generic_const_exprs)]
 
 pub mod binary_reader;
+pub mod progress;
