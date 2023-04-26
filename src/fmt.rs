@@ -25,3 +25,50 @@ pub fn memory(value: &u64, precision: Option<usize>) -> String {
 
 	format!("{:.1$} {unit}", copy, decimals)
 }
+
+pub fn timespan(value: &u64) -> String {
+	let mut milliseconds: u64 = *value;
+
+	let days = milliseconds / 1000 / 60 / 60 / 24;
+	milliseconds -= days * 1000 * 60 * 60 * 24;
+
+	let hours = milliseconds / 1000 / 60 / 60;
+	milliseconds -= hours * 1000 * 60 * 60;
+
+	let minutes = milliseconds / 1000 / 60;
+	milliseconds -= minutes * 1000 * 60;
+
+	let seconds = milliseconds / 1000;
+	milliseconds -= seconds * 1000;
+
+	let mut formatted = String::new();
+	let mut started = false;
+
+	if days > 0 {
+		formatted.push_str(&format!("{days}."));
+		started = true;
+	}
+
+	if started || hours > 0 {
+		let padding = if started { 2 } else { 0 };
+		formatted.push_str(&format!("{:0width$}:", hours, width = padding));
+		started = true;
+	}
+
+	if started || minutes > 0 {
+		let padding = if started { 2 } else { 0 };
+		formatted.push_str(&format!("{:0width$}:", minutes, width = padding));
+		started = true;
+	}
+
+	if started || seconds > 0 {
+		let padding = if started { 2 } else { 0 };
+		formatted.push_str(&format!("{:0width$}.", seconds, width = padding));
+		started = true;
+	}
+
+	let padding = if started { 3 } else { 0 };
+	formatted.push_str(&format!("{:0width$}", milliseconds, width = padding));
+
+	formatted
+}

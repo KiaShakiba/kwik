@@ -3,5 +3,6 @@
 
 pub mod utils;
 pub mod fmt;
+pub mod math;
 pub mod binary_reader;
 pub mod progress;
