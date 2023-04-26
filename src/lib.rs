@@ -15,6 +15,7 @@ pub mod mem;
 
 pub mod file_reader;
 pub mod text_reader;
+pub mod csv_reader;
 pub mod binary_reader;
 
 pub mod progress;

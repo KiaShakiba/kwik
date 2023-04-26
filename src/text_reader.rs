@@ -68,7 +68,7 @@ impl TextReader {
 			Err(ref err) if err.kind() ==  ErrorKind::UnexpectedEof => None,
 
 			Err(_) => {
-				panic!("An error occurred when reading text file.");
+				panic!("An error occurred on line {} when reading text file.", self.count);
 			},
 		}
 	}
