@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{BufReader, Read, Error, ErrorKind};
+use crate::file_reader::FileReader;
 
 pub struct BinaryReader<T: Chunk> where [u8; T::SIZE]: Sized {
 	file: BufReader<File>,
@@ -12,8 +13,8 @@ pub trait Chunk {
 	fn new(_: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized;
 }
 
-impl<T: Chunk> BinaryReader<T> where [u8; T::SIZE]: Sized {
-	pub fn new(path: &'static str) -> Result<BinaryReader<T>, Error> {
+impl<'a, T: Chunk> FileReader<'a> for BinaryReader<T> where [u8; T::SIZE]: Sized {
+	fn new(path: &'a str) -> Result<Self, Error> {
 		let Ok(opened_file) = File::open(path) else {
 			return Err(Error::new(
 				ErrorKind::NotFound,
@@ -30,14 +31,16 @@ impl<T: Chunk> BinaryReader<T> where [u8; T::SIZE]: Sized {
 		Ok(reader)
 	}
 
-	pub fn size(&self) -> u64 {
+	fn size(&self) -> u64 {
 		let Ok(metadata) = self.file.get_ref().metadata() else {
 			panic!("Could not get binary file's size.");
 		};
 
 		metadata.len()
 	}
+}
 
+impl<T: Chunk> BinaryReader<T> where [u8; T::SIZE]: Sized {
 	pub fn read_chunk(&mut self) -> Option<T> {
 		match self.file.read_exact(&mut self.buf) {
 			Ok(_) => {
@@ -50,7 +53,9 @@ impl<T: Chunk> BinaryReader<T> where [u8; T::SIZE]: Sized {
 
 				Some(chunk)
 			},
+
 			Err(ref err) if err.kind() ==  ErrorKind::UnexpectedEof => None,
+
 			Err(_) => {
 				panic!("An error occurred when reading binary file.");
 			},
