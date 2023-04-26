@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) Kia Shakiba
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 use num_format::{Locale, ToFormattedString};
 
 pub const MEMORY_UNITS: &'static [&'static str] = &["B", "KB", "MB", "GB", "TB", "PB", "EB"];
