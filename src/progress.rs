@@ -77,6 +77,10 @@ impl<'a> Progress<'a> {
 	}
 
 	fn set(&mut self, value: u64) {
+		if value > self.total {
+			panic!("Progress value ({}) larger than total ({}).", value, self.total);
+		}
+
 		let previous = self.current;
 		self.current = value;
 

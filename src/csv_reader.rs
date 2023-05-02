@@ -13,7 +13,7 @@ use crate::file_reader::FileReader;
 
 pub use csv::StringRecord as StringRow;
 
-pub struct CSVReader<T: Row> {
+pub struct CsvReader<T: Row> {
 	file: Reader<File>,
 	buf: StringRow,
 	count: u64,
@@ -25,7 +25,7 @@ pub trait Row {
 	fn new(_: &StringRow) -> Result<Self, Error> where Self: Sized;
 }
 
-impl<T: Row> FileReader for CSVReader<T> {
+impl<T: Row> FileReader for CsvReader<T> {
 	fn new(path: &str) -> Result<Self, Error> {
 		let Ok(file) = Reader::from_path(path) else {
 			return Err(Error::new(
@@ -34,7 +34,7 @@ impl<T: Row> FileReader for CSVReader<T> {
 			));
 		};
 
-		let reader = CSVReader {
+		let reader = CsvReader {
 			file,
 			buf: StringRow::new(),
 			count: 0,
@@ -54,7 +54,7 @@ impl<T: Row> FileReader for CSVReader<T> {
 	}
 }
 
-impl<T: Row> CSVReader<T> {
+impl<T: Row> CsvReader<T> {
 	pub fn read_row(&mut self) -> Option<T> {
 		match self.file.read_record(&mut self.buf) {
 			Ok(result) => {

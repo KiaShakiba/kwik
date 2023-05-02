@@ -15,8 +15,11 @@ pub struct BinaryReader<T: Chunk> where [u8; T::SIZE]: Sized {
 	count: u64,
 }
 
-pub trait Chunk {
+pub trait SizedChunk {
 	const SIZE: usize;
+}
+
+pub trait Chunk: SizedChunk {
 	fn new(_: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized;
 }
 
@@ -53,12 +56,12 @@ impl<T: Chunk> BinaryReader<T> where [u8; T::SIZE]: Sized {
 			Ok(_) => {
 				self.count += 1;
 
-				let chunk = match T::new(&self.buf) {
-					Ok(chunk) => chunk,
+				let object = match T::new(&self.buf) {
+					Ok(object) => object,
 					Err(err) => panic!("Parse error in chunk {}: {:?}", self.count, err),
 				};
 
-				Some(chunk)
+				Some(object)
 			},
 
 			Err(ref err) if err.kind() ==  ErrorKind::UnexpectedEof => None,

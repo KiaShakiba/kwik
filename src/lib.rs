@@ -20,5 +20,7 @@ pub mod binary_reader;
 
 pub mod file_writer;
 pub mod text_writer;
+pub mod csv_writer;
+pub mod binary_writer;
 
 pub mod progress;
