@@ -25,8 +25,8 @@ pub trait Row {
 	fn new(_: &StringRow) -> Result<Self, Error> where Self: Sized;
 }
 
-impl<'a, T: Row> FileReader<'a> for CSVReader<T> {
-	fn new(path: &'a str) -> Result<Self, Error> {
+impl<T: Row> FileReader for CSVReader<T> {
+	fn new(path: &str) -> Result<Self, Error> {
 		let Ok(file) = Reader::from_path(path) else {
 			return Err(Error::new(
 				ErrorKind::NotFound,

@@ -15,8 +15,8 @@ pub struct TextReader {
 	count: u64,
 }
 
-impl<'a> FileReader<'a> for TextReader {
-	fn new(path: &'a str) -> Result<Self, Error> {
+impl FileReader for TextReader {
+	fn new(path: &str) -> Result<Self, Error> {
 		let Ok(opened_file) = File::open(path) else {
 			return Err(Error::new(
 				ErrorKind::NotFound,

@@ -7,7 +7,6 @@
 
 use std::io::Error;
 
-pub trait FileReader {
+pub trait FileWriter {
 	fn new(_: &str) -> Result<Self, Error> where Self: Sized;
-	fn size(&self) -> u64;
 }

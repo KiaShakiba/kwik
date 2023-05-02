@@ -18,4 +18,7 @@ pub mod text_reader;
 pub mod csv_reader;
 pub mod binary_reader;
 
+pub mod file_writer;
+pub mod text_writer;
+
 pub mod progress;

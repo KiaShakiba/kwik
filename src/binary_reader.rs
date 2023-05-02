@@ -20,8 +20,8 @@ pub trait Chunk {
 	fn new(_: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized;
 }
 
-impl<'a, T: Chunk> FileReader<'a> for BinaryReader<T> where [u8; T::SIZE]: Sized {
-	fn new(path: &'a str) -> Result<Self, Error> {
+impl<T: Chunk> FileReader for BinaryReader<T> where [u8; T::SIZE]: Sized {
+	fn new(path: &str) -> Result<Self, Error> {
 		let Ok(opened_file) = File::open(path) else {
 			return Err(Error::new(
 				ErrorKind::NotFound,
