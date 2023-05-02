@@ -6,7 +6,7 @@
  */
 
 use std::fs::File;
-use std::io::{BufWriter, Write, Error, ErrorKind};
+use std::io::{Error, ErrorKind};
 use std::marker::PhantomData;
 use csv::Writer;
 use crate::file_writer::FileWriter;
