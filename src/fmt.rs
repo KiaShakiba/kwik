@@ -7,7 +7,7 @@
 
 use num_format::{Locale, ToFormattedString};
 
-pub const MEMORY_UNITS: &'static [&'static str] = &["B", "KB", "MB", "GB", "TB", "PB", "EB"];
+pub const MEMORY_UNITS: &'static [&'static str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
 
 pub fn number(value: &u64) -> String {
 	value.to_formatted_string(&Locale::en)
