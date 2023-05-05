@@ -8,7 +8,7 @@
 use std::fs::File;
 use std::io::{BufWriter, Write, Error, ErrorKind};
 use std::marker::PhantomData;
-use crate::file_writer::FileWriter;
+pub use crate::file_writer::FileWriter;
 pub use crate::binary_reader::SizedChunk;
 
 pub struct BinaryWriter<T: Chunk> {

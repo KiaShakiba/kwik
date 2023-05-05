@@ -7,7 +7,7 @@
 
 use std::fs::File;
 use std::io::{BufReader, BufRead, Error, ErrorKind};
-use crate::file_reader::FileReader;
+pub use crate::file_reader::FileReader;
 
 pub struct TextReader {
 	file: BufReader<File>,

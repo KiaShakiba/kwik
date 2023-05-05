@@ -7,7 +7,7 @@
 
 use std::fs::File;
 use std::io::{LineWriter, Write, Error, ErrorKind};
-use crate::file_writer::FileWriter;
+pub use crate::file_writer::FileWriter;
 
 pub struct TextWriter {
 	file: LineWriter<File>,

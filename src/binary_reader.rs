@@ -7,7 +7,7 @@
 
 use std::fs::File;
 use std::io::{BufReader, Read, Error, ErrorKind};
-use crate::file_reader::FileReader;
+pub use crate::file_reader::FileReader;
 
 pub struct BinaryReader<T: Chunk> where [u8; T::SIZE]: Sized {
 	file: BufReader<File>,

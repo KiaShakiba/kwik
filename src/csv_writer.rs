@@ -9,7 +9,7 @@ use std::fs::File;
 use std::io::{Error, ErrorKind};
 use std::marker::PhantomData;
 use csv::Writer;
-use crate::file_writer::FileWriter;
+pub use crate::file_writer::FileWriter;
 
 pub use csv::StringRecord as StringRow;
 
