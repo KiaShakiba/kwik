@@ -180,7 +180,7 @@ impl<'a> Progress<'a> {
 	fn draw(&self, amount: &u64, rate: &u64, eta: &u64, time: &u64) {
 		let position = (WIDTH as f64 * *amount as f64 / 100.0) as u64;
 
-		print!("\x1B[2L\r[");
+		print!("\x1B[2K\r[");
 
 		for i in 0..WIDTH {
 			let character = if i < position {
