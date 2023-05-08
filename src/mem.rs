@@ -13,7 +13,13 @@ use crate::text_reader::TextReader;
 
 pub type Pid = u32;
 
-pub fn stat<'a, T>(key: &'a str, pid: Option<&Pid>) -> Option<T>
+pub enum Error {
+	InvalidStat(String),
+	MemInfo,
+	Clear,
+}
+
+pub fn stat<'a, T>(key: &'a str, pid: Option<&Pid>) -> Result<T, Error>
 where
 	T: FromStr + Copy
 {
@@ -32,40 +38,37 @@ where
 				.parse::<T>();
 
 			return match parsed {
-				Ok(value) => Some(*value),
-				Err(_) => None,
+				Ok(value) => Ok(*value),
+				Err(_) => Err(Error::InvalidStat(key.to_string())),
 			}
 		}
 	}
 
-	None
+	Err(Error::InvalidStat(key.to_string()))
 }
 
-pub fn hwm(pid: Option<&Pid>) -> Option<u64> {
+pub fn hwm(pid: Option<&Pid>) -> Result<u64, Error> {
 	match stat::<u64>("VmHWM", pid) {
-		Some(value) => Some(value * 1024),
-		None => None,
+		Ok(value) => Ok(value * 1024),
+		Err(error) => Err(error),
 	}
 }
 
-pub fn rss(pid: Option<&Pid>) -> Option<u64> {
+pub fn rss(pid: Option<&Pid>) -> Result<u64, Error> {
 	match stat::<u64>("VmRSS", pid) {
-		Some(value) => Some(value * 1024),
-		None => None,
+		Ok(value) => Ok(value * 1024),
+		Err(error) => Err(error),
 	}
 }
 
-pub fn sys() -> u64 {
+pub fn sys() -> Result<u64, Error> {
 	match mem_info() {
-		Ok(info) => info.total * 1024,
-
-		Err(_) => {
-			panic!("Could not get system memory.");
-		}
+		Ok(info) => Ok(info.total * 1024),
+		Err(_) => Err(Error::MemInfo)
 	}
 }
 
-pub fn clear(pid: Option<&Pid>) {
+pub fn clear(pid: Option<&Pid>) -> Result<(), Error> {
 	let command = match pid {
 		Some(pid) => format!("echo 1 > /proc/{pid}/clear_refs"),
 		None => String::from("echo 1 > /proc/self/clear_refs"),
@@ -79,7 +82,8 @@ pub fn clear(pid: Option<&Pid>) {
 		.status()
 		.expect(error);
 
-	if !status.success() {
-		panic!("{}", error);
+	match status.success() {
+		true => Ok(()),
+		false => Err(Error::Clear),
 	}
 }
