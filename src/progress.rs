@@ -198,19 +198,19 @@ impl<'a> Progress<'a> {
 
 		for tag in self.tags {
 			match tag {
-				Tag::TPS => {
+				Tag::Tps => {
 					if *amount < 100 && *rate > 0 {
 						print!(" ({} tps)", fmt::number(rate));
 					}
 				},
 
-				Tag::ETA => {
+				Tag::Eta => {
 					if *amount < 100 && *eta > 0 {
 						print!(" (eta {})", fmt::timespan(eta));
 					}
 				},
 
-				Tag::TIME => {
+				Tag::Time => {
 					if *time > 0 {
 						print!(" (time {})", fmt::timespan(time));
 					}
