@@ -24,7 +24,7 @@ pub struct Progress<'a> {
 	total: u64,
 	current: u64,
 
-	tags: &'a [Tag],
+	tags: &'a [&'a Tag],
 
 	rate_count: u64,
 	previous_rate: u64,
@@ -42,7 +42,7 @@ pub enum Tag {
 }
 
 impl<'a> Progress<'a> {
-	pub fn new(total: u64, tags: &'a [Tag]) -> Self {
+	pub fn new(total: u64, tags: &'a [&'a Tag]) -> Self {
 		let now = timestamp();
 		let mut amount_timestamps = [0; 101];
 
