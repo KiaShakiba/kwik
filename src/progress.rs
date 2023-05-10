@@ -36,9 +36,9 @@ pub struct Progress<'a> {
 }
 
 pub enum Tag {
-	TPS,
-	ETA,
-	TIME,
+	Tps,
+	Eta,
+	Time,
 }
 
 impl<'a> Progress<'a> {
