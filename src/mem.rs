@@ -7,6 +7,7 @@
 
 use std::str::FromStr;
 use std::process::Command;
+use std::mem;
 use sys_info::mem_info;
 use crate::file_reader::FileReader;
 use crate::text_reader::TextReader;
@@ -86,4 +87,18 @@ pub fn clear(pid: Option<&Pid>) -> Result<(), Error> {
 		true => Ok(()),
 		false => Err(Error::Clear),
 	}
+}
+
+pub fn size_of<T>(value: &T) -> usize {
+	mem::size_of_val(value)
+}
+
+pub fn size_of_vec<T>(value: &Vec<T>) -> usize {
+	let container_size = size_of(value);
+
+	if value.is_empty() {
+		return container_size;
+	}
+
+	container_size + value.len() * size_of(&value[0])
 }
