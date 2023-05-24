@@ -7,6 +7,7 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
+/// Returns the current system timestamp in milliseconds.
 pub fn timestamp() -> u64 {
 	let now = SystemTime::now()
 		.duration_since(UNIX_EPOCH)

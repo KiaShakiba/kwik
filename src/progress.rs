@@ -191,16 +191,20 @@ impl<'a> Progress<'a> {
 				REMAINING_CHARACTER
 			};
 
-			print!("{}", character);
+			print!("\x1B[90m{}\x1B[0m", character);
 		}
 
-		print!("] {amount} %");
+		if *amount < 100 {
+			print!("] \x1B[33m{amount} %\x1B[0m");
+		} else {
+			print!("] \x1B[32m{amount} %\x1B[0m");
+		}
 
 		for tag in self.tags {
 			match tag {
 				Tag::Tps => {
 					if *amount < 100 && *rate > 0 {
-						print!(" ({} tps)", fmt::number(rate));
+						print!(" (\x1B[33m{} tps\x1B[0m)", fmt::number(rate));
 					}
 				},
 

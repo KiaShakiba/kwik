@@ -5,6 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+/// Returns the minimum value in the supplied splice.
+///
+/// # Examples
+/// ```
+/// let value = min::<u64>(&[&3, &4, &1, &2]);
+/// assert_eq!(value, 1);
+/// ```
 pub fn min<T: PartialOrd + Copy>(values: &[&T]) -> T {
 	if values.len() == 0 {
 		panic!("Cannot find min value");
@@ -21,6 +28,13 @@ pub fn min<T: PartialOrd + Copy>(values: &[&T]) -> T {
 	min_value
 }
 
+/// Returns the maximum value in the supplied splice.
+///
+/// # Examples
+/// ```
+/// let value = max::<u64>(&[&3, &4, &1, &2]);
+/// assert_eq!(value, 4);
+/// ```
 pub fn max<T: PartialOrd + Copy>(values: &[&T]) -> T {
 	if values.len() == 0 {
 		panic!("Cannot find max value");

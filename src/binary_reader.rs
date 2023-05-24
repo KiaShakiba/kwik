@@ -9,21 +9,56 @@ use std::fs::File;
 use std::io::{BufReader, Read, Error, ErrorKind};
 pub use crate::file_reader::FileReader;
 
+/// Reads a binary file in chunks
 pub struct BinaryReader<T: Chunk> where [u8; T::SIZE]: Sized {
 	file: BufReader<File>,
 	buf: [u8; T::SIZE],
 	count: u64,
 }
 
+/// Implementing this trait specifies the number of bytes each
+/// chunk occupies in the binary file. The file will be read in chunks
+/// of that size.
+///
+/// # Examples
+/// ```
+/// struct MyStruct {
+/// 	// data fields
+/// }
+///
+/// impl SizedChunk for MyStruct {
+///		const SIZE: usize = 10;
+/// }
+/// ```
 pub trait SizedChunk {
 	const SIZE: usize;
 }
 
+/// Implementing this trait allows the binary reader to parse chunks
+/// of the binary file into the specified type.
 pub trait Chunk: SizedChunk {
+	/// Returns an instance of the implemented struct, given a chunk
+	/// of the binary file. If the chunk could not be parsed, an
+	/// error result is returned.
+	///
+	/// # Examples
+	/// ```
+	/// struct MyStruct {
+	/// 	// data fields
+	/// }
+	///
+	/// impl Chunk for MyStruct {
+	/// 	fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized {
+	///			// parse the chunk and return an instance of `Self` on success
+	///		}
+	/// }
+	/// ```
 	fn new(_: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized;
 }
 
 impl<T: Chunk> FileReader for BinaryReader<T> where [u8; T::SIZE]: Sized {
+	/// Opens the file at the supplied path. If the file could not be
+	/// opened, returns an error result.
 	fn new(path: &str) -> Result<Self, Error> {
 		let Ok(opened_file) = File::open(path) else {
 			return Err(Error::new(
@@ -41,6 +76,7 @@ impl<T: Chunk> FileReader for BinaryReader<T> where [u8; T::SIZE]: Sized {
 		Ok(reader)
 	}
 
+	/// Returns the number of bytes in the opened file.
 	fn size(&self) -> u64 {
 		let Ok(metadata) = self.file.get_ref().metadata() else {
 			panic!("Could not get binary file's size.");
@@ -51,6 +87,16 @@ impl<T: Chunk> FileReader for BinaryReader<T> where [u8; T::SIZE]: Sized {
 }
 
 impl<T: Chunk> BinaryReader<T> where [u8; T::SIZE]: Sized {
+	/// Reads one chunk of the binary file, as specified by the chunk size,
+	/// and returns an option containing the parsed chunk. If the end of the
+	/// file is reached, `None` is returned.
+	///
+	/// # Examples
+	/// ```
+	/// while let Some(object) = reader.read_chunk() {
+	/// 	// do something with the object
+	/// }
+	/// ```
 	pub fn read_chunk(&mut self) -> Option<T> {
 		match self.file.read_exact(&mut self.buf) {
 			Ok(_) => {
