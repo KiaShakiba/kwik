@@ -14,13 +14,41 @@ pub mod math;
 pub mod mem;
 
 pub mod file_reader;
+pub use file_reader::FileReader;
+
 pub mod text_reader;
+pub use text_reader::TextReader;
+
 pub mod csv_reader;
+pub use csv_reader::{
+	CsvReader,
+	Row as CsvReaderRow,
+};
+
 pub mod binary_reader;
+pub use binary_reader::{
+	BinaryReader,
+	SizedChunk,
+	Chunk as BinaryReaderChunk,
+};
 
 pub mod file_writer;
+pub use file_writer::FileWriter;
+
 pub mod text_writer;
+pub use text_writer::TextWriter;
+
 pub mod csv_writer;
+pub use csv_writer::{
+	CsvWriter,
+	Row as CsvWriterRow,
+};
+
 pub mod binary_writer;
+pub use binary_writer::{
+	BinaryWriter,
+	Chunk as BinaryWriterChunk,
+};
 
 pub mod progress;
+pub use progress::{Progress, Tag as ProgressTag};
