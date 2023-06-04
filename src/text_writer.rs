@@ -36,7 +36,7 @@ impl TextWriter {
 	pub fn write_line(&mut self, line: &[u8]) {
 		self.count += 1;
 
-		if let Err(_) = self.file.write_all(&[line, b"\n"].concat()) {
+		if self.file.write_all(&[line, b"\n"].concat()).is_err() {
 			panic!("Could not write to text file at line {}.", self.count);
 		}
 	}

@@ -49,11 +49,11 @@ impl<T: Chunk> BinaryWriter<T> {
 		self.buf.clear();
 		self.count += 1;
 
-		if let Err(_) = object.as_chunk(&mut self.buf) {
+		if object.as_chunk(&mut self.buf).is_err() {
 			panic!("Error converting object {} to chunk", self.count);
 		}
 
-		if let Err(_) = self.file.write_all(&self.buf) {
+		if self.file.write_all(&self.buf).is_err() {
 			panic!("Could not write to binary file at chunk {}.", self.count);
 		}
 	}

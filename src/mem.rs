@@ -30,16 +30,16 @@ pub enum Error {
 /// ```
 /// // returns the "VmHWM" status member of the current process
 /// match stat::<u64>("VmHWM", None) {
-/// 	Ok(value) => {
-///			// process value
-///		},
+///     Ok(value) => {
+///         // process value
+///     },
 ///
-///		Err(err) => {
-///			// handle error
-///		}
+///     Err(err) => {
+///         // handle error
+///     }
 /// }
 /// ```
-pub fn stat<'a, T>(key: &'a str, pid: Option<&Pid>) -> Result<T, Error>
+pub fn stat<T>(key: &str, pid: Option<&Pid>) -> Result<T, Error>
 where
 	T: FromStr + Copy
 {
@@ -77,13 +77,13 @@ where
 /// ```
 /// // returns the high water mark of the current process
 /// match hwm(None) {
-/// 	Ok(value) => {
-///			// process high water mark
-///		},
+///     Ok(value) => {
+///         // process high water mark
+///     },
 ///
-///		Err(err) => {
-///			// handle error
-///		}
+///     Err(err) => {
+///         // handle error
+///     }
 /// }
 /// ```
 pub fn hwm(pid: Option<&Pid>) -> Result<u64, Error> {
@@ -103,13 +103,13 @@ pub fn hwm(pid: Option<&Pid>) -> Result<u64, Error> {
 /// ```
 /// // returns the resident set size of the current process
 /// match rss(None) {
-/// 	Ok(value) => {
-///			// process high water mark
-///		},
+///     Ok(value) => {
+///         // process high water mark
+///     },
 ///
-///		Err(err) => {
-///			// handle error
-///		}
+///     Err(err) => {
+///         // handle error
+///     }
 /// }
 /// ```
 pub fn rss(pid: Option<&Pid>) -> Result<u64, Error> {
@@ -127,13 +127,13 @@ pub fn rss(pid: Option<&Pid>) -> Result<u64, Error> {
 /// # Examples
 /// ```
 /// match sys() {
-/// 	Ok(value) => {
-///			// process system memory size
-///		},
+///     Ok(value) => {
+///         // process system memory size
+///     },
 ///
-///		Err(err) => {
-///			// handle error
-///		}
+///     Err(err) => {
+///         // handle error
+///     }
 /// }
 /// ```
 pub fn sys() -> Result<u64, Error> {
@@ -152,7 +152,7 @@ pub fn sys() -> Result<u64, Error> {
 /// ```
 /// // clears the memory refs of the current process
 /// if let Err(err) = clear(None) {
-/// 	// handle error
+///     // handle error
 /// }
 /// ```
 pub fn clear(pid: Option<&Pid>) -> Result<(), Error> {

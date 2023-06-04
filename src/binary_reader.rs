@@ -23,11 +23,11 @@ pub struct BinaryReader<T: Chunk> where [u8; T::SIZE]: Sized {
 /// # Examples
 /// ```
 /// struct MyStruct {
-/// 	// data fields
+///     // data fields
 /// }
 ///
 /// impl SizedChunk for MyStruct {
-///		const SIZE: usize = 10;
+///     const SIZE: usize = 10;
 /// }
 /// ```
 pub trait SizedChunk {
@@ -44,13 +44,13 @@ pub trait Chunk: SizedChunk {
 	/// # Examples
 	/// ```
 	/// struct MyStruct {
-	/// 	// data fields
+	///     // data fields
 	/// }
 	///
 	/// impl Chunk for MyStruct {
-	/// 	fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized {
-	///			// parse the chunk and return an instance of `Self` on success
-	///		}
+	///     fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized {
+	///         // parse the chunk and return an instance of `Self` on success
+	///     }
 	/// }
 	/// ```
 	fn new(_: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized;
@@ -94,7 +94,7 @@ impl<T: Chunk> BinaryReader<T> where [u8; T::SIZE]: Sized {
 	/// # Examples
 	/// ```
 	/// while let Some(object) = reader.read_chunk() {
-	/// 	// do something with the object
+	///     // do something with the object
 	/// }
 	/// ```
 	pub fn read_chunk(&mut self) -> Option<T> {

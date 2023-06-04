@@ -7,7 +7,7 @@
 
 use num_format::{Locale, ToFormattedString};
 
-pub const MEMORY_UNITS: &'static [&'static str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
+pub const MEMORY_UNITS: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
 
 pub fn number(value: &u64) -> String {
 	value.to_formatted_string(&Locale::en)
@@ -15,12 +15,7 @@ pub fn number(value: &u64) -> String {
 
 pub fn memory(value: &u64, precision: Option<usize>) -> String {
 	let mut copy = *value as f64;
-
-	let decimals = match precision {
-		Some(precision) => precision,
-		None => 0,
-	};
-
+	let decimals = precision.unwrap_or(0);
 	let mut count: usize = 0;
 
 	while (copy / 1024.0) as u64 > 0 {

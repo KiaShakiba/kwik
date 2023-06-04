@@ -51,11 +51,11 @@ impl<T: Row> CsvWriter<T> {
 		self.buf.clear();
 		self.count += 1;
 
-		if let Err(_) = object.as_row(&mut self.buf) {
+		if object.as_row(&mut self.buf).is_err() {
 			panic!("Error converting object {} to row", self.count);
 		}
 
-		if let Err(_) = self.file.write_record(&self.buf) {
+		if self.file.write_record(&self.buf).is_err() {
 			panic!("Could not write to CSV file at row {}.", self.count);
 		}
 	}

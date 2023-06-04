@@ -13,7 +13,7 @@
 /// assert_eq!(value, 1);
 /// ```
 pub fn min<T: PartialOrd + Copy>(values: &[&T]) -> T {
-	if values.len() == 0 {
+	if values.is_empty() {
 		panic!("Cannot find min value");
 	}
 
@@ -36,7 +36,7 @@ pub fn min<T: PartialOrd + Copy>(values: &[&T]) -> T {
 /// assert_eq!(value, 4);
 /// ```
 pub fn max<T: PartialOrd + Copy>(values: &[&T]) -> T {
-	if values.len() == 0 {
+	if values.is_empty() {
 		panic!("Cannot find max value");
 	}
 

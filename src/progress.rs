@@ -8,6 +8,7 @@
 use std::io::Write;
 use std::convert::TryInto;
 use std::fmt::Debug;
+use std::cmp::Ordering;
 use crate::utils::timestamp;
 use crate::fmt;
 use crate::math;
@@ -183,12 +184,10 @@ impl<'a> Progress<'a> {
 		print!("\x1B[2K\r[");
 
 		for i in 0..WIDTH {
-			let character = if i < position {
-				FILLED_CHARACTER
-			} else if i == position {
-				CURRENT_CHARACTER
-			} else {
-				REMAINING_CHARACTER
+			let character = match i.cmp(&position) {
+				Ordering::Less => FILLED_CHARACTER,
+				Ordering::Greater => REMAINING_CHARACTER,
+				Ordering::Equal => CURRENT_CHARACTER,
 			};
 
 			print!("\x1B[90m{}\x1B[0m", character);
