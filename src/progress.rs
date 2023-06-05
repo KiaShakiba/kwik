@@ -190,7 +190,11 @@ impl<'a> Progress<'a> {
 				Ordering::Equal => CURRENT_CHARACTER,
 			};
 
-			print!("\x1B[90m{}\x1B[0m", character);
+			if *amount < 100 {
+				print!("\x1B[33m{}\x1B[0m", character);
+			} else {
+				print!("\x1B[32m{}\x1B[0m", character);
+			}
 		}
 
 		if *amount < 100 {
@@ -203,7 +207,7 @@ impl<'a> Progress<'a> {
 			match tag {
 				Tag::Tps => {
 					if *amount < 100 && *rate > 0 {
-						print!(" (\x1B[33m{} tps\x1B[0m)", fmt::number(rate));
+						print!(" ({} tps)", fmt::number(rate));
 					}
 				},
 
