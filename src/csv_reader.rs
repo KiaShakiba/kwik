@@ -8,7 +8,7 @@
 use std::fs::File;
 use std::io::{Error, ErrorKind};
 use std::marker::PhantomData;
-use csv::Reader;
+use csv::{Reader, ReaderBuilder};
 pub use crate::file_reader::FileReader;
 
 pub use csv::StringRecord as StringRow;
@@ -27,7 +27,11 @@ pub trait Row {
 
 impl<T: Row> FileReader for CsvReader<T> {
 	fn new(path: &str) -> Result<Self, Error> {
-		let Ok(file) = Reader::from_path(path) else {
+		let reader = ReaderBuilder::new()
+			.has_headers(false)
+			.from_path(path);
+
+		let Ok(file) = reader else {
 			return Err(Error::new(
 				ErrorKind::NotFound,
 				"Could not open CSV file."
