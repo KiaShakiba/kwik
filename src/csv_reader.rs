@@ -8,21 +8,23 @@
 use std::fs::File;
 use std::io::{Error, ErrorKind};
 use std::marker::PhantomData;
-use csv::{Reader, ReaderBuilder};
+use csv::{Reader, ReaderBuilder, StringRecord};
 pub use crate::file_reader::FileReader;
-
-pub use csv::StringRecord as StringRow;
 
 pub struct CsvReader<T: Row> {
 	file: Reader<File>,
-	buf: StringRow,
+	buf: CsvRow,
 	count: u64,
 
 	_marker: PhantomData<T>,
 }
 
+pub struct CsvRow {
+	data: StringRecord,
+}
+
 pub trait Row {
-	fn new(_: &StringRow) -> Result<Self, Error> where Self: Sized;
+	fn new(_: &CsvRow) -> Result<Self, Error> where Self: Sized;
 }
 
 impl<T: Row> FileReader for CsvReader<T> {
@@ -40,7 +42,7 @@ impl<T: Row> FileReader for CsvReader<T> {
 
 		let reader = CsvReader {
 			file,
-			buf: StringRow::new(),
+			buf: CsvRow::new(),
 			count: 0,
 
 			_marker: PhantomData,
@@ -60,7 +62,9 @@ impl<T: Row> FileReader for CsvReader<T> {
 
 impl<T: Row> CsvReader<T> {
 	pub fn read_row(&mut self) -> Option<T> {
-		match self.file.read_record(&mut self.buf) {
+		self.buf.data.clear();
+
+		match self.file.read_record(&mut self.buf.data) {
 			Ok(result) => {
 				if !result {
 					return None;
@@ -80,5 +84,31 @@ impl<T: Row> CsvReader<T> {
 				panic!("An error occurred on line {} when reading CSV file.", self.count);
 			},
 		}
+	}
+}
+
+impl CsvRow {
+	fn new() -> Self {
+		CsvRow {
+			data: StringRecord::new(),
+		}
+	}
+
+	pub fn get(&self, index: usize) -> Result<&str, Error> {
+		self.data
+			.get(index)
+			.ok_or(Error::new(
+				ErrorKind::InvalidData,
+				format!("Invalid CSV column {}", index)
+			))
+	}
+
+	pub fn size(&self) -> usize {
+		let items_size = self.data
+			.iter()
+			.map(|item| item.as_bytes().len())
+			.sum::<usize>();
+
+		items_size + self.data.len()
 	}
 }
