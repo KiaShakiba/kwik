@@ -8,21 +8,23 @@
 use std::fs::File;
 use std::io::{Error, ErrorKind};
 use std::marker::PhantomData;
-use csv::Writer;
+use csv::{Writer, StringRecord};
 pub use crate::file_writer::FileWriter;
-
-pub use csv::StringRecord as StringRow;
 
 pub struct CsvWriter<T: Row> {
 	file: Writer<File>,
-	buf: StringRow,
+	buf: CsvRow,
 	count: u64,
 
 	_marker: PhantomData<T>,
 }
 
+pub struct CsvRow {
+	data: StringRecord,
+}
+
 pub trait Row {
-	fn as_row(&self, _: &mut StringRow) -> Result<(), Error>;
+	fn as_row(&self, _: &mut CsvRow) -> Result<(), Error>;
 }
 
 impl<T: Row> FileWriter for CsvWriter<T> {
@@ -36,7 +38,7 @@ impl<T: Row> FileWriter for CsvWriter<T> {
 
 		let writer = CsvWriter {
 			file,
-			buf: StringRow::new(),
+			buf: CsvRow::new(),
 			count: 0,
 
 			_marker: PhantomData,
@@ -48,15 +50,36 @@ impl<T: Row> FileWriter for CsvWriter<T> {
 
 impl<T: Row> CsvWriter<T> {
 	pub fn write_row(&mut self, object: &T) {
-		self.buf.clear();
+		self.buf.data.clear();
 		self.count += 1;
 
 		if object.as_row(&mut self.buf).is_err() {
 			panic!("Error converting object {} to row", self.count);
 		}
 
-		if self.file.write_record(&self.buf).is_err() {
+		if self.file.write_record(&self.buf.data).is_err() {
 			panic!("Could not write to CSV file at row {}.", self.count);
 		}
+	}
+}
+
+impl CsvRow {
+	fn new() -> Self {
+		CsvRow {
+			data: StringRecord::new(),
+		}
+	}
+
+	pub fn push(&mut self, value: &str) {
+		self.data.push_field(value);
+	}
+
+	pub fn size(&self) -> usize {
+		let items_size = self.data
+			.iter()
+			.map(|item| item.as_bytes().len())
+			.sum::<usize>();
+
+		items_size + self.data.len()
 	}
 }
