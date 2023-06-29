@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 csv = "1.2.1"
 num-format = "0.4.4"
+rand = "0.8.5"
 sys-info = "0.9.1"

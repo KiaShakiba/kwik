@@ -52,3 +52,6 @@ pub use binary_writer::{
 
 pub mod progress;
 pub use progress::{Progress, Tag as ProgressTag};
+
+pub mod genetic;
+pub use genetic::Genetic;
