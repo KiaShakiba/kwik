@@ -2,9 +2,15 @@ mod individual;
 mod gene;
 mod genes;
 
-use rand::{thread_rng, Rng};
-use crate::genetic::individual::Individual;
-use crate::genetic::genes::Genes;
+use std::marker::PhantomData;
+pub use rand::Rng;
+use rand::thread_rng;
+pub use rand::rngs::ThreadRng;
+use crate::genetic::individual::{Individual, FITNESS_EPSILON};
+pub use crate::genetic::genes::{Genes, Gene};
+
+pub type Fitness = f64;
+pub type MutateRng = ThreadRng;
 
 const POPULATION_SIZE: usize = 100;
 const CONVERGENCE_SIZE: u32 = 1_000;
@@ -12,26 +18,31 @@ const MUTATION_PROBABILITY: f64 = 0.1;
 const ELITE_RATIO: f64 = 0.1;
 const MATING_RATIO: f64 = 0.5;
 
-pub type Fitness = u64;
-
 /// Finds the optimal values for a set of inputs using a genetic algorithm.
-pub struct Genetic<T: Genes> {
-	population: Vec<Individual<T>>,
-
-	target_fitness: Fitness,
+pub struct Genetic<T, G: Gene<T>, GS: Genes<T, G>>
+where
+	T: Clone,
+	G: Gene<T>,
+	GS: Genes<T, G>,
+{
+	population: Vec<Individual<T, G, GS>>,
 	generation_count: usize,
+
+	rng: ThreadRng,
+
+	_value_marker: PhantomData<T>,
+	_gene_marker: PhantomData<G>,
 }
 
-impl<T: Genes> Genetic<T> {
+impl<T, G, GS> Genetic<T, G, GS>
+where
+	T: Clone,
+	G: Gene<T>,
+	GS: Genes<T, G>,
+{
 	/// Creates an instance of the genetic runner using the supplied genes as initial values.
-	///
-	/// The runner will attempt to find the genes that will give the closest value to the supplied
-	/// target fitness.
-	pub fn new(
-		initial_genes: Box<T>,
-		target_fitness: Fitness
-	) -> Self {
-		let mut population = Vec::<Individual<T>>::new();
+	pub fn new(initial_genes: GS) -> Self {
+		let mut population = Vec::<Individual<T, G, GS>>::new();
 
 		for _ in 0..POPULATION_SIZE {
 			population.push(Individual::new(initial_genes.clone()));
@@ -39,20 +50,23 @@ impl<T: Genes> Genetic<T> {
 
 		Genetic {
 			population,
-
-			target_fitness,
 			generation_count: 0,
+
+			rng: thread_rng(),
+
+			_value_marker: PhantomData,
+			_gene_marker: PhantomData,
 		}
 	}
 
-	pub fn run(&mut self) -> &Individual<T> {
+	pub fn run(&mut self) -> &GS {
 		let mut last_fitness = self.iterate();
 		let mut convergence_count: u32 = 0;
 
-		while last_fitness != 0 && convergence_count < CONVERGENCE_SIZE {
+		while last_fitness.abs() > FITNESS_EPSILON && convergence_count < CONVERGENCE_SIZE {
 			let fitness = self.iterate();
 
-			if fitness != last_fitness {
+			if (fitness - last_fitness).abs() > FITNESS_EPSILON {
 				last_fitness = fitness;
 				convergence_count = 0;
 			} else {
@@ -60,7 +74,7 @@ impl<T: Genes> Genetic<T> {
 			}
 		}
 
-		&self.population[0]
+		&self.population[0].genes()
 	}
 
 	fn iterate(&mut self) -> Fitness {
@@ -73,21 +87,19 @@ impl<T: Genes> Genetic<T> {
 			.iter()
 			.take(elite_population)
 			.cloned()
-			.collect::<Vec::<Individual<T>>>();
-
-		let mut rng = thread_rng();
+			.collect::<Vec::<Individual<T, G, GS>>>();
 
 		for _ in 0..(POPULATION_SIZE - elite_population) {
-			let index1: usize = rng.gen_range(0..mating_population);
-			let mut index2: usize = rng.gen_range(0..mating_population);
+			let index1: usize = self.rng.gen_range(0..mating_population);
+			let mut index2: usize = self.rng.gen_range(0..mating_population);
 
 			while index1 == index2 {
-				index2 = rng.gen_range(0..mating_population);
+				index2 = self.rng.gen_range(0..mating_population);
 			}
 
 			let parent1 = &self.population[index1];
 			let parent2 = &self.population[index2];
-			let child = parent1.mate(&parent2);
+			let child = parent1.mate(&mut self.rng, &parent2);
 
 			new_generation.push(child);
 		}

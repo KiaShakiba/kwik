@@ -1,47 +1,131 @@
+use std::marker::PhantomData;
 use std::cmp::{Ord, Ordering};
-use rand::{thread_rng, Rng};
-use crate::genetic::Fitness;
-use crate::genetic::genes::Genes;
+use rand::Rng;
+use rand::rngs::ThreadRng;
+use crate::genetic::{Fitness, MUTATION_PROBABILITY};
+use crate::genetic::genes::{Genes, Gene};
+
+pub const FITNESS_EPSILON: Fitness = 0.0001;
 
 #[derive(Clone)]
-pub struct Individual<T: Genes> {
-	genes: Box<T>,
+pub struct Individual<T, G, GS>
+where
+	T: Clone,
+	G: Gene<T>,
+	GS: Genes<T, G>,
+{
+	genes: GS,
+
+	_value_marker: PhantomData<T>,
+	_gene_marker: PhantomData<G>,
 }
 
-impl<T: Genes> Individual<T> {
-	pub fn new(genes: Box<T>) -> Self {
+enum MateResult {
+	Parent1,
+	Parent2,
+	Mutation,
+}
+
+impl<T, G, GS> Individual<T, G, GS>
+where
+	T: Clone,
+	G: Gene<T>,
+	GS: Genes<T, G>,
+{
+	pub fn new(genes: GS) -> Self {
 		Individual {
 			genes,
+
+			_value_marker: PhantomData,
+			_gene_marker: PhantomData,
 		}
+	}
+
+	pub fn genes(&self) -> &GS {
+		&self.genes
 	}
 
 	pub fn fitness(&self) -> Fitness {
 		self.genes.fitness()
 	}
 
-	pub fn mate(&self, partner: &Individual<T>) -> Individual<T> {
-		let mut rng = thread_rng();
+	pub fn mate(
+		&self,
+		rng: &mut ThreadRng,
+		partner: &Individual<T, G, GS>
+	) -> Individual<T, G, GS> {
+		let mut child_genes: GS = Genes::<T, G>::new();
 
-		todo!();
+		for i in 0..self.genes.len() {
+			let gene = match get_mate_result(rng) {
+				MateResult::Parent1 => self.genes.get(i).clone(),
+				MateResult::Parent2 => partner.genes.get(i).clone(),
+
+				MateResult::Mutation => {
+					let mut gene = self.genes.get(i).clone();
+					gene.mutate(rng);
+					gene
+				},
+			};
+
+			child_genes.push(gene);
+		}
+
+		Individual::<T, G, GS>::new(child_genes)
 	}
+
 }
 
-impl<T: Genes> Ord for Individual<T> {
+fn get_mate_result(rng: &mut ThreadRng) -> MateResult {
+	let random: f64 = rng.gen();
+
+	if random < (1.0 - MUTATION_PROBABILITY) / 2.0 {
+		return MateResult::Parent1;
+	}
+
+	if random < 1.0 - MUTATION_PROBABILITY {
+		return MateResult::Parent2;
+	}
+
+	return MateResult::Mutation;
+}
+
+impl<T, G, GS> Ord for Individual<T, G, GS>
+where
+	T: Clone,
+	G: Gene<T>,
+	GS: Genes<T, G>,
+{
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.partial_cmp(other).unwrap()
 	}
 }
 
-impl<T: Genes> PartialOrd for Individual<T> {
+impl<T, G, GS> PartialOrd for Individual<T, G, GS>
+where
+	T: Clone,
+	G: Gene<T>,
+	GS: Genes<T, G>,
+{
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		other.fitness().partial_cmp(&self.fitness())
+		self.fitness().abs().partial_cmp(&other.fitness().abs())
 	}
 }
 
-impl<T: Genes> PartialEq for Individual<T> {
+impl<T, G, GS> PartialEq for Individual<T, G, GS>
+where
+	T: Clone,
+	G: Gene<T>,
+	GS: Genes<T, G>,
+{
 	fn eq(&self, other: &Self) -> bool {
-		self.fitness() == other.fitness()
+		(self.fitness() - other.fitness()).abs() < FITNESS_EPSILON
 	}
 }
 
-impl<T: Genes> Eq for Individual<T> {}
+impl<T, G, GS> Eq for Individual<T, G, GS>
+where
+	T: Clone,
+	G: Gene<T>,
+	GS: Genes<T, G>,
+{}
