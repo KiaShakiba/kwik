@@ -100,7 +100,7 @@ where
 			}
 		}
 
-		&self.population[0].genes()
+		self.population[0].genes()
 	}
 
 	/// Performs one iteration of the genetic algorithm, creating a new generation
@@ -127,7 +127,7 @@ where
 
 			let parent1 = &self.population[index1];
 			let parent2 = &self.population[index2];
-			let child = parent1.mate(&mut self.rng, &parent2);
+			let child = parent1.mate(&mut self.rng, parent2);
 
 			new_generation.push(child);
 		}

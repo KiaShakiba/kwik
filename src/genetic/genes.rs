@@ -21,6 +21,9 @@ pub use crate::genetic::gene::Gene;
 ///         }
 ///     }
 ///
+///     fn is_empty(&self) -> bool {
+///         self.config.is_empty()
+///
 ///     fn len(&self) -> usize {
 ///         self.config.len()
 ///     }
@@ -49,6 +52,9 @@ where
 {
 	/// Creates a new, empty instance of genes.
 	fn new() -> Self;
+
+	/// Returns true if there are no genes.
+	fn is_empty(&self) -> bool;
 
 	/// Returns the number of genes.
 	fn len(&self) -> usize;

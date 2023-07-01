@@ -87,7 +87,7 @@ fn get_mate_result(rng: &mut ThreadRng) -> MateResult {
 		return MateResult::Parent2;
 	}
 
-	return MateResult::Mutation;
+	MateResult::Mutation
 }
 
 impl<T, G, GS> Ord for Individual<T, G, GS>
