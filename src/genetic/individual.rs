@@ -5,7 +5,7 @@ use rand::rngs::ThreadRng;
 use crate::genetic::{Fitness, MUTATION_PROBABILITY};
 use crate::genetic::genes::{Genes, Gene};
 
-pub const FITNESS_EPSILON: Fitness = 0.0001;
+pub const FITNESS_EPSILON: Fitness = 0.000001;
 
 #[derive(Clone)]
 pub struct Individual<T, G, GS>
