@@ -19,6 +19,28 @@ const ELITE_RATIO: f64 = 0.1;
 const MATING_RATIO: f64 = 0.5;
 
 /// Finds the optimal values for a set of inputs using a genetic algorithm.
+///
+/// # Examples
+/// ```
+/// struct MyData {
+///     data: u32,
+/// }
+///
+/// struct MyConfig {
+///     config: Vec<MyData>,
+/// }
+///
+/// let mut initial_genes = MyConfig::new();
+///
+/// initial_genes.push(MyData { data: 0 });
+/// initial_genes.push(MyData { data: 0 });
+/// initial_genes.push(MyData { data: 0 });
+/// initial_genes.push(MyData { data: 0 });
+/// initial_genes.push(MyData { data: 0 });
+///
+/// let mut genetic = Genetic::<u32, MyData, MyConfig>::new(initial_genes);
+/// let optimal_config = genetic.run();
+/// ```
 pub struct Genetic<T, G: Gene<T>, GS: Genes<T, G>>
 where
 	T: Clone,
@@ -59,6 +81,10 @@ where
 		}
 	}
 
+	/// Runs the genetic algorithm until either the most fit individual has a fitness
+	/// of 0 or the population has converged and is no longer changing.
+	///
+	/// A reference to the most fit individual is returned.
 	pub fn run(&mut self) -> &GS {
 		let mut last_fitness = self.iterate();
 		let mut convergence_count: u32 = 0;
@@ -77,6 +103,8 @@ where
 		&self.population[0].genes()
 	}
 
+	/// Performs one iteration of the genetic algorithm, creating a new generation
+	/// and overwriting the current population.
 	fn iterate(&mut self) -> Fitness {
 		self.generation_count += 1;
 
