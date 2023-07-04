@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) Kia Shakiba
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 use crate::genetic::MutateRng;
 
 /// A gene defines the unit of change in a genetic algorithm. Implement this trait
