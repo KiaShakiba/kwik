@@ -13,6 +13,7 @@ use std::marker::PhantomData;
 pub use rand::Rng;
 use rand::thread_rng;
 pub use rand::rngs::ThreadRng;
+use kwik::utils;
 use crate::genetic::individual::{Individual, FITNESS_EPSILON};
 pub use crate::genetic::genes::{Genes, Gene};
 
@@ -21,6 +22,7 @@ pub type MutateRng = ThreadRng;
 
 const POPULATION_SIZE: usize = 100;
 const CONVERGENCE_SIZE: u32 = 1_000;
+const MAX_RUNTIME: u64 = 10_000;
 const MUTATION_PROBABILITY: f64 = 0.1;
 const ELITE_RATIO: f64 = 0.1;
 const MATING_RATIO: f64 = 0.5;
@@ -96,7 +98,13 @@ where
 		let mut last_fitness = self.iterate();
 		let mut convergence_count: u32 = 0;
 
-		while last_fitness.abs() > FITNESS_EPSILON && convergence_count < CONVERGENCE_SIZE {
+		let start = utils::timestamp();
+
+		while
+			last_fitness.abs() > FITNESS_EPSILON &&
+			convergence_count < CONVERGENCE_SIZE &&
+			(utils::timestamp() - start) < MAX_RUNTIME
+		{
 			let fitness = self.iterate();
 
 			if (fitness - last_fitness).abs() > FITNESS_EPSILON {
