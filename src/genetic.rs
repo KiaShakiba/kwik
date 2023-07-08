@@ -73,6 +73,10 @@ where
 {
 	/// Creates an instance of the genetic runner using the supplied genes as initial values.
 	pub fn new(initial_genes: GS) -> Self {
+		if !initial_genes.is_valid() {
+			panic!("Invalid initial genes.");
+		}
+
 		let mut population = Vec::<Individual<T, G, GS>>::new();
 
 		for _ in 0..POPULATION_SIZE {
