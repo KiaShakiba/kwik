@@ -13,7 +13,7 @@ use std::marker::PhantomData;
 pub use rand::Rng;
 use rand::thread_rng;
 pub use rand::rngs::ThreadRng;
-use kwik::utils;
+use crate::utils;
 use crate::genetic::individual::{Individual, FITNESS_EPSILON};
 pub use crate::genetic::genes::{Genes, Gene};
 
