@@ -22,7 +22,7 @@ pub type MutateRng = ThreadRng;
 
 const POPULATION_SIZE: usize = 100;
 const CONVERGENCE_SIZE: u32 = 1_000;
-const MAX_RUNTIME: u64 = 10_000;
+const MAX_RUNTIME: u64 = 30_000;
 const MUTATION_PROBABILITY: f64 = 0.1;
 const ELITE_RATIO: f64 = 0.1;
 const MATING_RATIO: f64 = 0.5;
