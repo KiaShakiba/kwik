@@ -43,6 +43,10 @@ pub use crate::genetic::gene::Gene;
 ///         &self.config[index]
 ///     }
 ///
+///     fn is_valid(&self) -> bool {
+///         true
+///     }
+///
 ///     fn fitness(&self) -> Fitness {
 ///         self.config
 ///             .iter()
@@ -71,6 +75,11 @@ where
 
 	/// Retrieves a reference to a gene from the genes.
 	fn get(&self, _: usize) -> &G;
+
+	/// Returns true if the genes are valid.
+	fn is_valid(&self) -> bool {
+		true
+	}
 
 	/// Computes the overall fitness of the genes. The genetic algorithm
 	/// will attempt to get this fitness as close to 0 as possible.

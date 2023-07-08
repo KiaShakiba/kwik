@@ -63,24 +63,31 @@ where
 	) -> Individual<T, G, GS> {
 		let mut child_genes: GS = Genes::<T, G>::new();
 
-		for i in 0..self.genes.len() {
-			let gene = match get_mate_result(rng) {
-				MateResult::Parent1 => self.genes.get(i).clone(),
-				MateResult::Parent2 => partner.genes.get(i).clone(),
+		loop {
+			for i in 0..self.genes.len() {
+				let gene = match get_mate_result(rng) {
+					MateResult::Parent1 => self.genes.get(i).clone(),
+					MateResult::Parent2 => partner.genes.get(i).clone(),
 
-				MateResult::Mutation => {
-					let mut gene = self.genes.get(i).clone();
-					gene.mutate(rng);
-					gene
-				},
-			};
+					MateResult::Mutation => {
+						let mut gene = self.genes.get(i).clone();
+						gene.mutate(rng);
+						gene
+					},
+				};
 
-			child_genes.push(gene);
+				child_genes.push(gene);
+			}
+
+			if !child_genes.is_valid() {
+				child_genes = Genes::<T, G>::new();
+			} else {
+				break;
+			}
 		}
 
 		Individual::<T, G, GS>::new(child_genes)
 	}
-
 }
 
 fn get_mate_result(rng: &mut ThreadRng) -> MateResult {
