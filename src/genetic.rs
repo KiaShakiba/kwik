@@ -21,7 +21,7 @@ pub type Fitness = f64;
 pub type MutateRng = ThreadRng;
 
 const POPULATION_SIZE: usize = 100;
-const CONVERGENCE_SIZE: u64 = 1_000;
+const CONVERGENCE_LIMIT: u64 = 1_000;
 const MAX_RUNTIME: u64 = 30_000;
 const MUTATION_PROBABILITY: f64 = 0.1;
 const ELITE_RATIO: f64 = 0.1;
@@ -59,7 +59,7 @@ where
 	population: Vec<Individual<G, GS>>,
 
 	population_size: usize,
-	convergence_size: u64,
+	convergence_limit: u64,
 	max_runtime: u64,
 	mutation_probability: f64,
 	elite_ratio: f64,
@@ -102,7 +102,7 @@ where
 			population,
 
 			population_size: POPULATION_SIZE,
-			convergence_size: CONVERGENCE_SIZE,
+			convergence_limit: CONVERGENCE_LIMIT,
 			max_runtime: MAX_RUNTIME,
 			mutation_probability: MUTATION_PROBABILITY,
 			elite_ratio: ELITE_RATIO,
@@ -126,8 +126,8 @@ where
 	}
 
 	/// Sets the convergence using the builder pattern.
-	pub fn set_convergence_size(mut self, convergence_size: u64) -> Self {
-		self.convergence_size = convergence_size;
+	pub fn set_convergence_limit(mut self, convergence_limit: u64) -> Self {
+		self.convergence_limit = convergence_limit;
 		self
 	}
 
@@ -168,7 +168,7 @@ where
 
 		while
 			last_fitness.abs() > FITNESS_EPSILON &&
-			convergence_count < self.convergence_size &&
+			convergence_count < self.convergence_limit &&
 			(utils::timestamp() - start) < self.max_runtime
 		{
 			let fitness = self.iterate();
