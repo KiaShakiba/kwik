@@ -15,15 +15,13 @@ use crate::genetic::genes::{Genes, Gene};
 pub const FITNESS_EPSILON: Fitness = 0.000001;
 
 #[derive(Clone)]
-pub struct Individual<T, G, GS>
+pub struct Individual<G, GS>
 where
-	T: Clone,
-	G: Gene<T>,
-	GS: Genes<T, G>,
+	G: Gene,
+	GS: Genes<G>,
 {
 	genes: GS,
 
-	_value_marker: PhantomData<T>,
 	_gene_marker: PhantomData<G>,
 }
 
@@ -33,17 +31,15 @@ enum MateResult {
 	Mutation,
 }
 
-impl<T, G, GS> Individual<T, G, GS>
+impl<G, GS> Individual<G, GS>
 where
-	T: Clone,
-	G: Gene<T>,
-	GS: Genes<T, G>,
+	G: Gene,
+	GS: Genes<G>,
 {
 	pub fn new(genes: GS) -> Self {
 		Individual {
 			genes,
 
-			_value_marker: PhantomData,
 			_gene_marker: PhantomData,
 		}
 	}
@@ -59,9 +55,9 @@ where
 	pub fn mate(
 		&self,
 		rng: &mut ThreadRng,
-		partner: &Individual<T, G, GS>
-	) -> Individual<T, G, GS> {
-		let mut child_genes: GS = Genes::<T, G>::new();
+		partner: &Individual<G, GS>
+	) -> Individual<G, GS> {
+		let mut child_genes: GS = Genes::<G>::new();
 
 		loop {
 			for i in 0..self.genes.len() {
@@ -80,13 +76,13 @@ where
 			}
 
 			if !child_genes.is_valid() {
-				child_genes = Genes::<T, G>::new();
+				child_genes = Genes::<G>::new();
 			} else {
 				break;
 			}
 		}
 
-		Individual::<T, G, GS>::new(child_genes)
+		Individual::<G, GS>::new(child_genes)
 	}
 }
 
@@ -104,42 +100,38 @@ fn get_mate_result(rng: &mut ThreadRng) -> MateResult {
 	MateResult::Mutation
 }
 
-impl<T, G, GS> Ord for Individual<T, G, GS>
+impl<G, GS> Ord for Individual<G, GS>
 where
-	T: Clone,
-	G: Gene<T>,
-	GS: Genes<T, G>,
+	G: Gene,
+	GS: Genes<G>,
 {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.partial_cmp(other).unwrap()
 	}
 }
 
-impl<T, G, GS> PartialOrd for Individual<T, G, GS>
+impl<G, GS> PartialOrd for Individual<G, GS>
 where
-	T: Clone,
-	G: Gene<T>,
-	GS: Genes<T, G>,
+	G: Gene,
+	GS: Genes<G>,
 {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		self.fitness().abs().partial_cmp(&other.fitness().abs())
 	}
 }
 
-impl<T, G, GS> PartialEq for Individual<T, G, GS>
+impl<G, GS> PartialEq for Individual<G, GS>
 where
-	T: Clone,
-	G: Gene<T>,
-	GS: Genes<T, G>,
+	G: Gene,
+	GS: Genes<G>,
 {
 	fn eq(&self, other: &Self) -> bool {
 		(self.fitness() - other.fitness()).abs() < FITNESS_EPSILON
 	}
 }
 
-impl<T, G, GS> Eq for Individual<T, G, GS>
+impl<G, GS> Eq for Individual<G, GS>
 where
-	T: Clone,
-	G: Gene<T>,
-	GS: Genes<T, G>,
+	G: Gene,
+	GS: Genes<G>,
 {}

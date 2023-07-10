@@ -21,7 +21,7 @@ pub use crate::genetic::gene::Gene;
 ///     config: Vec<MyData>,
 /// }
 ///
-/// impl Genes<u32, MyData> for MyConfig {
+/// impl Genes<MyData> for MyConfig {
 ///     fn new(&self) -> Self {
 ///         MyConfig {
 ///             config: Vec::new(),
@@ -55,11 +55,10 @@ pub use crate::genetic::gene::Gene;
 ///     }
 /// }
 /// ```
-pub trait Genes<T, G>
+pub trait Genes<G>
 where
 	Self: Clone,
-	T: Clone,
-	G: Gene<T>,
+	G: Gene,
 {
 	/// Creates a new, empty instance of genes.
 	fn new() -> Self;

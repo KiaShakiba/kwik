@@ -17,25 +17,13 @@ use crate::genetic::MutateRng;
 ///     data: u32,
 /// }
 ///
-/// impl Gene<u32> for MyData {
-///     fn value(&self) -> u32 {
-///         self.data
-///     }
-///
+/// impl Gene for MyData {
 ///     fn mutate(&mut self, rng: &mut MutateRng) {
 ///         self.data = rng.gen_range(0..10);
 ///     }
 /// }
 /// ```
-pub trait Gene<T>
-where
-	Self: Clone,
-	T: Clone,
-{
-	/// Returns the value of the gene. This value is what is used to compute
-	/// the fitness of an individual.
-	fn value(&self) -> T;
-
+pub trait Gene where Self: Clone {
 	/// Mutates the value of the gene. Ensure the value is mutated only within
 	/// the acceptable range of possible values.
 	fn mutate(&mut self, _: &mut MutateRng);

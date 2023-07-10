@@ -50,26 +50,23 @@ const MATING_RATIO: f64 = 0.5;
 /// let mut genetic = Genetic::<u32, MyData, MyConfig>::new(initial_genes);
 /// let optimal_config = genetic.run();
 /// ```
-pub struct Genetic<T, G: Gene<T>, GS: Genes<T, G>>
+pub struct Genetic<G: Gene, GS: Genes<G>>
 where
-	T: Clone,
-	G: Gene<T>,
-	GS: Genes<T, G>,
+	G: Gene,
+	GS: Genes<G>,
 {
-	population: Vec<Individual<T, G, GS>>,
+	population: Vec<Individual<G, GS>>,
 	generation_count: usize,
 
 	rng: ThreadRng,
 
-	_value_marker: PhantomData<T>,
 	_gene_marker: PhantomData<G>,
 }
 
-impl<T, G, GS> Genetic<T, G, GS>
+impl<G, GS> Genetic<G, GS>
 where
-	T: Clone,
-	G: Gene<T>,
-	GS: Genes<T, G>,
+	G: Gene,
+	GS: Genes<G>,
 {
 	/// Creates an instance of the genetic runner using the supplied genes as initial values.
 	pub fn new(initial_genes: GS) -> Self {
@@ -77,7 +74,7 @@ where
 			panic!("Invalid initial genes.");
 		}
 
-		let mut population = Vec::<Individual<T, G, GS>>::new();
+		let mut population = Vec::<Individual<G, GS>>::new();
 
 		for _ in 0..POPULATION_SIZE {
 			population.push(Individual::new(initial_genes.clone()));
@@ -89,7 +86,6 @@ where
 
 			rng: thread_rng(),
 
-			_value_marker: PhantomData,
 			_gene_marker: PhantomData,
 		}
 	}
@@ -134,7 +130,7 @@ where
 			.iter()
 			.take(elite_population)
 			.cloned()
-			.collect::<Vec::<Individual<T, G, GS>>>();
+			.collect::<Vec::<Individual<G, GS>>>();
 
 		for _ in 0..(POPULATION_SIZE - elite_population) {
 			let index1: usize = self.rng.gen_range(0..mating_population);
