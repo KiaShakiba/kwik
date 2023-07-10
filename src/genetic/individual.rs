@@ -9,7 +9,7 @@ use std::marker::PhantomData;
 use std::cmp::{Ord, Ordering};
 use rand::Rng;
 use rand::rngs::ThreadRng;
-use crate::genetic::{Fitness, MUTATION_PROBABILITY};
+use crate::genetic::Fitness;
 use crate::genetic::genes::{Genes, Gene};
 
 pub const FITNESS_EPSILON: Fitness = 0.000001;
@@ -55,13 +55,14 @@ where
 	pub fn mate(
 		&self,
 		rng: &mut ThreadRng,
-		partner: &Individual<G, GS>
+		partner: &Individual<G, GS>,
+		mutation_probability: f64
 	) -> Individual<G, GS> {
 		let mut child_genes = self.genes.base();
 
 		loop {
 			for i in 0..self.genes.len() {
-				let gene = match get_mate_result(rng) {
+				let gene = match get_mate_result(rng, mutation_probability) {
 					MateResult::Parent1 => self.genes.get(i).clone(),
 					MateResult::Parent2 => partner.genes.get(i).clone(),
 
@@ -86,14 +87,14 @@ where
 	}
 }
 
-fn get_mate_result(rng: &mut ThreadRng) -> MateResult {
+fn get_mate_result(rng: &mut ThreadRng, mutation_probability: f64) -> MateResult {
 	let random: f64 = rng.gen();
 
-	if random < (1.0 - MUTATION_PROBABILITY) / 2.0 {
+	if random < (1.0 - mutation_probability) / 2.0 {
 		return MateResult::Parent1;
 	}
 
-	if random < 1.0 - MUTATION_PROBABILITY {
+	if random < 1.0 - mutation_probability {
 		return MateResult::Parent2;
 	}
 

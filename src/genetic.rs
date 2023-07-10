@@ -21,7 +21,7 @@ pub type Fitness = f64;
 pub type MutateRng = ThreadRng;
 
 const POPULATION_SIZE: usize = 100;
-const CONVERGENCE_SIZE: u32 = 1_000;
+const CONVERGENCE_SIZE: u64 = 1_000;
 const MAX_RUNTIME: u64 = 30_000;
 const MUTATION_PROBABILITY: f64 = 0.1;
 const ELITE_RATIO: f64 = 0.1;
@@ -55,7 +55,16 @@ where
 	G: Gene,
 	GS: Genes<G>,
 {
+	initial_genes: GS,
 	population: Vec<Individual<G, GS>>,
+
+	population_size: usize,
+	convergence_size: u64,
+	max_runtime: u64,
+	mutation_probability: f64,
+	elite_ratio: f64,
+	mating_ratio: f64,
+
 	rng: ThreadRng,
 }
 
@@ -89,9 +98,61 @@ where
 		}
 
 		Genetic {
+			initial_genes,
 			population,
+
+			population_size: POPULATION_SIZE,
+			convergence_size: CONVERGENCE_SIZE,
+			max_runtime: MAX_RUNTIME,
+			mutation_probability: MUTATION_PROBABILITY,
+			elite_ratio: ELITE_RATIO,
+			mating_ratio: MATING_RATIO,
+
 			rng: thread_rng(),
 		}
+	}
+
+	/// Sets the population size using the builder pattern and fills the
+	/// population with individuals.
+	pub fn set_population_size(mut self, population_size: usize) -> Self {
+		self.population_size = population_size;
+		self.population.clear();
+
+		for _ in 0..population_size {
+			self.population.push(Individual::new(self.initial_genes.clone()));
+		}
+
+		self
+	}
+
+	/// Sets the convergence using the builder pattern.
+	pub fn set_convergence_size(mut self, convergence_size: u64) -> Self {
+		self.convergence_size = convergence_size;
+		self
+	}
+
+	/// Sets the max runtime using the builder pattern.
+	pub fn set_max_runtime(mut self, max_runtime: u64) -> Self {
+		self.max_runtime = max_runtime;
+		self
+	}
+
+	/// Sets the mutation probability using the builder pattern.
+	pub fn set_mutation_probability(mut self, mutation_probability: f64) -> Self {
+		self.mutation_probability = mutation_probability;
+		self
+	}
+
+	/// Sets the elite ratio using the builder pattern.
+	pub fn set_elite_ratio(mut self, elite_ratio: f64) -> Self {
+		self.elite_ratio = elite_ratio;
+		self
+	}
+
+	/// Sets the mating ratio using the builder pattern.
+	pub fn set_mating_ratio(mut self, mating_ratio: f64) -> Self {
+		self.mating_ratio = mating_ratio;
+		self
 	}
 
 	/// Runs the genetic algorithm until either the most fit individual has a fitness
@@ -102,13 +163,13 @@ where
 		let start = utils::timestamp();
 
 		let mut generation_count: u64 = 1;
-		let mut convergence_count: u32 = 0;
+		let mut convergence_count: u64 = 0;
 		let mut last_fitness = self.iterate();
 
 		while
 			last_fitness.abs() > FITNESS_EPSILON &&
-			convergence_count < CONVERGENCE_SIZE &&
-			(utils::timestamp() - start) < MAX_RUNTIME
+			convergence_count < self.convergence_size &&
+			(utils::timestamp() - start) < self.max_runtime
 		{
 			let fitness = self.iterate();
 
@@ -132,8 +193,8 @@ where
 	/// Performs one iteration of the genetic algorithm, creating a new generation
 	/// and overwriting the current population.
 	fn iterate(&mut self) -> Fitness {
-		let elite_population = (POPULATION_SIZE as f64 * ELITE_RATIO) as usize;
-		let mating_population = (POPULATION_SIZE as f64 * MATING_RATIO) as usize;
+		let elite_population = (self.population_size as f64 * self.elite_ratio) as usize;
+		let mating_population = (self.population_size as f64 * self.mating_ratio) as usize;
 
 		let mut new_generation = self.population
 			.iter()
@@ -141,7 +202,7 @@ where
 			.cloned()
 			.collect::<Vec::<Individual<G, GS>>>();
 
-		for _ in 0..(POPULATION_SIZE - elite_population) {
+		for _ in 0..(self.population_size - elite_population) {
 			let index1: usize = self.rng.gen_range(0..mating_population);
 			let mut index2: usize = self.rng.gen_range(0..mating_population);
 
@@ -151,7 +212,7 @@ where
 
 			let parent1 = &self.population[index1];
 			let parent2 = &self.population[index2];
-			let child = parent1.mate(&mut self.rng, parent2);
+			let child = parent1.mate(&mut self.rng, parent2, self.mutation_probability);
 
 			new_generation.push(child);
 		}
