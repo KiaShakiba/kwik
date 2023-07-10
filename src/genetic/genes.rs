@@ -22,7 +22,7 @@ pub use crate::genetic::gene::Gene;
 /// }
 ///
 /// impl Genes<MyData> for MyConfig {
-///     fn new(&self) -> Self {
+///     fn base(&self) -> Self {
 ///         MyConfig {
 ///             config: Vec::new(),
 ///         }
@@ -41,6 +41,10 @@ pub use crate::genetic::gene::Gene;
 ///
 ///     fn get(&self, index: usize) -> &MyData {
 ///         &self.config[index]
+///     }
+///
+///     fn clear(&mut self) {
+///         self.config.clear();
 ///     }
 ///
 ///     fn is_valid(&self) -> bool {
@@ -73,7 +77,7 @@ where
 	fn push(&mut self, _: G);
 
 	/// Clears the genes.
-	fn clear(&self);
+	fn clear(&mut self);
 
 	/// Retrieves a reference to a gene from the genes.
 	fn get(&self, _: usize) -> &G;
