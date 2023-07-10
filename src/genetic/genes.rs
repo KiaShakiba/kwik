@@ -60,8 +60,8 @@ where
 	Self: Clone,
 	G: Gene,
 {
-	/// Creates a new, empty instance of genes.
-	fn new() -> Self;
+	/// Creates a new, empty instance of the base genes.
+	fn base(&self) -> Self;
 
 	/// Returns true if there are no genes.
 	fn is_empty(&self) -> bool;
@@ -71,6 +71,9 @@ where
 
 	/// Adds a gene to the genes.
 	fn push(&mut self, _: G);
+
+	/// Clears the genes.
+	fn clear(&self);
 
 	/// Retrieves a reference to a gene from the genes.
 	fn get(&self, _: usize) -> &G;

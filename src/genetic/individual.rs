@@ -57,7 +57,7 @@ where
 		rng: &mut ThreadRng,
 		partner: &Individual<G, GS>
 	) -> Individual<G, GS> {
-		let mut child_genes: GS = Genes::<G>::new();
+		let mut child_genes = self.genes.base();
 
 		loop {
 			for i in 0..self.genes.len() {
@@ -76,7 +76,7 @@ where
 			}
 
 			if !child_genes.is_valid() {
-				child_genes = Genes::<G>::new();
+				child_genes.clear();
 			} else {
 				break;
 			}
