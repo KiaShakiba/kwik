@@ -95,10 +95,10 @@ where
 	///
 	/// A reference to the most fit individual is returned.
 	pub fn run(&mut self) -> &GS {
-		let mut last_fitness = self.iterate();
-		let mut convergence_count: u32 = 0;
-
 		let start = utils::timestamp();
+
+		let mut convergence_count: u32 = 0;
+		let mut last_fitness = self.iterate();
 
 		while
 			last_fitness.abs() > FITNESS_EPSILON &&
