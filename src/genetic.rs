@@ -56,9 +56,17 @@ where
 	GS: Genes<G>,
 {
 	population: Vec<Individual<G, GS>>,
-	generation_count: usize,
-
 	rng: ThreadRng,
+}
+
+/// The result of a genetic run. Holds the genes of the fittest individual,
+/// the number of generations processed during the run, and the total runtime
+/// of the run.
+pub struct GeneticResult<G: Gene, GS: Genes<G>> {
+	genes: GS,
+
+	generations: u64,
+	runtime: u64,
 
 	_gene_marker: PhantomData<G>,
 }
@@ -82,11 +90,7 @@ where
 
 		Genetic {
 			population,
-			generation_count: 0,
-
 			rng: thread_rng(),
-
-			_gene_marker: PhantomData,
 		}
 	}
 
@@ -94,9 +98,10 @@ where
 	/// of 0 or the population has converged and is no longer changing.
 	///
 	/// A reference to the most fit individual is returned.
-	pub fn run(&mut self) -> &GS {
+	pub fn run(&mut self) -> GeneticResult<G, GS> {
 		let start = utils::timestamp();
 
+		let mut generation_count: u64 = 1;
 		let mut convergence_count: u32 = 0;
 		let mut last_fitness = self.iterate();
 
@@ -113,16 +118,20 @@ where
 			} else {
 				convergence_count += 1;
 			}
+
+			generation_count += 1;
 		}
 
-		self.population[0].genes()
+		GeneticResult::new(
+			self.population[0].genes().clone(),
+			generation_count,
+			utils::timestamp() - start
+		)
 	}
 
 	/// Performs one iteration of the genetic algorithm, creating a new generation
 	/// and overwriting the current population.
 	fn iterate(&mut self) -> Fitness {
-		self.generation_count += 1;
-
 		let elite_population = (POPULATION_SIZE as f64 * ELITE_RATIO) as usize;
 		let mating_population = (POPULATION_SIZE as f64 * MATING_RATIO) as usize;
 
@@ -151,5 +160,37 @@ where
 
 		self.population = new_generation;
 		self.population[0].fitness()
+	}
+}
+
+impl<G, GS> GeneticResult<G, GS>
+where
+	G: Gene,
+	GS: Genes<G>,
+{
+	fn new(genes: GS, generations: u64, runtime: u64) -> Self {
+		GeneticResult {
+			genes,
+
+			generations,
+			runtime,
+
+			_gene_marker: PhantomData,
+		}
+	}
+
+	/// Returns a reference to the fittest individual's genes.
+	pub fn genes(&self) -> &GS {
+		&self.genes
+	}
+
+	/// Returns the number of generations processed during the run.
+	pub fn generations(&self) -> u64 {
+		self.generations
+	}
+
+	/// Returns the total runtime of the run.
+	pub fn runtime(&self) -> u64 {
+		self.runtime
 	}
 }
