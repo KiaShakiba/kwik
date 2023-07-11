@@ -6,6 +6,7 @@
  */
 
 use crate::genetic::MutateRng;
+use crate::genetic::genes::Genes;
 
 /// A gene defines the unit of change in a genetic algorithm. Implement this trait
 /// for whichever struct contains the data for an individual member of the genetic
@@ -24,7 +25,8 @@ use crate::genetic::MutateRng;
 /// }
 /// ```
 pub trait Gene where Self: Clone {
-	/// Mutates the value of the gene. Ensure the value is mutated only within
+	/// Mutates the value of the gene. A reference to the other genes in the
+	/// individual is also supplied. Ensure the value is mutated only within
 	/// the acceptable range of possible values.
-	fn mutate(&mut self, _: &mut MutateRng);
+	fn mutate(&mut self, _: &mut MutateRng, _: &impl Genes<Self>);
 }

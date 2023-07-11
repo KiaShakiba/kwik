@@ -68,7 +68,7 @@ where
 
 					MateResult::Mutation => {
 						let mut gene = self.genes.get(i).clone();
-						gene.mutate(rng);
+						gene.mutate(rng, &child_genes);
 						gene
 					},
 				};
