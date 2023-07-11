@@ -5,6 +5,7 @@ use std::collections::HashSet;
 pub use crate::table::row::Row;
 pub use crate::table::cell::{Direction, Style};
 
+#[derive(Default)]
 pub struct Table {
 	header: Option<Row>,
 	rows: Vec<Row>,
@@ -80,44 +81,32 @@ impl Table {
 			row = row.push(value, Direction::Left, Style::Normal);
 		}
 
-		row.print(&sizes, false);
+		row.print(sizes, false);
 	}
 
 	pub fn max_column_lens(&self) -> Vec<usize> {
 		let mut sizes: Vec<usize> = vec![0; self.row_len];
 
-		for row in &self.rows {
-			for i in 0..row.len() {
-				let size = row.get_column_size(i);
+		if let Some(header) = &self.header {
+			for (index, size) in sizes.iter_mut().enumerate() {
+				let row_column_size = header.get_column_size(index);
 
-				if size > sizes[i] {
-					sizes[i] = size;
+				if row_column_size > *size {
+					*size = row_column_size;
 				}
 			}
 		}
 
-		if let Some(header) = &self.header {
-			for i in 0..header.len() {
-				let size = header.get_column_size(i);
+		for row in &self.rows {
+			for (index, size) in sizes.iter_mut().enumerate() {
+				let row_column_size = row.get_column_size(index);
 
-				if size > sizes[i] {
-					sizes[i] = size;
+				if row_column_size > *size {
+					*size = row_column_size;
 				}
 			}
 		}
 
 		sizes
-	}
-}
-
-impl Default for Table {
-	fn default() -> Self {
-		Table {
-			header: None,
-			rows: Vec::new(),
-			spacers: HashSet::new(),
-
-			row_len: 0,
-		}
 	}
 }

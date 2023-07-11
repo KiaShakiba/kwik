@@ -1,12 +1,17 @@
 use std::fmt::Display;
 use crate::table::cell::{Cell, Direction, Style};
 
+#[derive(Default)]
 pub struct Row {
 	cells: Vec<Cell>,
 	max_len: usize,
 }
 
 impl Row {
+	pub fn is_empty(&self) -> bool {
+		self.cells.is_empty()
+	}
+
 	pub fn len(&self) -> usize {
 		self.cells.len()
 	}
@@ -73,15 +78,6 @@ impl Row {
 			format!("| {line} |")
 		} else {
 			format!("|{line}|")
-		}
-	}
-}
-
-impl Default for Row {
-	fn default() -> Self {
-		Row {
-			cells: Vec::new(),
-			max_len: 0,
 		}
 	}
 }
