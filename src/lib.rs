@@ -15,44 +15,52 @@ pub mod math;
 pub mod mem;
 
 pub mod file_reader;
-pub use file_reader::FileReader;
+pub use crate::file_reader::FileReader;
 
 pub mod text_reader;
-pub use text_reader::TextReader;
+pub use crate::text_reader::TextReader;
 
 pub mod csv_reader;
-pub use csv_reader::{
+pub use crate::csv_reader::{
 	CsvReader,
 	Row as CsvReaderRow,
 };
 
 pub mod binary_reader;
-pub use binary_reader::{
+pub use crate::binary_reader::{
 	BinaryReader,
 	SizedChunk,
 	Chunk as BinaryReaderChunk,
 };
 
 pub mod file_writer;
-pub use file_writer::FileWriter;
+pub use crate::file_writer::FileWriter;
 
 pub mod text_writer;
-pub use text_writer::TextWriter;
+pub use crate::text_writer::TextWriter;
 
 pub mod csv_writer;
-pub use csv_writer::{
+pub use crate::csv_writer::{
 	CsvWriter,
 	Row as CsvWriterRow,
 };
 
 pub mod binary_writer;
-pub use binary_writer::{
+pub use crate::binary_writer::{
 	BinaryWriter,
 	Chunk as BinaryWriterChunk,
 };
 
 pub mod progress;
-pub use progress::{Progress, Tag as ProgressTag};
+pub use crate::progress::{Progress, Tag as ProgressTag};
 
 pub mod genetic;
-pub use genetic::Genetic;
+pub use crate::genetic::Genetic;
+
+pub mod table;
+pub use crate::table::{
+	Table,
+	Row as TableRow,
+	Direction as TableRowDirection,
+	Style as TableRowStyle,
+};
