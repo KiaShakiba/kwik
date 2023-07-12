@@ -9,10 +9,7 @@ use std::marker::PhantomData;
 use std::cmp::{Ord, Ordering};
 use rand::Rng;
 use rand::rngs::ThreadRng;
-use crate::genetic::Fitness;
 use crate::genetic::genes::{Genes, Gene};
-
-pub const FITNESS_EPSILON: Fitness = 0.000001;
 
 #[derive(Clone)]
 pub struct Individual<G, GS>
@@ -48,8 +45,8 @@ where
 		&self.genes
 	}
 
-	pub fn fitness(&self) -> Fitness {
-		self.genes.fitness()
+	pub fn is_optimal(&self) -> bool {
+		self.genes.is_optimal()
 	}
 
 	pub fn mate(
@@ -107,11 +104,7 @@ where
 	GS: Genes<G>,
 {
 	fn cmp(&self, other: &Self) -> Ordering {
-		if self.eq(other) {
-			return self.genes().cmp(other.genes());
-		}
-
-		self.partial_cmp(other).unwrap()
+		self.genes.cmp(&other.genes)
 	}
 }
 
@@ -121,7 +114,7 @@ where
 	GS: Genes<G>,
 {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		self.fitness().abs().partial_cmp(&other.fitness().abs())
+		self.genes.partial_cmp(&other.genes)
 	}
 }
 
@@ -131,7 +124,7 @@ where
 	GS: Genes<G>,
 {
 	fn eq(&self, other: &Self) -> bool {
-		(self.fitness() - other.fitness()).abs() < FITNESS_EPSILON
+		self.genes.eq(&other.genes)
 	}
 }
 

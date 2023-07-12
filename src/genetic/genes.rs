@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use crate::genetic::Fitness;
 pub use crate::genetic::gene::Gene;
 
 /// This defines a set of genes. With this, genes can be added and
@@ -51,11 +50,13 @@ pub use crate::genetic::gene::Gene;
 ///         true
 ///     }
 ///
-///     fn fitness(&self) -> Fitness {
-///         self.config
+///     fn is_optimal(&self) -> bool {
+///         let sum = self.config
 ///             .iter()
 ///             .map(|item| item.data as Fitness)
-///             .sum::<Fitness>()
+///             .sum::<u32>();
+///
+///         sum == 100
 ///     }
 /// }
 /// ```
@@ -87,7 +88,7 @@ where
 		true
 	}
 
-	/// Computes the overall fitness of the genes. The genetic algorithm
-	/// will attempt to get this fitness as close to 0 as possible.
-	fn fitness(&self) -> Fitness;
+	/// Returns true if the genes produce an optimal result.
+	/// This will stop the genetic algorithm.
+	fn is_optimal(&self) -> bool;
 }

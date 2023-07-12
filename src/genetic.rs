@@ -8,16 +8,16 @@
 mod individual;
 mod gene;
 mod genes;
+mod result;
 
-use std::marker::PhantomData;
 pub use rand::Rng;
 use rand::thread_rng;
 pub use rand::rngs::ThreadRng;
 use crate::utils;
-use crate::genetic::individual::{Individual, FITNESS_EPSILON};
+use crate::genetic::individual::Individual;
 pub use crate::genetic::genes::{Genes, Gene};
+pub use crate::genetic::result::GeneticResult;
 
-pub type Fitness = f64;
 pub type MutateRng = ThreadRng;
 
 const POPULATION_SIZE: usize = 100;
@@ -66,18 +66,6 @@ where
 	mating_ratio: f64,
 
 	rng: ThreadRng,
-}
-
-/// The result of a genetic run. Holds the genes of the fittest individual,
-/// the number of generations processed during the run, and the total runtime
-/// of the run.
-pub struct GeneticResult<G: Gene, GS: Genes<G>> {
-	genes: GS,
-
-	generations: u64,
-	runtime: u64,
-
-	_gene_marker: PhantomData<G>,
 }
 
 impl<G, GS> Genetic<G, GS>
@@ -162,19 +150,23 @@ where
 	pub fn run(&mut self) -> GeneticResult<G, GS> {
 		let start = utils::timestamp();
 
+		self.iterate();
+
 		let mut generation_count: u64 = 1;
 		let mut convergence_count: u64 = 0;
-		let mut last_fitness = self.iterate();
+		let mut last_fittest = self.population[0].clone();
 
 		while
-			last_fitness.abs() > FITNESS_EPSILON &&
+			!last_fittest.is_optimal() &&
 			convergence_count < self.convergence_limit &&
 			(utils::timestamp() - start) < self.max_runtime
 		{
-			let fitness = self.iterate();
+			self.iterate();
 
-			if (fitness - last_fitness).abs() > FITNESS_EPSILON {
-				last_fitness = fitness;
+			let fittest = &self.population[0];
+
+			if !fittest.eq(&last_fittest) {
+				last_fittest = fittest.clone();
 				convergence_count = 0;
 			} else {
 				convergence_count += 1;
@@ -192,7 +184,7 @@ where
 
 	/// Performs one iteration of the genetic algorithm, creating a new generation
 	/// and overwriting the current population.
-	fn iterate(&mut self) -> Fitness {
+	fn iterate(&mut self) {
 		let elite_population = (self.population_size as f64 * self.elite_ratio) as usize;
 		let mating_population = (self.population_size as f64 * self.mating_ratio) as usize;
 
@@ -220,38 +212,5 @@ where
 		new_generation.sort();
 
 		self.population = new_generation;
-		self.population[0].fitness()
-	}
-}
-
-impl<G, GS> GeneticResult<G, GS>
-where
-	G: Gene,
-	GS: Genes<G>,
-{
-	fn new(genes: GS, generations: u64, runtime: u64) -> Self {
-		GeneticResult {
-			genes,
-
-			generations,
-			runtime,
-
-			_gene_marker: PhantomData,
-		}
-	}
-
-	/// Returns a reference to the fittest individual's genes.
-	pub fn genes(&self) -> &GS {
-		&self.genes
-	}
-
-	/// Returns the number of generations processed during the run.
-	pub fn generations(&self) -> u64 {
-		self.generations
-	}
-
-	/// Returns the total runtime of the run.
-	pub fn runtime(&self) -> u64 {
-		self.runtime
 	}
 }
