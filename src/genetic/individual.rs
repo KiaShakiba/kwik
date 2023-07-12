@@ -117,6 +117,10 @@ where
 	GS: Genes<G>,
 {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		if self.eq(other) {
+			return self.partial_cmp(other);
+		}
+
 		self.fitness().abs().partial_cmp(&other.fitness().abs())
 	}
 }

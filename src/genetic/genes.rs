@@ -61,7 +61,7 @@ pub use crate::genetic::gene::Gene;
 /// ```
 pub trait Genes<G>
 where
-	Self: Clone,
+	Self: Clone + Ord,
 	G: Gene,
 {
 	/// Creates a new, empty instance of the base genes.
