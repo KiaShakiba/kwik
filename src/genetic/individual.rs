@@ -118,7 +118,7 @@ where
 {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		if self.eq(other) {
-			return self.partial_cmp(other);
+			return self.genes().partial_cmp(other.genes());
 		}
 
 		self.fitness().abs().partial_cmp(&other.fitness().abs())
