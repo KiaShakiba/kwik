@@ -37,6 +37,10 @@ impl Row {
 		self
 	}
 
+	pub fn blank(self) -> Self {
+		self.push("", Direction::Left, Style::Normal)
+	}
+
 	pub fn size(&self) -> usize {
 		self.to_string(None, true).len()
 	}
