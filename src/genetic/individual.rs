@@ -107,6 +107,10 @@ where
 	GS: Genes<G>,
 {
 	fn cmp(&self, other: &Self) -> Ordering {
+		if self.eq(other) {
+			return self.genes().cmp(other.genes());
+		}
+
 		self.partial_cmp(other).unwrap()
 	}
 }
@@ -117,10 +121,6 @@ where
 	GS: Genes<G>,
 {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		if self.eq(other) {
-			return self.genes().partial_cmp(other.genes());
-		}
-
 		self.fitness().abs().partial_cmp(&other.fitness().abs())
 	}
 }
