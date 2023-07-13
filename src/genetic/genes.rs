@@ -29,6 +29,7 @@ pub use crate::genetic::gene::Gene;
 ///
 ///     fn is_empty(&self) -> bool {
 ///         self.config.is_empty()
+///     }
 ///
 ///     fn len(&self) -> usize {
 ///         self.config.len()

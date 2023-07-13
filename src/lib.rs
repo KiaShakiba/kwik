@@ -64,3 +64,6 @@ pub use crate::table::{
 	Align as TableRowAlign,
 	Style as TableRowStyle,
 };
+
+pub mod thread_pool;
+pub use crate::thread_pool::ThreadPool;
