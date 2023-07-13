@@ -3,7 +3,7 @@ mod cell;
 
 use std::collections::HashSet;
 pub use crate::table::row::Row;
-pub use crate::table::cell::{Direction, Style};
+pub use crate::table::cell::{Align, Style};
 
 #[derive(Default)]
 pub struct Table {
@@ -78,7 +78,7 @@ impl Table {
 
 		for size in sizes {
 			let value = vec!["-"; *size + 2].join("");
-			row = row.push(value, Direction::Left, Style::Normal);
+			row = row.push(value, Align::Left, Style::Normal);
 		}
 
 		row.print(sizes, false);

@@ -1,12 +1,13 @@
 pub struct Cell {
 	value: String,
-	direction: Direction,
+	align: Align,
 	style: Style,
 }
 
-pub enum Direction {
+pub enum Align {
 	Left,
 	Right,
+	Center,
 }
 
 pub enum Style {
@@ -17,12 +18,12 @@ pub enum Style {
 impl Cell {
 	pub fn new(
 		value: String,
-		direction: Direction,
+		align: Align,
 		style: Style,
 	) -> Self {
 		Cell {
 			value,
-			direction,
+			align,
 			style,
 		}
 	}
@@ -32,9 +33,20 @@ impl Cell {
 	}
 
 	pub fn to_sized_string(&self, size: usize) -> String {
-		let string = match &self.direction {
-			Direction::Left => format!("{:<size$}", self.value),
-			Direction::Right => format!("{:>size$}", self.value),
+		let string = match &self.align {
+			Align::Left => format!("{:<size$}", self.value),
+			Align::Right => format!("{:>size$}", self.value),
+
+			Align::Center => {
+				let before = (size as f64 - self.value.len() as f64) / 2.0;
+				let after = (size as f64 - self.value.len() as f64) / 2.0;
+
+				format!(
+					"{:before$}{}{:after$}", "", self.value, "",
+					before = before.floor() as usize,
+					after = after.ceil() as usize,
+				)
+			},
 		};
 
 		match &self.style {

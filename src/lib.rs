@@ -61,6 +61,6 @@ pub mod table;
 pub use crate::table::{
 	Table,
 	Row as TableRow,
-	Direction as TableRowDirection,
+	Align as TableRowAlign,
 	Style as TableRowStyle,
 };

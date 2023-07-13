@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use crate::table::cell::{Cell, Direction, Style};
+use crate::table::cell::{Cell, Align, Style};
 
 #[derive(Default)]
 pub struct Row {
@@ -19,7 +19,7 @@ impl Row {
 	pub fn push<T>(
 		mut self,
 		value: T,
-		direction: Direction,
+		align: Align,
 		style: Style,
 	) -> Self
 	where
@@ -27,7 +27,7 @@ impl Row {
 	{
 		let string = value.to_string();
 		let len = string.len();
-		let cell = Cell::new(string, direction, style);
+		let cell = Cell::new(string, align, style);
 
 		if len > self.max_len {
 			self.max_len = len;
@@ -38,7 +38,7 @@ impl Row {
 	}
 
 	pub fn blank(self) -> Self {
-		self.push("", Direction::Left, Style::Normal)
+		self.push("", Align::Left, Style::Normal)
 	}
 
 	pub fn size(&self) -> usize {
