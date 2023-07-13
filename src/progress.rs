@@ -64,7 +64,7 @@ impl<'a> Progress<'a> {
 			amount_timestamps,
 		};
 
-		progress.draw(&0, &0, &0, &0);
+		progress.draw(0, 0, 0, 0);
 
 		progress
 	}
@@ -90,8 +90,8 @@ impl<'a> Progress<'a> {
 
 		let now = timestamp();
 
-		let interval = self.pulse(&now);
-		let rate = self.get_rate(&interval);
+		let interval = self.pulse(now);
+		let rate = self.get_rate(interval);
 
 		if amount == previous_amount && amount != 100 && interval == 0 {
 			return;
@@ -102,10 +102,10 @@ impl<'a> Progress<'a> {
 		}
 
 		self.draw(
-			&amount,
-			&rate,
-			&self.get_eta(&now),
-			&self.get_time(&now)
+			amount,
+			rate,
+			self.get_eta(now),
+			self.get_time(now)
 		);
 
 		if amount == 100 {
@@ -113,22 +113,22 @@ impl<'a> Progress<'a> {
 		}
 	}
 
-	fn pulse(&mut self, now: &u64) -> u64 {
-		let difference = *now - self.pulse_time;
+	fn pulse(&mut self, now: u64) -> u64 {
+		let difference = now - self.pulse_time;
 
 		if difference >= PULSE_INTERVAL {
-			self.pulse_time = *now;
+			self.pulse_time = now;
 			return difference;
 		}
 
 		0
 	}
 
-	fn get_rate(&mut self, interval: &u64) -> u64 {
+	fn get_rate(&mut self, interval: u64) -> u64 {
 		self.rate_count += 1;
 
-		if *interval > 0 {
-			let rate = self.rate_count as f64 / (*interval as f64 / 1000.0);
+		if interval > 0 {
+			let rate = self.rate_count as f64 / (interval as f64 / 1000.0);
 
 			self.previous_rate = rate as u64;
 			self.rate_count = 0;
@@ -139,19 +139,19 @@ impl<'a> Progress<'a> {
 		self.previous_rate
 	}
 
-	fn get_eta(&self, now: &u64) -> u64 {
+	fn get_eta(&self, now: u64) -> u64 {
 		let amount = 100.0 * self.current as f64 / self.total as f64;
 
-		if amount as u64 == 100 || *now == self.initial_time {
+		if amount as u64 == 100 || now == self.initial_time {
 			return 0;
 		}
 
 		if amount <= 50.0 {
-			if *now == self.initial_time {
+			if now == self.initial_time {
 				return 0;
 			}
 
-			let rate = self.current as f64 / (*now - self.initial_time) as f64;
+			let rate = self.current as f64 / (now - self.initial_time) as f64;
 
 			if rate == 0.0 {
 				return 0;
@@ -171,15 +171,15 @@ impl<'a> Progress<'a> {
 		let m = y2 - y1;
 		let b = y1 - m * x1 as u64;
 
-		(*now as f64 - (m as f64 * x + b as f64)) as u64
+		(now as f64 - (m as f64 * x + b as f64)) as u64
 	}
 
-	fn get_time(&self, now: &u64) -> u64 {
-		*now - self.initial_time
+	fn get_time(&self, now: u64) -> u64 {
+		now - self.initial_time
 	}
 
-	fn draw(&self, amount: &u64, rate: &u64, eta: &u64, time: &u64) {
-		let position = (WIDTH as f64 * *amount as f64 / 100.0) as u64;
+	fn draw(&self, amount: u64, rate: u64, eta: u64, time: u64) {
+		let position = (WIDTH as f64 * amount as f64 / 100.0) as u64;
 
 		print!("\x1B[2K\r[");
 
@@ -190,14 +190,14 @@ impl<'a> Progress<'a> {
 				Ordering::Equal => CURRENT_CHARACTER,
 			};
 
-			if *amount < 100 {
+			if amount < 100 {
 				print!("\x1B[33m{}\x1B[0m", character);
 			} else {
 				print!("\x1B[32m{}\x1B[0m", character);
 			}
 		}
 
-		if *amount < 100 {
+		if amount < 100 {
 			print!("] \x1B[33m{amount} %\x1B[0m");
 		} else {
 			print!("] \x1B[32m{amount} %\x1B[0m");
@@ -206,19 +206,19 @@ impl<'a> Progress<'a> {
 		for tag in self.tags {
 			match tag {
 				Tag::Tps => {
-					if *amount < 100 && *rate > 0 {
+					if amount < 100 && rate > 0 {
 						print!(" ({} tps)", fmt::number(rate));
 					}
 				},
 
 				Tag::Eta => {
-					if *amount < 100 && *eta > 0 {
+					if amount < 100 && eta > 0 {
 						print!(" (eta {})", fmt::timespan(eta));
 					}
 				},
 
 				Tag::Time => {
-					if *time > 0 {
+					if time > 0 {
 						print!(" (time {})", fmt::timespan(time));
 					}
 				},

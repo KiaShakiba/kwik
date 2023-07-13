@@ -9,12 +9,12 @@ use num_format::{Locale, ToFormattedString};
 
 pub const MEMORY_UNITS: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
 
-pub fn number(value: &u64) -> String {
+pub fn number(value: u64) -> String {
 	value.to_formatted_string(&Locale::en)
 }
 
-pub fn memory(value: &u64, precision: Option<usize>) -> String {
-	let mut copy = *value as f64;
+pub fn memory(value: u64, precision: Option<usize>) -> String {
+	let mut copy = value as f64;
 	let decimals = precision.unwrap_or(0);
 	let mut count: usize = 0;
 
@@ -28,8 +28,8 @@ pub fn memory(value: &u64, precision: Option<usize>) -> String {
 	format!("{:.1$} {unit}", copy, decimals)
 }
 
-pub fn timespan(value: &u64) -> String {
-	let mut milliseconds: u64 = *value;
+pub fn timespan(value: u64) -> String {
+	let mut milliseconds: u64 = value;
 
 	let days = milliseconds / 1000 / 60 / 60 / 24;
 	milliseconds -= days * 1000 * 60 * 60 * 24;
