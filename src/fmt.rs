@@ -9,10 +9,27 @@ use num_format::{Locale, ToFormattedString};
 
 pub const MEMORY_UNITS: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
 
+/// Formats a number with commas.
+///
+/// # Examples
+/// ```
+/// use kwik::fmt;
+///
+/// assert_eq!(fmt::number(1234567), "1,234,567");
+/// ```
 pub fn number(value: u64) -> String {
 	value.to_formatted_string(&Locale::en)
 }
 
+/// Formats a number of bytes with memory units, rounded
+/// to the supplied number of decimal places.
+///
+/// # Examples
+/// ```
+/// use kwik::fmt;
+///
+/// assert_eq!(fmt::memory(1234567, Some(2)), "1.18 MiB");
+/// ```
 pub fn memory(value: u64, precision: Option<usize>) -> String {
 	let mut copy = value as f64;
 	let decimals = precision.unwrap_or(0);
@@ -28,6 +45,14 @@ pub fn memory(value: u64, precision: Option<usize>) -> String {
 	format!("{:.1$} {unit}", copy, decimals)
 }
 
+/// Formats a timespan in milliseconds to D.hh:mm:ss.ms.
+///
+/// # Examples
+/// ```
+/// use kwik::fmt;
+///
+/// assert_eq!(fmt::timespan(1234567), "20:34.567");
+/// ```
 pub fn timespan(value: u64) -> String {
 	let mut milliseconds: u64 = value;
 

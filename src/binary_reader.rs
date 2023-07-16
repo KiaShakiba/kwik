@@ -22,6 +22,8 @@ pub struct BinaryReader<T: Chunk> where [u8; T::SIZE]: Sized {
 ///
 /// # Examples
 /// ```
+/// use kwik::binary_reader::SizedChunk;
+///
 /// struct MyStruct {
 ///     // data fields
 /// }
@@ -43,14 +45,22 @@ pub trait Chunk: SizedChunk {
 	///
 	/// # Examples
 	/// ```
+	/// use std::io::Error;
+	/// use kwik::{BinaryReaderChunk, SizedChunk};
+	///
 	/// struct MyStruct {
 	///     // data fields
 	/// }
 	///
-	/// impl Chunk for MyStruct {
+	/// impl BinaryReaderChunk for MyStruct {
 	///     fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized {
 	///         // parse the chunk and return an instance of `Self` on success
+	///         Ok(MyStruct {})
 	///     }
+	/// }
+	///
+	/// impl SizedChunk for MyStruct {
+	///     const SIZE: usize = 0;
 	/// }
 	/// ```
 	fn new(_: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized;
@@ -93,8 +103,33 @@ impl<T: Chunk> BinaryReader<T> where [u8; T::SIZE]: Sized {
 	///
 	/// # Examples
 	/// ```
+	/// use std::io::Error;
+	/// use std::env;
+	/// use kwik::{FileReader, BinaryReader, BinaryReaderChunk, SizedChunk};
+	///
+	/// let mut path = env::var("CARGO_MANIFEST_DIR").unwrap();
+	/// path.push_str("/target/file.bin");
+	///
+	/// let mut reader = BinaryReader::<MyStruct>::new(&path).unwrap();
+	///
 	/// while let Some(object) = reader.read_chunk() {
 	///     // do something with the object
+	/// }
+	///
+	/// struct MyStruct {
+	///     // data fields
+	///     data: u32,
+	/// }
+	///
+	/// impl BinaryReaderChunk for MyStruct {
+	///     fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized {
+	///         // parse the chunk and return an instance of `Self` on success
+	///         Ok(MyStruct { data: 0 })
+	///     }
+	/// }
+	///
+	/// impl SizedChunk for MyStruct {
+	///     const SIZE: usize = 4;
 	/// }
 	/// ```
 	pub fn read_chunk(&mut self) -> Option<T> {

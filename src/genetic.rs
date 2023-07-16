@@ -31,15 +31,20 @@ const MATING_RATIO: f64 = 0.5;
 ///
 /// # Examples
 /// ```
+/// use kwik::Genetic;
+/// use kwik::genetic::{Gene, Genes, MutateRng, Rng};
+///
+/// #[derive(Clone, Ord, PartialOrd, PartialEq, Eq)]
 /// struct MyData {
 ///     data: u32,
 /// }
 ///
+/// #[derive(Default, Clone, Ord, PartialOrd, PartialEq, Eq)]
 /// struct MyConfig {
 ///     config: Vec<MyData>,
 /// }
 ///
-/// let mut initial_genes = MyConfig::new();
+/// let mut initial_genes = MyConfig::default();
 ///
 /// initial_genes.push(MyData { data: 0 });
 /// initial_genes.push(MyData { data: 0 });
@@ -47,8 +52,55 @@ const MATING_RATIO: f64 = 0.5;
 /// initial_genes.push(MyData { data: 0 });
 /// initial_genes.push(MyData { data: 0 });
 ///
-/// let mut genetic = Genetic::<u32, MyData, MyConfig>::new(initial_genes);
+/// let mut genetic = Genetic::<MyData, MyConfig>::new(initial_genes);
 /// let optimal_config = genetic.run();
+///
+/// impl Genes<MyData> for MyConfig {
+///     fn base(&self) -> Self {
+///         MyConfig {
+///             config: Vec::new(),
+///         }
+///     }
+///
+///     fn is_empty(&self) -> bool {
+///         self.config.is_empty()
+///     }
+///
+///     fn len(&self) -> usize {
+///         self.config.len()
+///     }
+///
+///     fn push(&mut self, data: MyData) {
+///         self.config.push(data);
+///     }
+///
+///     fn get(&self, index: usize) -> &MyData {
+///         &self.config[index]
+///     }
+///
+///     fn clear(&mut self) {
+///         self.config.clear();
+///     }
+///
+///     fn is_valid(&self) -> bool {
+///         true
+///     }
+///
+///     fn is_optimal(&self) -> bool {
+///         let sum = self.config
+///             .iter()
+///             .map(|item| item.data)
+///             .sum::<u32>();
+///
+///         sum == 100
+///     }
+/// }
+///
+/// impl Gene for MyData {
+///     fn mutate(&mut self, rng: &mut MutateRng) {
+///         self.data = rng.gen_range(0..10);
+///     }
+/// }
 /// ```
 pub struct Genetic<G: Gene, GS: Genes<G>>
 where

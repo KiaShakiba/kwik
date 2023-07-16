@@ -9,7 +9,9 @@
 ///
 /// # Examples
 /// ```
-/// let value = min::<u64>(&[&3, &4, &1, &2]);
+/// use kwik::math;
+///
+/// let value = math::min::<u64>(&[&3, &4, &1, &2]);
 /// assert_eq!(value, 1);
 /// ```
 pub fn min<T: PartialOrd + Copy>(values: &[&T]) -> T {
@@ -32,7 +34,9 @@ pub fn min<T: PartialOrd + Copy>(values: &[&T]) -> T {
 ///
 /// # Examples
 /// ```
-/// let value = max::<u64>(&[&3, &4, &1, &2]);
+/// use kwik::math;
+///
+/// let value = math::max::<u64>(&[&3, &4, &1, &2]);
 /// assert_eq!(value, 4);
 /// ```
 pub fn max<T: PartialOrd + Copy>(values: &[&T]) -> T {

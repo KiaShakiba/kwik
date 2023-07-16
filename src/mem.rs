@@ -28,8 +28,10 @@ pub enum Error {
 ///
 /// # Examples
 /// ```
+/// use kwik::mem;
+///
 /// // returns the "VmHWM" status member of the current process
-/// match stat::<u64>("VmHWM", None) {
+/// match mem::stat::<u64>("VmHWM", None) {
 ///     Ok(value) => {
 ///         // process value
 ///     },
@@ -75,8 +77,10 @@ where
 ///
 /// # Examples
 /// ```
+/// use kwik::mem;
+///
 /// // returns the high water mark of the current process
-/// match hwm(None) {
+/// match mem::hwm(None) {
 ///     Ok(value) => {
 ///         // process high water mark
 ///     },
@@ -101,8 +105,10 @@ pub fn hwm(pid: Option<&Pid>) -> Result<u64, Error> {
 ///
 /// # Examples
 /// ```
+/// use kwik::mem;
+///
 /// // returns the resident set size of the current process
-/// match rss(None) {
+/// match mem::rss(None) {
 ///     Ok(value) => {
 ///         // process high water mark
 ///     },
@@ -126,7 +132,9 @@ pub fn rss(pid: Option<&Pid>) -> Result<u64, Error> {
 ///
 /// # Examples
 /// ```
-/// match sys() {
+/// use kwik::mem;
+///
+/// match mem::sys() {
 ///     Ok(value) => {
 ///         // process system memory size
 ///     },
@@ -150,8 +158,10 @@ pub fn sys() -> Result<u64, Error> {
 ///
 /// # Examples
 /// ```
+/// use kwik::mem;
+///
 /// // clears the memory refs of the current process
-/// if let Err(err) = clear(None) {
+/// if let Err(err) = mem::clear(None) {
 ///     // handle error
 /// }
 /// ```
@@ -179,8 +189,10 @@ pub fn clear(pid: Option<&Pid>) -> Result<(), Error> {
 ///
 /// # Examples
 /// ```
+/// use kwik::mem;
+///
 /// let num: u32 = 5;
-/// let size = size_of(&num);
+/// let size = mem::size_of(&num);
 ///
 /// assert_eq!(size, 4);
 /// ```
@@ -192,10 +204,12 @@ pub fn size_of<T>(value: &T) -> usize {
 ///
 /// # Examples
 /// ```
-/// let values = vec![0u32, 1, 2, 3];
-/// let size = size_of_vec(&num);
+/// use kwik::mem;
 ///
-/// assert_eq!(size, 16);
+/// let values = vec![0u32, 1, 2, 3];
+/// let size = mem::size_of_vec(&values);
+///
+/// assert_eq!(size, 40);
 /// ```
 pub fn size_of_vec<T>(value: &Vec<T>) -> usize {
 	let container_size = size_of(value);

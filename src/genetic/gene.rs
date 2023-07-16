@@ -13,6 +13,9 @@ use crate::genetic::MutateRng;
 ///
 /// # Examples
 /// ```
+/// use kwik::genetic::{Gene, MutateRng, Rng};
+///
+/// #[derive(Clone)]
 /// struct MyData {
 ///     data: u32,
 /// }

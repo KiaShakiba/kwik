@@ -8,6 +8,13 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Returns the current system timestamp in milliseconds.
+///
+/// # Examples
+/// ```
+/// use kwik::utils;
+///
+/// assert!(utils::timestamp() > 0);
+/// ```
 pub fn timestamp() -> u64 {
 	let now = SystemTime::now()
 		.duration_since(UNIX_EPOCH)

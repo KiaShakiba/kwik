@@ -12,10 +12,14 @@ pub use crate::genetic::gene::Gene;
 ///
 /// # Examples
 /// ```
+/// use kwik::genetic::{Gene, Genes, MutateRng, Rng};
+///
+/// #[derive(Clone, Ord, PartialOrd, PartialEq, Eq)]
 /// struct MyData {
 ///     data: u32,
 /// }
 ///
+/// #[derive(Clone, Ord, PartialOrd, PartialEq, Eq)]
 /// struct MyConfig {
 ///     config: Vec<MyData>,
 /// }
@@ -35,7 +39,7 @@ pub use crate::genetic::gene::Gene;
 ///         self.config.len()
 ///     }
 ///
-///     fn push(&mut self, data: MyData) -> usize {
+///     fn push(&mut self, data: MyData) {
 ///         self.config.push(data);
 ///     }
 ///
@@ -54,10 +58,16 @@ pub use crate::genetic::gene::Gene;
 ///     fn is_optimal(&self) -> bool {
 ///         let sum = self.config
 ///             .iter()
-///             .map(|item| item.data as Fitness)
+///             .map(|item| item.data)
 ///             .sum::<u32>();
 ///
 ///         sum == 100
+///     }
+/// }
+///
+/// impl Gene for MyData {
+///     fn mutate(&mut self, rng: &mut MutateRng) {
+///         self.data = rng.gen_range(0..10);
 ///     }
 /// }
 /// ```
