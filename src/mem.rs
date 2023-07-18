@@ -91,10 +91,7 @@ where
 /// }
 /// ```
 pub fn hwm(pid: Option<&Pid>) -> Result<u64, Error> {
-	match stat::<u64>("VmHWM", pid) {
-		Ok(value) => Ok(value * 1024),
-		Err(error) => Err(error),
-	}
+	stat::<u64>("VmHWM", pid).map(|value| value * 1024)
 }
 
 /// Returns the resident set size of the supplied pid in bytes. If no pid
@@ -119,10 +116,7 @@ pub fn hwm(pid: Option<&Pid>) -> Result<u64, Error> {
 /// }
 /// ```
 pub fn rss(pid: Option<&Pid>) -> Result<u64, Error> {
-	match stat::<u64>("VmRSS", pid) {
-		Ok(value) => Ok(value * 1024),
-		Err(error) => Err(error),
-	}
+	stat::<u64>("VmRSS", pid).map(|value| value * 1024)
 }
 
 /// Returns the total physical memory of the system in bytes.
