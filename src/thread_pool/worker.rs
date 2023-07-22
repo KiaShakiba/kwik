@@ -5,8 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::sync::{mpsc, Arc, Mutex};
-use std::thread;
+use std::{
+	sync::{mpsc, Arc, Mutex},
+	thread,
+};
 
 pub struct Worker {
 	pub thread: Option<thread::JoinHandle<()>>,

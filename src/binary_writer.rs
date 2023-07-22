@@ -5,11 +5,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::fs::File;
-use std::io::{BufWriter, Write, Error, ErrorKind};
-use std::marker::PhantomData;
-pub use crate::file_writer::FileWriter;
-pub use crate::binary_reader::SizedChunk;
+use std::{
+	fs::File,
+	io::{BufWriter, Write, Error, ErrorKind},
+	marker::PhantomData,
+};
+
+pub use crate::{
+	file_writer::FileWriter,
+	binary_reader::SizedChunk,
+};
 
 pub struct BinaryWriter<T: Chunk> {
 	file: BufWriter<File>,

@@ -5,10 +5,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::marker::PhantomData;
-use std::cmp::{Ord, Ordering};
-use rand::Rng;
-use rand::rngs::ThreadRng;
+use std::{
+	marker::PhantomData,
+	cmp::{Ord, Ordering},
+};
+
+use rand::{
+	Rng,
+	rngs::ThreadRng,
+};
+
 use crate::genetic::genes::{Genes, Gene};
 
 #[derive(Clone)]

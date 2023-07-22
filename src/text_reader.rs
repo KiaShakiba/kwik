@@ -5,8 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::fs::File;
-use std::io::{BufReader, BufRead, Error, ErrorKind};
+use std::{
+	fs::File,
+	io::{BufReader, BufRead, Error, ErrorKind},
+};
+
 pub use crate::file_reader::FileReader;
 
 pub struct TextReader {

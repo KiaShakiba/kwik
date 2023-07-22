@@ -5,13 +5,18 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::io::Write;
-use std::convert::TryInto;
-use std::fmt::Debug;
-use std::cmp::Ordering;
-use crate::utils::timestamp;
-use crate::fmt;
-use crate::math;
+use std::{
+	io::Write,
+	convert::TryInto,
+	fmt::Debug,
+	cmp::Ordering,
+};
+
+use crate::{
+	fmt,
+	math,
+	utils::timestamp,
+};
 
 const WIDTH: u64 = 70;
 

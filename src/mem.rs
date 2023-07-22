@@ -5,12 +5,18 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::str::FromStr;
-use std::process::Command;
-use std::mem;
+use std::{
+	mem,
+	str::FromStr,
+	process::Command,
+};
+
 use sys_info::mem_info;
-use crate::file_reader::FileReader;
-use crate::text_reader::TextReader;
+
+use crate::{
+	file_reader::FileReader,
+	text_reader::TextReader,
+};
 
 pub type Pid = u32;
 

@@ -13,10 +13,16 @@ mod result;
 pub use rand::Rng;
 use rand::thread_rng;
 pub use rand::rngs::ThreadRng;
-use crate::utils;
-use crate::genetic::individual::Individual;
-pub use crate::genetic::genes::{Genes, Gene};
-pub use crate::genetic::result::GeneticResult;
+
+use crate::{
+	utils,
+	genetic::individual::Individual,
+};
+
+pub use crate::{
+	genetic::genes::{Genes, Gene},
+	genetic::result::GeneticResult,
+};
 
 pub type MutateRng = ThreadRng;
 

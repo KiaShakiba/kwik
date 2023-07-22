@@ -5,9 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::fs::File;
-use std::io::{Error, ErrorKind};
-use std::marker::PhantomData;
+use std::{
+	fs::File,
+	io::{Error, ErrorKind},
+	marker::PhantomData,
+};
+
 use csv::{Reader, ReaderBuilder, StringRecord};
 pub use crate::file_reader::FileReader;
 

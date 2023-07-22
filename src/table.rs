@@ -9,8 +9,11 @@ mod row;
 mod cell;
 
 use std::collections::HashSet;
-pub use crate::table::row::Row;
-pub use crate::table::cell::{Align, Style};
+
+pub use crate::table::{
+	row::Row,
+	cell::{Align, Style},
+};
 
 #[derive(Default)]
 pub struct Table {

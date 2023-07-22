@@ -5,8 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::fs::File;
-use std::io::{LineWriter, Write, Error, ErrorKind};
+use std::{
+	fs::File,
+	io::{LineWriter, Write, Error, ErrorKind},
+};
+
 pub use crate::file_writer::FileWriter;
 
 pub struct TextWriter {

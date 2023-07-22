@@ -5,8 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::fs::File;
-use std::io::{BufReader, Read, Error, ErrorKind};
+use std::{
+	fs::File,
+	io::{BufReader, Read, Error, ErrorKind},
+};
+
 pub use crate::file_reader::FileReader;
 
 /// Reads a binary file in chunks
