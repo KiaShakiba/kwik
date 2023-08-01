@@ -77,14 +77,14 @@ impl<T: Row> CsvReader<T> {
 
 				let row = match T::new(&self.buf) {
 					Ok(row) => row,
-					Err(err) => panic!("Parse error in row {}: {:?}", self.count, err),
+					Err(err) => panic!("Parse error on CSV row {}: {:?}", self.count, err),
 				};
 
 				Some(row)
 			},
 
 			Err(_) => {
-				panic!("An error occurred on line {} when reading CSV file.", self.count);
+				panic!("An error occurred on CSV row {}.", self.count + 1);
 			},
 		}
 	}
