@@ -20,6 +20,7 @@ use crate::{
 
 pub type Pid = u32;
 
+#[derive(Debug)]
 pub enum Error {
 	InvalidStat(String),
 	MemInfo,

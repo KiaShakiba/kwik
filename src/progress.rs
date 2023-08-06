@@ -26,11 +26,11 @@ const REMAINING_CHARACTER: char = ' ';
 
 const PULSE_INTERVAL: u64 = 1000;
 
-pub struct Progress<'a> {
+pub struct Progress {
 	total: u64,
 	current: u64,
 
-	tags: &'a [&'a Tag],
+	tags: Vec<Tag>,
 
 	rate_count: u64,
 	previous_rate: u64,
@@ -41,14 +41,15 @@ pub struct Progress<'a> {
 	amount_timestamps: [u64; 101],
 }
 
+#[derive(Clone)]
 pub enum Tag {
 	Tps,
 	Eta,
 	Time,
 }
 
-impl<'a> Progress<'a> {
-	pub fn new(total: u64, tags: &'a [&'a Tag]) -> Self {
+impl Progress {
+	pub fn new(total: u64, tags: &[Tag]) -> Self {
 		let now = timestamp();
 		let mut amount_timestamps = [0; 101];
 
@@ -58,7 +59,7 @@ impl<'a> Progress<'a> {
 			total,
 			current: 0,
 
-			tags,
+			tags: tags.to_vec(),
 
 			rate_count: 0,
 			previous_rate: 0,
@@ -74,12 +75,12 @@ impl<'a> Progress<'a> {
 		progress
 	}
 
-	pub fn tick<T>(&mut self, value: &T)
+	pub fn tick<T>(&mut self, value: T)
 	where
 		T: TryInto<u64> + Copy,
 		<T as TryInto<u64>>::Error: Debug,
 	{
-		self.set(self.current + (*value).try_into().unwrap());
+		self.set(self.current + value.try_into().unwrap());
 	}
 
 	fn set(&mut self, value: u64) {
@@ -208,7 +209,7 @@ impl<'a> Progress<'a> {
 			print!("] \x1B[32m{amount} %\x1B[0m");
 		}
 
-		for tag in self.tags {
+		for tag in &self.tags {
 			match tag {
 				Tag::Tps => {
 					if amount < 100 && rate > 0 {
