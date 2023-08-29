@@ -5,7 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::fmt::Display;
+use std::{
+	io::Write,
+	fmt::Display,
+};
+
 use crate::table::cell::{Cell, Align, Style};
 
 #[derive(Default)]
@@ -15,14 +19,48 @@ pub struct Row {
 }
 
 impl Row {
+	/// Returns true if there are no columns in the row.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::{TableRow, TableRowAlign, TableRowStyle};
+	///
+	/// let mut row = TableRow::default();
+	///
+	/// assert!(row.is_empty());
+	///
+	/// row = row.push("Row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	///
+	/// assert!(!row.is_empty());
+	/// ```
 	pub fn is_empty(&self) -> bool {
 		self.cells.is_empty()
 	}
 
+	/// Returns the number of columns in the row.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::{TableRow, TableRowAlign, TableRowStyle};
+	///
+	/// let mut row = TableRow::default()
+	///     .push("Row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	///
+	/// assert_eq!(row.len(), 1);
+	/// ```
 	pub fn len(&self) -> usize {
 		self.cells.len()
 	}
 
+	/// Adds a new column to the end of the row.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::{TableRow, TableRowAlign, TableRowStyle};
+	///
+	/// let mut row = TableRow::default()
+	///     .push("Row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	/// ```
 	pub fn push<T>(
 		mut self,
 		value: T,
@@ -44,14 +82,25 @@ impl Row {
 		self
 	}
 
+	/// Adds a blank column to the end of the row.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::{TableRow, TableRowAlign, TableRowStyle};
+	///
+	/// let mut row = TableRow::default()
+	///     .blank();
+	/// ```
 	pub fn blank(self) -> Self {
 		self.push("", Align::Left, Style::Normal)
 	}
 
+	/// Returns the printed size of the row.
 	pub fn size(&self) -> usize {
 		self.to_string(None, true).len()
 	}
 
+	/// Returns the printed size of the column at the supplied index.
 	pub fn get_column_size(&self, index: usize) -> usize {
 		if index >= self.cells.len() {
 			panic!("Invalid column index.");
@@ -60,10 +109,17 @@ impl Row {
 		self.cells[index].size()
 	}
 
-	pub fn print(&self, sizes: &Vec<usize>, spaced: bool) {
-		println!("{}", self.to_string(Some(sizes), spaced));
+	/// Prints the column to the supplied stream.
+	pub fn print(
+		&self,
+		stdout: &mut impl Write,
+		sizes: &Vec<usize>,
+		spaced: bool
+	) {
+		writeln!(stdout, "{}", self.to_string(Some(sizes), spaced)).unwrap();
 	}
 
+	/// Returns the string value of the row.
 	fn to_string(
 		&self,
 		sizes: Option<&Vec<usize>>,

@@ -8,7 +8,10 @@
 mod row;
 mod cell;
 
-use std::collections::HashSet;
+use std::{
+	io::Write,
+	collections::HashSet,
+};
 
 pub use crate::table::{
 	row::Row,
@@ -24,7 +27,27 @@ pub struct Table {
 	row_len: usize,
 }
 
+/// Prints a table to a stream.
 impl Table {
+	/// Sets the table's header row. The header row is followed by a spacer
+	/// row by default.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::{Table, TableRow, TableRowAlign, TableRowStyle};
+	///
+	/// let mut table = Table::default();
+	///
+	/// let header = TableRow::default()
+	///     .push("Header 1", TableRowAlign::Center, TableRowStyle::Bold);
+	///
+	/// table.set_header(header);
+	///
+	/// let mut stdout = Vec::new();
+	/// table.print(&mut stdout);
+	///
+	/// assert_eq!(stdout, b"| \x1B[1mHeader 1\x1B[0m |\n|----------|\n");
+	/// ```
 	pub fn set_header(&mut self, header: Row) {
 		if !self.rows.is_empty() && header.len() != self.row_len {
 			panic!("Invalid number of columns in row.");
@@ -35,6 +58,24 @@ impl Table {
 		self.spacers.insert(1);
 	}
 
+	/// Adds a row to the table;
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::{Table, TableRow, TableRowAlign, TableRowStyle};
+	///
+	/// let mut table = Table::default();
+	///
+	/// let row = TableRow::default()
+	///     .push("Row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	///
+	/// table.add_row(row);
+	///
+	/// let mut stdout = Vec::new();
+	/// table.print(&mut stdout);
+	///
+	/// assert_eq!(stdout, b"| Row 1 |\n");
+	/// ```
 	pub fn add_row(&mut self, row: Row) {
 		if !self.rows.is_empty() && row.len() != self.row_len {
 			panic!("Invalid number of columns in row.");
@@ -44,6 +85,29 @@ impl Table {
 		self.rows.push(row);
 	}
 
+	/// Adds a spacer row to the table.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::{Table, TableRow, TableRowAlign, TableRowStyle};
+	///
+	/// let mut table = Table::default();
+	///
+	/// let row1 = TableRow::default()
+	///     .push("Row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	///
+	/// let row2 = TableRow::default()
+	///     .push("Row 2", TableRowAlign::Left, TableRowStyle::Normal);
+	///
+	/// table.add_row(row1);
+	/// table.add_spacer();
+	/// table.add_row(row2);
+	///
+	/// let mut stdout = Vec::new();
+	/// table.print(&mut stdout);
+	///
+	/// assert_eq!(stdout, b"| Row 1 |\n|-------|\n| Row 2 |\n");
+	/// ```
 	pub fn add_spacer(&mut self) {
 		let mut index = self.rows.len();
 
@@ -54,36 +118,62 @@ impl Table {
 		self.spacers.insert(index);
 	}
 
-	pub fn print(&self) {
+	/// Prints the table to the supplied stream.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::{Table, TableRow, TableRowAlign, TableRowStyle};
+	///
+	/// let mut table = Table::default();
+	///
+	/// let header = TableRow::default()
+	///     .push("Header 1", TableRowAlign::Center, TableRowStyle::Bold);
+	///
+	/// let row = TableRow::default()
+	///     .push("Longer row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	///
+	/// table.set_header(header);
+	/// table.add_row(row);
+	///
+	/// let mut stdout = Vec::new();
+	/// table.print(&mut stdout);
+	///
+	/// assert_eq!(stdout, b"| \x1B[1m  Header 1  \x1B[0m |\n|--------------|\n| Longer row 1 |\n");
+	/// ```
+	pub fn print(&self, stdout: &mut impl Write) {
 		let mut index: usize = 0;
 		let column_lens = self.max_column_lens();
 
 		if self.spacers.contains(&index) {
-			self.print_spacer_row(&column_lens);
+			self.print_spacer_row(stdout, &column_lens);
 		}
 
 		if let Some(header) = &self.header {
 			index += 1;
 
-			header.print(&column_lens, true);
+			header.print(stdout, &column_lens, true);
 
 			if self.spacers.contains(&index) {
-				self.print_spacer_row(&column_lens);
+				self.print_spacer_row(stdout, &column_lens);
 			}
 		}
 
 		for row in &self.rows {
 			index += 1;
 
-			row.print(&column_lens, true);
+			row.print(stdout, &column_lens, true);
 
 			if self.spacers.contains(&index) {
-				self.print_spacer_row(&column_lens);
+				self.print_spacer_row(stdout, &column_lens);
 			}
 		}
 	}
 
-	fn print_spacer_row(&self, sizes: &Vec<usize>) {
+	fn print_spacer_row(
+		&self,
+		stdout: &mut impl Write,
+		sizes: &Vec<usize>
+	) {
 		let mut row = Row::default();
 
 		for size in sizes {
@@ -91,10 +181,10 @@ impl Table {
 			row = row.push(value, Align::Left, Style::Normal);
 		}
 
-		row.print(sizes, false);
+		row.print(stdout, sizes, false);
 	}
 
-	pub fn max_column_lens(&self) -> Vec<usize> {
+	fn max_column_lens(&self) -> Vec<usize> {
 		let mut sizes: Vec<usize> = vec![0; self.row_len];
 
 		if let Some(header) = &self.header {

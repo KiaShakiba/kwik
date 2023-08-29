@@ -120,7 +120,7 @@ where
 	GS: Genes<G>,
 {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		self.genes.partial_cmp(&other.genes)
+		Some(self.cmp(other))
 	}
 }
 
