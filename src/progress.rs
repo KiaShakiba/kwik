@@ -75,7 +75,7 @@ impl Progress {
 		progress
 	}
 
-	pub fn complete(&self) -> bool {
+	pub fn is_complete(&self) -> bool {
 		self.current == self.total
 	}
 
