@@ -75,6 +75,10 @@ impl Progress {
 		progress
 	}
 
+	pub fn complete(&self) -> bool {
+		self.current == self.total
+	}
+
 	pub fn tick<T>(&mut self, value: T)
 	where
 		T: TryInto<u64> + Copy,
