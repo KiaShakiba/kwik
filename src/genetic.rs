@@ -158,8 +158,7 @@ where
 		}
 	}
 
-	/// Sets the population size using the builder pattern and fills the
-	/// population with individuals.
+	/// Sets the population size and fills the population with individuals.
 	pub fn with_population_size(mut self, population_size: usize) -> Self {
 		self.population_size = population_size;
 		self.population.clear();
@@ -171,31 +170,31 @@ where
 		self
 	}
 
-	/// Sets the convergence using the builder pattern.
+	/// Sets the convergence.
 	pub fn with_convergence_limit(mut self, convergence_limit: u64) -> Self {
 		self.convergence_limit = convergence_limit;
 		self
 	}
 
-	/// Sets the max runtime using the builder pattern.
+	/// Sets the max runtime.
 	pub fn with_max_runtime(mut self, max_runtime: u64) -> Self {
 		self.max_runtime = max_runtime;
 		self
 	}
 
-	/// Sets the mutation probability using the builder pattern.
+	/// Sets the mutation probability.
 	pub fn with_mutation_probability(mut self, mutation_probability: f64) -> Self {
 		self.mutation_probability = mutation_probability;
 		self
 	}
 
-	/// Sets the elite ratio using the builder pattern.
+	/// Sets the elite ratio.
 	pub fn with_elite_ratio(mut self, elite_ratio: f64) -> Self {
 		self.elite_ratio = elite_ratio;
 		self
 	}
 
-	/// Sets the mating ratio using the builder pattern.
+	/// Sets the mating ratio.
 	pub fn with_mating_ratio(mut self, mating_ratio: f64) -> Self {
 		self.mating_ratio = mating_ratio;
 		self
