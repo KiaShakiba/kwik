@@ -202,8 +202,6 @@ where
 
 	/// Runs the genetic algorithm until either the most fit individual has a fitness
 	/// of 0 or the population has converged and is no longer changing.
-	///
-	/// A reference to the most fit individual is returned.
 	pub fn run(&mut self) -> GeneticResult<G, GS> {
 		let start = utils::timestamp();
 
