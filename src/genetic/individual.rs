@@ -5,10 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{
-	marker::PhantomData,
-	cmp::{Ord, Ordering},
-};
+use std::cmp::{Ord, Ordering};
 
 use rand::{
 	Rng,
@@ -18,14 +15,11 @@ use rand::{
 use crate::genetic::genes::{Genes, Gene};
 
 #[derive(Clone)]
-pub struct Individual<G, GS>
+pub struct Individual<GS>
 where
-	G: Gene,
-	GS: Genes<G>,
+	GS: Genes,
 {
 	genes: GS,
-
-	_gene_marker: PhantomData<G>,
 }
 
 enum MateResult {
@@ -34,16 +28,13 @@ enum MateResult {
 	Mutation,
 }
 
-impl<G, GS> Individual<G, GS>
+impl<GS> Individual<GS>
 where
-	G: Gene,
-	GS: Genes<G>,
+	GS: Genes,
 {
 	pub fn new(genes: GS) -> Self {
 		Individual {
 			genes,
-
-			_gene_marker: PhantomData,
 		}
 	}
 
@@ -58,9 +49,9 @@ where
 	pub fn mate(
 		&self,
 		rng: &mut ThreadRng,
-		partner: &Individual<G, GS>,
+		partner: &Individual<GS>,
 		mutation_probability: f64
-	) -> Individual<G, GS> {
+	) -> Individual<GS> {
 		let mut child_genes = self.genes.base();
 
 		loop {
@@ -86,7 +77,7 @@ where
 			}
 		}
 
-		Individual::<G, GS>::new(child_genes)
+		Individual::<GS>::new(child_genes)
 	}
 }
 
@@ -104,38 +95,34 @@ fn get_mate_result(rng: &mut ThreadRng, mutation_probability: f64) -> MateResult
 	MateResult::Mutation
 }
 
-impl<G, GS> Ord for Individual<G, GS>
+impl<GS> Ord for Individual<GS>
 where
-	G: Gene,
-	GS: Genes<G>,
+	GS: Genes,
 {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.genes.cmp(&other.genes)
 	}
 }
 
-impl<G, GS> PartialOrd for Individual<G, GS>
+impl<GS> PartialOrd for Individual<GS>
 where
-	G: Gene,
-	GS: Genes<G>,
+	GS: Genes,
 {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl<G, GS> PartialEq for Individual<G, GS>
+impl<GS> PartialEq for Individual<GS>
 where
-	G: Gene,
-	GS: Genes<G>,
+	GS: Genes,
 {
 	fn eq(&self, other: &Self) -> bool {
 		self.genes.eq(&other.genes)
 	}
 }
 
-impl<G, GS> Eq for Individual<G, GS>
+impl<GS> Eq for Individual<GS>
 where
-	G: Gene,
-	GS: Genes<G>,
+	GS: Genes,
 {}

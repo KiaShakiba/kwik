@@ -5,25 +5,24 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::marker::PhantomData;
-pub use crate::genetic::genes::{Genes, Gene};
+pub use crate::genetic::genes::Genes;
 
 /// The result of a genetic run. Holds the genes of the fittest individual,
 /// the number of generations processed during the run, and the total runtime
 /// of the run.
-pub struct GeneticResult<G: Gene, GS: Genes<G>> {
+pub struct GeneticResult<GS>
+where
+	GS: Genes,
+{
 	genes: GS,
 
 	generations: u64,
 	runtime: u64,
-
-	_gene_marker: PhantomData<G>,
 }
 
-impl<G, GS> GeneticResult<G, GS>
+impl<GS> GeneticResult<GS>
 where
-	G: Gene,
-	GS: Genes<G>,
+	GS: Genes,
 {
 	pub fn new(genes: GS, generations: u64, runtime: u64) -> Self {
 		GeneticResult {
@@ -31,8 +30,6 @@ where
 
 			generations,
 			runtime,
-
-			_gene_marker: PhantomData,
 		}
 	}
 

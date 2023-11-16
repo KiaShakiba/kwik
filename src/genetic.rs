@@ -58,10 +58,17 @@ const MATING_RATIO: f64 = 0.5;
 /// initial_genes.push(MyData { data: 0 });
 /// initial_genes.push(MyData { data: 0 });
 ///
-/// let mut genetic = Genetic::<MyData, MyConfig>::new(initial_genes);
-/// let optimal_config = genetic.run();
+/// let mut genetic = Genetic::<MyConfig>::new(initial_genes);
+/// let result = genetic.run();
 ///
-/// impl Genes<MyData> for MyConfig {
+/// let sum = result.genes().config
+/// 	.iter()
+/// 	.map(|item| item.data)
+/// 	.sum::<u32>();
+///
+/// impl Genes for MyConfig {
+///     type Gene = MyData;
+///
 ///     fn base(&self) -> Self {
 ///         MyConfig {
 ///             config: Vec::new(),
@@ -104,17 +111,16 @@ const MATING_RATIO: f64 = 0.5;
 ///
 /// impl Gene for MyData {
 ///     fn mutate(&mut self, rng: &mut MutateRng) {
-///         self.data = rng.gen_range(0..10);
+///         self.data = rng.gen_range(0..50);
 ///     }
 /// }
 /// ```
-pub struct Genetic<G: Gene, GS: Genes<G>>
+pub struct Genetic<GS>
 where
-	G: Gene,
-	GS: Genes<G>,
+	GS: Genes,
 {
 	initial_genes: GS,
-	population: Vec<Individual<G, GS>>,
+	population: Vec<Individual<GS>>,
 
 	population_size: usize,
 	convergence_limit: u64,
@@ -126,10 +132,9 @@ where
 	rng: ThreadRng,
 }
 
-impl<G, GS> Genetic<G, GS>
+impl<GS> Genetic<GS>
 where
-	G: Gene,
-	GS: Genes<G>,
+	GS: Genes,
 {
 	/// Creates an instance of the genetic runner using the supplied genes as initial values.
 	pub fn new(initial_genes: GS) -> Self {
@@ -137,7 +142,7 @@ where
 			panic!("Invalid initial genes.");
 		}
 
-		let mut population = Vec::<Individual<G, GS>>::new();
+		let mut population = Vec::<Individual<GS>>::new();
 
 		for _ in 0..POPULATION_SIZE {
 			population.push(Individual::new(initial_genes.clone()));
@@ -202,7 +207,7 @@ where
 
 	/// Runs the genetic algorithm until either the most fit individual has a fitness
 	/// of 0 or the population has converged and is no longer changing.
-	pub fn run(&mut self) -> GeneticResult<G, GS> {
+	pub fn run(&mut self) -> GeneticResult<GS> {
 		let start = utils::timestamp();
 
 		self.iterate();
@@ -247,7 +252,7 @@ where
 			.iter()
 			.take(elite_population)
 			.cloned()
-			.collect::<Vec::<Individual<G, GS>>>();
+			.collect::<Vec::<Individual<GS>>>();
 
 		for _ in 0..(self.population_size - elite_population) {
 			let index1: usize = self.rng.gen_range(0..mating_population);

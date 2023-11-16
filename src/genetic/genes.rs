@@ -24,7 +24,9 @@ pub use crate::genetic::gene::Gene;
 ///     config: Vec<MyData>,
 /// }
 ///
-/// impl Genes<MyData> for MyConfig {
+/// impl Genes for MyConfig {
+///     type Gene = MyData;
+///
 ///     fn base(&self) -> Self {
 ///         MyConfig {
 ///             config: Vec::new(),
@@ -71,11 +73,12 @@ pub use crate::genetic::gene::Gene;
 ///     }
 /// }
 /// ```
-pub trait Genes<G>
+pub trait Genes
 where
-	Self: Clone + Ord,
-	G: Gene,
+	Self: Clone + Ord
 {
+	type Gene: Gene;
+
 	/// Creates a new, empty instance of the base genes.
 	fn base(&self) -> Self;
 
@@ -86,13 +89,13 @@ where
 	fn len(&self) -> usize;
 
 	/// Adds a gene to the genes.
-	fn push(&mut self, _: G);
+	fn push(&mut self, _: Self::Gene);
 
 	/// Clears the genes.
 	fn clear(&mut self);
 
 	/// Retrieves a reference to a gene from the genes.
-	fn get(&self, _: usize) -> &G;
+	fn get(&self, _: usize) -> &Self::Gene;
 
 	/// Returns true if the genes are valid.
 	fn is_valid(&self) -> bool {
