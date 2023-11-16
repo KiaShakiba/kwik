@@ -26,7 +26,10 @@ use crate::genetic::MutateRng;
 ///     }
 /// }
 /// ```
-pub trait Gene where Self: Clone {
+pub trait Gene
+where
+	Self: Clone,
+{
 	/// Mutates the value of the gene. Ensure the value is mutated only within
 	/// the acceptable range of possible values.
 	fn mutate(&mut self, _: &mut MutateRng);

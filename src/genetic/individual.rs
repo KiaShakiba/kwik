@@ -15,10 +15,7 @@ use rand::{
 use crate::genetic::genes::{Genes, Gene};
 
 #[derive(Clone)]
-pub struct Individual<GS>
-where
-	GS: Genes,
-{
+pub struct Individual<GS: Genes> {
 	genes: GS,
 }
 
@@ -28,10 +25,7 @@ enum MateResult {
 	Mutation,
 }
 
-impl<GS> Individual<GS>
-where
-	GS: Genes,
-{
+impl<GS: Genes> Individual<GS> {
 	pub fn new(genes: GS) -> Self {
 		Individual {
 			genes,
@@ -95,34 +89,22 @@ fn get_mate_result(rng: &mut ThreadRng, mutation_probability: f64) -> MateResult
 	MateResult::Mutation
 }
 
-impl<GS> Ord for Individual<GS>
-where
-	GS: Genes,
-{
+impl<GS: Genes> Ord for Individual<GS> {
 	fn cmp(&self, other: &Self) -> Ordering {
 		self.genes.cmp(&other.genes)
 	}
 }
 
-impl<GS> PartialOrd for Individual<GS>
-where
-	GS: Genes,
-{
+impl<GS: Genes> PartialOrd for Individual<GS> {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
 	}
 }
 
-impl<GS> PartialEq for Individual<GS>
-where
-	GS: Genes,
-{
+impl<GS: Genes> PartialEq for Individual<GS> {
 	fn eq(&self, other: &Self) -> bool {
 		self.genes.eq(&other.genes)
 	}
 }
 
-impl<GS> Eq for Individual<GS>
-where
-	GS: Genes,
-{}
+impl<GS: Genes> Eq for Individual<GS> {}
