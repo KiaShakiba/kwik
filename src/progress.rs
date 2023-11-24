@@ -172,7 +172,7 @@ impl Progress {
 
 		let x = amount * 2.0 - 100.0;
 
-		let x1 = math::min(&[&x, &98.0]) as usize;
+		let x1 = math::min(&[x, 98.0]) as usize;
 		let x2 = x1 + 1;
 
 		let y1 = self.amount_timestamps[x1];
