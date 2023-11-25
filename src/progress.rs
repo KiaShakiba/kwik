@@ -215,22 +215,16 @@ impl Progress {
 
 		for tag in &self.tags {
 			match tag {
-				Tag::Tps => {
-					if amount < 100 && rate > 0 {
-						print!(" ({} tps)", fmt::number(rate));
-					}
+				Tag::Tps => if amount < 100 && rate > 0 {
+					print!(" ({} tps)", fmt::number(rate));
 				},
 
-				Tag::Eta => {
-					if amount < 100 && eta > 0 {
-						print!(" (eta {})", fmt::timespan(eta));
-					}
+				Tag::Eta => if amount < 100 && eta > 0 {
+					print!(" (eta {})", fmt::timespan(eta));
 				},
 
-				Tag::Time => {
-					if time > 0 {
-						print!(" (time {})", fmt::timespan(time));
-					}
+				Tag::Time => if time > 0 {
+					print!(" (time {})", fmt::timespan(time));
 				},
 			}
 		}

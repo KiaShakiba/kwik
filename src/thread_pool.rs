@@ -62,6 +62,7 @@ impl ThreadPool {
 		F: 'static + FnOnce() + Send,
 	{
 		let job = Box::new(f);
+
 		self.sender
 			.as_ref().unwrap()
 			.send(job).unwrap();

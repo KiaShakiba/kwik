@@ -67,26 +67,22 @@ impl<T: Row> CsvReader<T> {
 	pub fn read_row(&mut self) -> Option<T> {
 		self.buf.data.clear();
 
-		match self.file.read_record(&mut self.buf.data) {
-			Ok(result) => {
-				if !result {
-					return None;
-				}
+		let Ok(result) = self.file.read_record(&mut self.buf.data) else {
+			panic!("An error occurred on CSV row {}.", self.count + 1);
+		};
 
-				self.count += 1;
-
-				let row = match T::new(&self.buf) {
-					Ok(row) => row,
-					Err(err) => panic!("Parse error on CSV row {}: {:?}", self.count, err),
-				};
-
-				Some(row)
-			},
-
-			Err(_) => {
-				panic!("An error occurred on CSV row {}.", self.count + 1);
-			},
+		if !result {
+			return None;
 		}
+
+		self.count += 1;
+
+		let row = match T::new(&self.buf) {
+			Ok(row) => row,
+			Err(err) => panic!("Parse error on CSV row {}: {:?}", self.count, err),
+		};
+
+		Some(row)
 	}
 }
 

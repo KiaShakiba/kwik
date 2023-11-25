@@ -149,10 +149,7 @@ impl<T: Chunk> BinaryReader<T> where [u8; T::SIZE]: Sized {
 			},
 
 			Err(ref err) if err.kind() ==  ErrorKind::UnexpectedEof => None,
-
-			Err(_) => {
-				panic!("An error occurred when reading binary file.");
-			},
+			Err(_) => panic!("An error occurred when reading binary file."),
 		}
 	}
 }
