@@ -14,7 +14,10 @@ use std::{
 use csv::{Reader, ReaderBuilder, StringRecord};
 pub use crate::file_reader::FileReader;
 
-pub struct CsvReader<T: Row> {
+pub struct CsvReader<T>
+where
+	T: Row,
+{
 	file: Reader<File>,
 	buf: CsvRow,
 	count: u64,
@@ -30,7 +33,10 @@ pub trait Row {
 	fn new(_: &CsvRow) -> Result<Self, Error> where Self: Sized;
 }
 
-impl<T: Row> FileReader for CsvReader<T> {
+impl<T> FileReader for CsvReader<T>
+where
+	T: Row,
+{
 	fn new(path: &str) -> Result<Self, Error> {
 		let reader = ReaderBuilder::new()
 			.has_headers(false)
@@ -63,7 +69,10 @@ impl<T: Row> FileReader for CsvReader<T> {
 	}
 }
 
-impl<T: Row> CsvReader<T> {
+impl<T> CsvReader<T>
+where
+	T: Row,
+{
 	pub fn read_row(&mut self) -> Option<T> {
 		self.buf.data.clear();
 

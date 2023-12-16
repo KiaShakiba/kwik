@@ -14,7 +14,10 @@ use std::{
 use csv::{Writer, StringRecord};
 pub use crate::file_writer::FileWriter;
 
-pub struct CsvWriter<T: Row> {
+pub struct CsvWriter<T>
+where
+	T: Row,
+{
 	file: Writer<File>,
 	buf: CsvRow,
 	count: u64,
@@ -30,7 +33,10 @@ pub trait Row {
 	fn as_row(&self, _: &mut CsvRow) -> Result<(), Error>;
 }
 
-impl<T: Row> FileWriter for CsvWriter<T> {
+impl<T> FileWriter for CsvWriter<T>
+where
+	T: Row,
+{
 	fn new(path: &str) -> Result<Self, Error> where Self: Sized {
 		let Ok(file) = Writer::from_path(path) else {
 			return Err(Error::new(
@@ -51,7 +57,10 @@ impl<T: Row> FileWriter for CsvWriter<T> {
 	}
 }
 
-impl<T: Row> CsvWriter<T> {
+impl<T> CsvWriter<T>
+where
+	T: Row,
+{
 	pub fn write_row(&mut self, object: &T) {
 		self.buf.data.clear();
 		self.count += 1;

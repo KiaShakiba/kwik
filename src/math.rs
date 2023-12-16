@@ -17,7 +17,10 @@
 /// let value = math::min::<u64>(&[3, 4, 1, 2]);
 /// assert_eq!(value, 1);
 /// ```
-pub fn min<T: Clone + PartialOrd>(values: &[T]) -> T {
+pub fn min<T>(values: &[T]) -> T
+where
+	T: Clone + PartialOrd,
+{
 	if values.is_empty() {
 		panic!("Cannot find min value.");
 	}
@@ -45,7 +48,10 @@ pub fn min<T: Clone + PartialOrd>(values: &[T]) -> T {
 /// let value = math::max::<u64>(&[3, 4, 1, 2]);
 /// assert_eq!(value, 4);
 /// ```
-pub fn max<T: Clone + PartialOrd>(values: &[T]) -> T {
+pub fn max<T>(values: &[T]) -> T
+where
+	T: Clone + PartialOrd,
+{
 	if values.is_empty() {
 		panic!("Cannot find max value.");
 	}

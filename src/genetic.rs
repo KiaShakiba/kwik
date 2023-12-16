@@ -110,7 +110,10 @@ const MATING_RATIO: f64 = 0.5;
 ///     }
 /// }
 /// ```
-pub struct Genetic<GS: Genes> {
+pub struct Genetic<GS>
+where
+	GS: Genes,
+{
 	initial_genes: GS,
 	population: Vec<Individual<GS>>,
 
@@ -124,7 +127,10 @@ pub struct Genetic<GS: Genes> {
 	rng: ThreadRng,
 }
 
-impl<GS: Genes> Genetic<GS> {
+impl<GS> Genetic<GS>
+where
+	GS: Genes,
+{
 	/// Creates an instance of the genetic runner using the supplied genes as initial values.
 	pub fn new(initial_genes: GS) -> Self {
 		if !initial_genes.is_valid() {

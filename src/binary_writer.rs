@@ -16,7 +16,10 @@ pub use crate::{
 	binary_reader::SizedChunk,
 };
 
-pub struct BinaryWriter<T: Chunk> {
+pub struct BinaryWriter<T>
+where
+	T: Chunk,
+{
 	file: BufWriter<File>,
 	buf: Vec<u8>,
 	count: u64,
@@ -28,7 +31,10 @@ pub trait Chunk: SizedChunk {
 	fn as_chunk(&self, _: &mut Vec<u8>) -> Result<(), Error>;
 }
 
-impl<T: Chunk> FileWriter for BinaryWriter<T> {
+impl<T> FileWriter for BinaryWriter<T>
+where
+	T: Chunk,
+{
 	fn new(path: &str) -> Result<Self, Error> where Self: Sized {
 		let Ok(opened_file) = File::create(path) else {
 			return Err(Error::new(
@@ -49,7 +55,10 @@ impl<T: Chunk> FileWriter for BinaryWriter<T> {
 	}
 }
 
-impl<T: Chunk> BinaryWriter<T> {
+impl<T> BinaryWriter<T>
+where
+	T: Chunk,
+{
 	pub fn write_chunk(&mut self, object: &T) {
 		self.buf.clear();
 		self.count += 1;

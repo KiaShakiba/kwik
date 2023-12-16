@@ -10,14 +10,20 @@ pub use crate::genetic::genes::Genes;
 /// The result of a genetic run. Holds the genes of the fittest individual,
 /// the number of generations processed during the run, and the total runtime
 /// of the run.
-pub struct GeneticResult<GS: Genes> {
+pub struct GeneticResult<GS>
+where
+	GS: Genes,
+{
 	genes: GS,
 
 	generations: u64,
 	runtime: u64,
 }
 
-impl<GS: Genes> GeneticResult<GS> {
+impl<GS> GeneticResult<GS>
+where
+	GS: Genes,
+{
 	pub fn new(genes: GS, generations: u64, runtime: u64) -> Self {
 		GeneticResult {
 			genes,

@@ -13,7 +13,11 @@ use std::{
 pub use crate::file_reader::FileReader;
 
 /// Reads a binary file in chunks
-pub struct BinaryReader<T: Chunk> where [u8; T::SIZE]: Sized {
+pub struct BinaryReader<T>
+where
+	T: Chunk,
+	[u8; T::SIZE]: Sized,
+{
 	file: BufReader<File>,
 	buf: [u8; T::SIZE],
 	count: u64,
@@ -69,7 +73,11 @@ pub trait Chunk: SizedChunk {
 	fn new(_: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized;
 }
 
-impl<T: Chunk> FileReader for BinaryReader<T> where [u8; T::SIZE]: Sized {
+impl<T> FileReader for BinaryReader<T>
+where
+	T: Chunk,
+	[u8; T::SIZE]: Sized,
+{
 	/// Opens the file at the supplied path. If the file could not be
 	/// opened, returns an error result.
 	fn new(path: &str) -> Result<Self, Error> {
@@ -99,7 +107,11 @@ impl<T: Chunk> FileReader for BinaryReader<T> where [u8; T::SIZE]: Sized {
 	}
 }
 
-impl<T: Chunk> BinaryReader<T> where [u8; T::SIZE]: Sized {
+impl<T> BinaryReader<T>
+where
+	T: Chunk,
+	[u8; T::SIZE]: Sized,
+{
 	/// Reads one chunk of the binary file, as specified by the chunk size,
 	/// and returns an option containing the parsed chunk. If the end of the
 	/// file is reached, `None` is returned.

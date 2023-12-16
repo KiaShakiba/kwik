@@ -56,7 +56,7 @@ pub enum MemError {
 /// ```
 pub fn stat<T>(key: &str, pid: Option<&Pid>) -> Result<T, MemError>
 where
-	T: FromStr + Copy
+	T: FromStr + Copy,
 {
 	let path = match pid {
 		Some(pid) => format!("/proc/{pid}/status"),

@@ -75,7 +75,7 @@ pub use crate::genetic::gene::Gene;
 /// ```
 pub trait Genes
 where
-	Self: Clone + Ord
+	Self: Clone + Ord,
 {
 	type Gene: Gene;
 
