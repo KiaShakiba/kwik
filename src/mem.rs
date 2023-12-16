@@ -11,6 +11,7 @@ use std::{
 	process::Command,
 };
 
+use thiserror::Error;
 use sys_info::mem_info;
 
 use crate::{
@@ -20,10 +21,15 @@ use crate::{
 
 pub type Pid = u32;
 
-#[derive(Debug)]
-pub enum Error {
+#[derive(Debug, Error)]
+pub enum MemError {
+	#[error("stat for `{0}` not found")]
 	InvalidStat(String),
+
+	#[error("could not find system memory information")]
 	MemInfo,
+
+	#[error("could not clear memory HWM")]
 	Clear,
 }
 
@@ -48,7 +54,7 @@ pub enum Error {
 ///     }
 /// }
 /// ```
-pub fn stat<T>(key: &str, pid: Option<&Pid>) -> Result<T, Error>
+pub fn stat<T>(key: &str, pid: Option<&Pid>) -> Result<T, MemError>
 where
 	T: FromStr + Copy
 {
@@ -68,12 +74,12 @@ where
 
 			return match parsed {
 				Ok(value) => Ok(*value),
-				Err(_) => Err(Error::InvalidStat(key.to_string())),
+				Err(_) => Err(MemError::InvalidStat(key.to_string())),
 			}
 		}
 	}
 
-	Err(Error::InvalidStat(key.to_string()))
+	Err(MemError::InvalidStat(key.to_string()))
 }
 
 /// Returns the high water mark of the supplied pid in bytes. If no pid
@@ -97,7 +103,7 @@ where
 ///     }
 /// }
 /// ```
-pub fn hwm(pid: Option<&Pid>) -> Result<u64, Error> {
+pub fn hwm(pid: Option<&Pid>) -> Result<u64, MemError> {
 	stat::<u64>("VmHWM", pid).map(|value| value * 1024)
 }
 
@@ -122,7 +128,7 @@ pub fn hwm(pid: Option<&Pid>) -> Result<u64, Error> {
 ///     }
 /// }
 /// ```
-pub fn rss(pid: Option<&Pid>) -> Result<u64, Error> {
+pub fn rss(pid: Option<&Pid>) -> Result<u64, MemError> {
 	stat::<u64>("VmRSS", pid).map(|value| value * 1024)
 }
 
@@ -145,10 +151,10 @@ pub fn rss(pid: Option<&Pid>) -> Result<u64, Error> {
 ///     }
 /// }
 /// ```
-pub fn sys() -> Result<u64, Error> {
+pub fn sys() -> Result<u64, MemError> {
 	match mem_info() {
 		Ok(info) => Ok(info.total * 1024),
-		Err(_) => Err(Error::MemInfo)
+		Err(_) => Err(MemError::MemInfo)
 	}
 }
 
@@ -166,7 +172,7 @@ pub fn sys() -> Result<u64, Error> {
 ///     // handle error
 /// }
 /// ```
-pub fn clear(pid: Option<&Pid>) -> Result<(), Error> {
+pub fn clear(pid: Option<&Pid>) -> Result<(), MemError> {
 	let command = match pid {
 		Some(pid) => format!("echo 1 > /proc/{pid}/clear_refs"),
 		None => String::from("echo 1 > /proc/self/clear_refs"),
@@ -182,7 +188,7 @@ pub fn clear(pid: Option<&Pid>) -> Result<(), Error> {
 
 	match status.success() {
 		true => Ok(()),
-		false => Err(Error::Clear),
+		false => Err(MemError::Clear),
 	}
 }
 
