@@ -8,7 +8,7 @@
 use std::{
 	path::Path,
 	fs::File,
-	io::{LineWriter, Write, Error, ErrorKind},
+	io::{LineWriter, Write, Error},
 };
 
 pub use crate::file_writer::FileWriter;
@@ -24,12 +24,7 @@ impl FileWriter for TextWriter {
 		Self: Sized,
 		P: AsRef<Path>,
 	{
-		let Ok(opened_file) = File::create(path) else {
-			return Err(Error::new(
-				ErrorKind::PermissionDenied,
-				"Could not create text file."
-			));
-		};
+		let opened_file = File::create(path)?;
 
 		let writer = TextWriter {
 			file: LineWriter::new(opened_file),

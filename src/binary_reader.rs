@@ -86,12 +86,7 @@ where
 		Self: Sized,
 		P: AsRef<Path>,
 	{
-		let Ok(opened_file) = File::open(path) else {
-			return Err(Error::new(
-				ErrorKind::NotFound,
-				"Could not open binary file."
-			));
-		};
+		let opened_file = File::open(path)?;
 
 		let reader = BinaryReader {
 			file: BufReader::new(opened_file),
@@ -104,9 +99,10 @@ where
 
 	/// Returns the number of bytes in the opened file.
 	fn size(&self) -> u64 {
-		let Ok(metadata) = self.file.get_ref().metadata() else {
-			panic!("Could not get binary file's size.");
-		};
+		let metadata = self.file
+			.get_ref()
+			.metadata()
+			.expect("Could not get binary file's size.");
 
 		metadata.len()
 	}

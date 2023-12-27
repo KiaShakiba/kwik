@@ -8,7 +8,7 @@
 use std::{
 	path::Path,
 	fs::File,
-	io::{Error, ErrorKind},
+	io::Error,
 	marker::PhantomData,
 };
 
@@ -43,12 +43,7 @@ where
 		Self: Sized,
 		P: AsRef<Path>,
 	{
-		let Ok(file) = Writer::from_path(path) else {
-			return Err(Error::new(
-				ErrorKind::NotFound,
-				"Could not create CSV file."
-			));
-		};
+		let file = Writer::from_path(path)?;
 
 		let writer = CsvWriter {
 			file,

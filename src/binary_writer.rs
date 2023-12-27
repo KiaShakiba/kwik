@@ -8,7 +8,7 @@
 use std::{
 	path::Path,
 	fs::File,
-	io::{BufWriter, Write, Error, ErrorKind},
+	io::{BufWriter, Write, Error},
 	marker::PhantomData,
 };
 
@@ -41,12 +41,7 @@ where
 		Self: Sized,
 		P: AsRef<Path>,
 	{
-		let Ok(opened_file) = File::create(path) else {
-			return Err(Error::new(
-				ErrorKind::PermissionDenied,
-				"Could not create binary file."
-			));
-		};
+		let opened_file = File::create(path)?;
 
 		let writer = BinaryWriter {
 			file: BufWriter::new(opened_file),

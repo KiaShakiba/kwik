@@ -45,17 +45,10 @@ where
 	{
 		let reader = ReaderBuilder::new()
 			.has_headers(false)
-			.from_path(path);
-
-		let Ok(file) = reader else {
-			return Err(Error::new(
-				ErrorKind::NotFound,
-				"Could not open CSV file."
-			));
-		};
+			.from_path(path)?;
 
 		let reader = CsvReader {
-			file,
+			file: reader,
 			buf: CsvRow::new(),
 			count: 0,
 
@@ -66,9 +59,10 @@ where
 	}
 
 	fn size(&self) -> u64 {
-		let Ok(metadata) = self.file.get_ref().metadata() else {
-			panic!("Could not get CSV file's size.");
-		};
+		let metadata = self.file
+			.get_ref()
+			.metadata()
+			.expect("Could not get binary file's size.");
 
 		metadata.len()
 	}
