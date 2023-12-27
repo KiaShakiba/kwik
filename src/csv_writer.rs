@@ -31,7 +31,7 @@ pub struct RowData {
 }
 
 pub trait Row {
-	fn as_row(&self, _: &mut RowData) -> Result<(), Error>;
+	fn as_row(&self, row_data: &mut RowData) -> Result<(), Error>;
 }
 
 impl<T> FileWriter for CsvWriter<T>

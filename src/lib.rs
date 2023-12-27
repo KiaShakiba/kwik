@@ -21,18 +21,10 @@ pub mod text_reader;
 pub use crate::text_reader::TextReader;
 
 pub mod csv_reader;
-pub use crate::csv_reader::{
-	CsvReader,
-	Row as CsvReaderRow,
-	RowData as CsvReaderRowData,
-};
+pub use crate::csv_reader::CsvReader;
 
 pub mod binary_reader;
-pub use crate::binary_reader::{
-	BinaryReader,
-	SizedChunk,
-	Chunk as BinaryReaderChunk,
-};
+pub use crate::binary_reader::BinaryReader;
 
 pub mod file_writer;
 pub use crate::file_writer::FileWriter;
@@ -41,31 +33,19 @@ pub mod text_writer;
 pub use crate::text_writer::TextWriter;
 
 pub mod csv_writer;
-pub use crate::csv_writer::{
-	CsvWriter,
-	Row as CsvWriterRow,
-	RowData as CsvWriterRowData,
-};
+pub use crate::csv_writer::CsvWriter;
 
 pub mod binary_writer;
-pub use crate::binary_writer::{
-	BinaryWriter,
-	Chunk as BinaryWriterChunk,
-};
+pub use crate::binary_writer::BinaryWriter;
 
 pub mod progress;
-pub use crate::progress::{Progress, Tag as ProgressTag};
+pub use crate::progress::Progress;
 
 pub mod genetic;
 pub use crate::genetic::Genetic;
 
 pub mod table;
-pub use crate::table::{
-	Table,
-	Row as TableRow,
-	Align as TableRowAlign,
-	Style as TableRowStyle,
-};
+pub use crate::table::Table;
 
 pub mod thread_pool;
 pub use crate::thread_pool::ThreadPool;

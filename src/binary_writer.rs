@@ -29,7 +29,7 @@ where
 }
 
 pub trait Chunk: SizedChunk {
-	fn as_chunk(&self, _: &mut Vec<u8>) -> Result<(), Error>;
+	fn as_chunk(&self, buf: &mut Vec<u8>) -> Result<(), Error>;
 }
 
 impl<T> FileWriter for BinaryWriter<T>

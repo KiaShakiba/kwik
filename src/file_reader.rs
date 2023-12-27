@@ -11,7 +11,7 @@ use std::{
 };
 
 pub trait FileReader {
-	fn new<P>(_: P) -> Result<Self, Error>
+	fn new<P>(path: P) -> Result<Self, Error>
 	where
 		Self: Sized,
 		P: AsRef<Path>,

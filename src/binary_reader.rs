@@ -74,7 +74,7 @@ pub trait Chunk: SizedChunk {
 	///     const SIZE: usize = 0;
 	/// }
 	/// ```
-	fn new(_: &[u8; Self::SIZE]) -> Result<Self, Error>
+	fn new(buf: &[u8; Self::SIZE]) -> Result<Self, Error>
 	where
 		Self: Sized,
 	;

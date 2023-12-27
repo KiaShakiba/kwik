@@ -89,13 +89,13 @@ where
 	fn len(&self) -> usize;
 
 	/// Adds a gene to the genes.
-	fn push(&mut self, _: Self::Gene);
+	fn push(&mut self, gene: Self::Gene);
 
 	/// Clears the genes.
 	fn clear(&mut self);
 
 	/// Retrieves a reference to a gene from the genes.
-	fn get(&self, _: usize) -> &Self::Gene;
+	fn get(&self, index: usize) -> &Self::Gene;
 
 	/// Returns true if the genes are valid.
 	fn is_valid(&self) -> bool {

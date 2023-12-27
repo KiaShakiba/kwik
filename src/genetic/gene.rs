@@ -32,5 +32,5 @@ where
 {
 	/// Mutates the value of the gene. Ensure the value is mutated only within
 	/// the acceptable range of possible values.
-	fn mutate(&mut self, _: &mut MutateRng);
+	fn mutate(&mut self, rng: &mut MutateRng);
 }
