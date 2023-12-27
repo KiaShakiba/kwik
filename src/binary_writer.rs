@@ -6,6 +6,7 @@
  */
 
 use std::{
+	path::Path,
 	fs::File,
 	io::{BufWriter, Write, Error, ErrorKind},
 	marker::PhantomData,
@@ -35,7 +36,11 @@ impl<T> FileWriter for BinaryWriter<T>
 where
 	T: Chunk,
 {
-	fn new(path: &str) -> Result<Self, Error> where Self: Sized {
+	fn new<P>(path: P) -> Result<Self, Error>
+	where
+		Self: Sized,
+		P: AsRef<Path>,
+	{
 		let Ok(opened_file) = File::create(path) else {
 			return Err(Error::new(
 				ErrorKind::PermissionDenied,

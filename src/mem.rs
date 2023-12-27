@@ -63,7 +63,7 @@ where
 		None => String::from("/proc/self/status"),
 	};
 
-	let mut reader = TextReader::new(&path)
+	let mut reader = TextReader::new(path)
 		.expect("Could not open process status file.");
 
 	while let Some(line) = reader.read_line() {

@@ -6,6 +6,7 @@
  */
 
 use std::{
+	path::Path,
 	fs::File,
 	io::{Error, ErrorKind},
 	marker::PhantomData,
@@ -37,7 +38,11 @@ impl<T> FileReader for CsvReader<T>
 where
 	T: Row,
 {
-	fn new(path: &str) -> Result<Self, Error> {
+	fn new<P>(path: P) -> Result<Self, Error>
+	where
+		Self: Sized,
+		P: AsRef<Path>,
+	{
 		let reader = ReaderBuilder::new()
 			.has_headers(false)
 			.from_path(path);

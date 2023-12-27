@@ -6,6 +6,7 @@
  */
 
 use std::{
+	path::Path,
 	fs::File,
 	io::{BufReader, Read, Error, ErrorKind},
 };
@@ -80,7 +81,11 @@ where
 {
 	/// Opens the file at the supplied path. If the file could not be
 	/// opened, returns an error result.
-	fn new(path: &str) -> Result<Self, Error> {
+	fn new<P>(path: P) -> Result<Self, Error>
+	where
+		Self: Sized,
+		P: AsRef<Path>,
+	{
 		let Ok(opened_file) = File::open(path) else {
 			return Err(Error::new(
 				ErrorKind::NotFound,

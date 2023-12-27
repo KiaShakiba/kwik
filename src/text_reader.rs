@@ -6,6 +6,7 @@
  */
 
 use std::{
+	path::Path,
 	fs::File,
 	io::{BufReader, BufRead, Error, ErrorKind},
 };
@@ -19,7 +20,11 @@ pub struct TextReader {
 }
 
 impl FileReader for TextReader {
-	fn new(path: &str) -> Result<Self, Error> {
+	fn new<P>(path: P) -> Result<Self, Error>
+	where
+		Self: Sized,
+		P: AsRef<Path>,
+	{
 		let Ok(opened_file) = File::open(path) else {
 			return Err(Error::new(
 				ErrorKind::NotFound,

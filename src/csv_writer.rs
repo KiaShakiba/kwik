@@ -6,6 +6,7 @@
  */
 
 use std::{
+	path::Path,
 	fs::File,
 	io::{Error, ErrorKind},
 	marker::PhantomData,
@@ -37,7 +38,11 @@ impl<T> FileWriter for CsvWriter<T>
 where
 	T: Row,
 {
-	fn new(path: &str) -> Result<Self, Error> where Self: Sized {
+	fn new<P>(path: P) -> Result<Self, Error>
+	where
+		Self: Sized,
+		P: AsRef<Path>,
+	{
 		let Ok(file) = Writer::from_path(path) else {
 			return Err(Error::new(
 				ErrorKind::NotFound,

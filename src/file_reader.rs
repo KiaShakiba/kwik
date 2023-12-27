@@ -5,9 +5,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::io::Error;
+use std::{
+	path::Path,
+	io::Error,
+};
 
 pub trait FileReader {
-	fn new(_: &str) -> Result<Self, Error> where Self: Sized;
+	fn new<P>(_: P) -> Result<Self, Error>
+	where
+		Self: Sized,
+		P: AsRef<Path>,
+	;
+
 	fn size(&self) -> u64;
 }
