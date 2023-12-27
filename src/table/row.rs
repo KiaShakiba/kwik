@@ -18,6 +18,13 @@ pub struct Row {
 	max_len: usize,
 }
 
+#[derive(PartialEq)]
+pub enum ColumnJoinType {
+	Normal,
+	Spaced,
+	Plus,
+}
+
 impl Row {
 	/// Returns true if there are no columns in the row.
 	///
@@ -97,7 +104,7 @@ impl Row {
 
 	/// Returns the printed size of the row.
 	pub fn size(&self) -> usize {
-		self.to_string(None, true).len()
+		self.to_string(None, ColumnJoinType::Spaced).len()
 	}
 
 	/// Returns the printed size of the column at the supplied index.
@@ -114,18 +121,26 @@ impl Row {
 		&self,
 		stdout: &mut impl Write,
 		sizes: &Vec<usize>,
-		spaced: bool
+		join_type: ColumnJoinType,
 	) {
-		writeln!(stdout, "{}", self.to_string(Some(sizes), spaced)).unwrap();
+		writeln!(
+			stdout,
+			"{}",
+			self.to_string(Some(sizes), join_type)
+		).unwrap();
 	}
 
 	/// Returns the string value of the row.
 	fn to_string(
 		&self,
 		sizes: Option<&Vec<usize>>,
-		spaced: bool
+		join_type: ColumnJoinType,
 	) -> String {
-		let join_str = if spaced { " | " } else { "|" };
+		let join_str = match join_type {
+			ColumnJoinType::Normal => "|",
+			ColumnJoinType::Spaced => " | ",
+			ColumnJoinType::Plus => "+",
+		};
 
 		let line = self.cells
 			.iter()
@@ -141,7 +156,7 @@ impl Row {
 			.collect::<Vec<String>>()
 			.join(join_str);
 
-		if spaced {
+		if join_type == ColumnJoinType::Spaced {
 			format!("| {line} |")
 		} else {
 			format!("|{line}|")

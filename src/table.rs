@@ -14,7 +14,7 @@ use std::{
 };
 
 pub use crate::table::{
-	row::Row,
+	row::{Row, ColumnJoinType},
 	cell::{Align, Style},
 };
 
@@ -151,7 +151,7 @@ impl Table {
 		if let Some(header) = &self.header {
 			index += 1;
 
-			header.print(stdout, &column_lens, true);
+			header.print(stdout, &column_lens, ColumnJoinType::Spaced);
 
 			if self.spacers.contains(&index) {
 				self.print_spacer_row(stdout, &column_lens);
@@ -161,7 +161,7 @@ impl Table {
 		for row in &self.rows {
 			index += 1;
 
-			row.print(stdout, &column_lens, true);
+			row.print(stdout, &column_lens, ColumnJoinType::Spaced);
 
 			if self.spacers.contains(&index) {
 				self.print_spacer_row(stdout, &column_lens);
@@ -181,7 +181,7 @@ impl Table {
 			row = row.push(value, Align::Left, Style::Normal);
 		}
 
-		row.print(stdout, sizes, false);
+		row.print(stdout, sizes, ColumnJoinType::Plus);
 	}
 
 	fn max_column_lens(&self) -> Vec<usize> {
