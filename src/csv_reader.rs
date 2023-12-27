@@ -20,18 +20,21 @@ where
 	T: Row,
 {
 	file: Reader<File>,
-	buf: CsvRow,
+	buf: RowData,
 	count: u64,
 
 	_marker: PhantomData<T>,
 }
 
-pub struct CsvRow {
+pub struct RowData {
 	data: StringRecord,
 }
 
 pub trait Row {
-	fn new(_: &CsvRow) -> Result<Self, Error> where Self: Sized;
+	fn new(csv_row: &RowData) -> Result<Self, Error>
+	where
+		Self: Sized,
+	;
 }
 
 impl<T> FileReader for CsvReader<T>
@@ -49,7 +52,7 @@ where
 
 		let reader = CsvReader {
 			file: reader,
-			buf: CsvRow::new(),
+			buf: RowData::new(),
 			count: 0,
 
 			_marker: PhantomData,
@@ -94,9 +97,9 @@ where
 	}
 }
 
-impl CsvRow {
+impl RowData {
 	fn new() -> Self {
-		CsvRow {
+		RowData {
 			data: StringRecord::new(),
 		}
 	}

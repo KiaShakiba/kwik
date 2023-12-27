@@ -24,6 +24,7 @@ pub mod csv_reader;
 pub use crate::csv_reader::{
 	CsvReader,
 	Row as CsvReaderRow,
+	RowData as CsvReaderRowData,
 };
 
 pub mod binary_reader;
@@ -43,6 +44,7 @@ pub mod csv_writer;
 pub use crate::csv_writer::{
 	CsvWriter,
 	Row as CsvWriterRow,
+	RowData as CsvWriterRowData,
 };
 
 pub mod binary_writer;

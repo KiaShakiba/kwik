@@ -61,7 +61,10 @@ pub trait Chunk: SizedChunk {
 	/// }
 	///
 	/// impl BinaryReaderChunk for MyStruct {
-	///     fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized {
+	///     fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error>
+	///     where
+	///         Self: Sized,
+	///     {
 	///         // parse the chunk and return an instance of `Self` on success
 	///         Ok(MyStruct {})
 	///     }
@@ -71,7 +74,10 @@ pub trait Chunk: SizedChunk {
 	///     const SIZE: usize = 0;
 	/// }
 	/// ```
-	fn new(_: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized;
+	fn new(_: &[u8; Self::SIZE]) -> Result<Self, Error>
+	where
+		Self: Sized,
+	;
 }
 
 impl<T> FileReader for BinaryReader<T>
@@ -138,7 +144,10 @@ where
 	/// }
 	///
 	/// impl BinaryReaderChunk for MyStruct {
-	///     fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error> where Self: Sized {
+	///     fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error>
+	///     where
+	///         Self: Sized,
+	///     {
 	///         // parse the chunk and return an instance of `Self` on success
 	///         Ok(MyStruct { data: 0 })
 	///     }

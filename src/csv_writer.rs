@@ -20,18 +20,18 @@ where
 	T: Row,
 {
 	file: Writer<File>,
-	buf: CsvRow,
+	buf: RowData,
 	count: u64,
 
 	_marker: PhantomData<T>,
 }
 
-pub struct CsvRow {
+pub struct RowData {
 	data: StringRecord,
 }
 
 pub trait Row {
-	fn as_row(&self, _: &mut CsvRow) -> Result<(), Error>;
+	fn as_row(&self, _: &mut RowData) -> Result<(), Error>;
 }
 
 impl<T> FileWriter for CsvWriter<T>
@@ -47,7 +47,7 @@ where
 
 		let writer = CsvWriter {
 			file,
-			buf: CsvRow::new(),
+			buf: RowData::new(),
 			count: 0,
 
 			_marker: PhantomData,
@@ -75,9 +75,9 @@ where
 	}
 }
 
-impl CsvRow {
+impl RowData {
 	fn new() -> Self {
-		CsvRow {
+		RowData {
 			data: StringRecord::new(),
 		}
 	}
