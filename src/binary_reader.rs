@@ -54,13 +54,13 @@ pub trait Chunk: SizedChunk {
 	/// # Examples
 	/// ```
 	/// use std::io::Error;
-	/// use kwik::{BinaryReaderChunk, SizedChunk};
+	/// use kwik::binary_reader::{Chunk, SizedChunk};
 	///
 	/// struct MyStruct {
 	///     // data fields
 	/// }
 	///
-	/// impl BinaryReaderChunk for MyStruct {
+	/// impl Chunk for MyStruct {
 	///     fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error>
 	///     where
 	///         Self: Sized,
@@ -127,7 +127,7 @@ where
 	/// ```
 	/// use std::io::Error;
 	/// use std::env;
-	/// use kwik::{FileReader, BinaryReader, BinaryReaderChunk, SizedChunk};
+	/// use kwik::binary_reader::{FileReader, BinaryReader, Chunk, SizedChunk};
 	///
 	/// let mut path = env::var("CARGO_MANIFEST_DIR").unwrap();
 	/// path.push_str("/target/file.bin");
@@ -143,7 +143,7 @@ where
 	///     data: u32,
 	/// }
 	///
-	/// impl BinaryReaderChunk for MyStruct {
+	/// impl Chunk for MyStruct {
 	///     fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error>
 	///     where
 	///         Self: Sized,

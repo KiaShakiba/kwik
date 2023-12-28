@@ -6,11 +6,18 @@
  */
 
 use std::{
-	io::Write,
+	io::{Write, Error},
 	fmt::Display,
 };
 
-use crate::table::cell::{Cell, Align, Style};
+use crate::{
+	csv_writer::{Row as CsvRow, RowData as CsvRowData},
+	table::cell::{
+		Cell,
+		Align,
+		Style,
+	},
+};
 
 #[derive(Default)]
 pub struct Row {
@@ -30,13 +37,13 @@ impl Row {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::{TableRow, TableRowAlign, TableRowStyle};
+	/// use kwik::table::{Row, Align, Style};
 	///
-	/// let mut row = TableRow::default();
+	/// let mut row = Row::default();
 	///
 	/// assert!(row.is_empty());
 	///
-	/// row = row.push("Row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	/// row = row.push("Row 1", Align::Left, Style::Normal);
 	///
 	/// assert!(!row.is_empty());
 	/// ```
@@ -48,10 +55,10 @@ impl Row {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::{TableRow, TableRowAlign, TableRowStyle};
+	/// use kwik::table::{Row, Align, Style};
 	///
-	/// let mut row = TableRow::default()
-	///     .push("Row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	/// let mut row = Row::default()
+	///     .push("Row 1", Align::Left, Style::Normal);
 	///
 	/// assert_eq!(row.len(), 1);
 	/// ```
@@ -63,10 +70,10 @@ impl Row {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::{TableRow, TableRowAlign, TableRowStyle};
+	/// use kwik::table::{Row, Align, Style};
 	///
-	/// let mut row = TableRow::default()
-	///     .push("Row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	/// let mut row = Row::default()
+	///     .push("Row 1", Align::Left, Style::Normal);
 	/// ```
 	pub fn push<T>(
 		mut self,
@@ -93,9 +100,9 @@ impl Row {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::{TableRow, TableRowAlign, TableRowStyle};
+	/// use kwik::table::{Row, Align, Style};
 	///
-	/// let mut row = TableRow::default()
+	/// let mut row = Row::default()
 	///     .blank();
 	/// ```
 	pub fn blank(self) -> Self {
@@ -161,5 +168,15 @@ impl Row {
 		} else {
 			format!("|{line}|")
 		}
+	}
+}
+
+impl CsvRow for Row {
+	fn as_row(&self, row_data: &mut CsvRowData) -> Result<(), Error> {
+		for cell in &self.cells {
+			row_data.push(cell.value());
+		}
+
+		Ok(())
 	}
 }

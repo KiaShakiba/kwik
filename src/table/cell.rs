@@ -35,6 +35,10 @@ impl Cell {
 		}
 	}
 
+	pub fn value(&self) -> &str {
+		&self.value
+	}
+
 	pub fn size(&self) -> usize {
 		self.value.len()
 	}

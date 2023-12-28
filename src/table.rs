@@ -9,13 +9,17 @@ mod row;
 mod cell;
 
 use std::{
-	io::Write,
+	path::Path,
+	io::{Write, Error},
 	collections::HashSet,
 };
 
-pub use crate::table::{
-	row::{Row, ColumnJoinType},
-	cell::{Align, Style},
+pub use crate::{
+	csv_writer::{FileWriter, CsvWriter},
+	table::{
+		row::{Row, ColumnJoinType},
+		cell::{Align, Style},
+	},
 };
 
 #[derive(Default)]
@@ -34,12 +38,12 @@ impl Table {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::{Table, TableRow, TableRowAlign, TableRowStyle};
+	/// use kwik::table::{Table, Row, Align, Style};
 	///
 	/// let mut table = Table::default();
 	///
-	/// let header = TableRow::default()
-	///     .push("Header 1", TableRowAlign::Center, TableRowStyle::Bold);
+	/// let header = Row::default()
+	///     .push("Header 1", Align::Center, Style::Bold);
 	///
 	/// table.set_header(header);
 	///
@@ -62,12 +66,12 @@ impl Table {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::{Table, TableRow, TableRowAlign, TableRowStyle};
+	/// use kwik::table::{Table, Row, Align, Style};
 	///
 	/// let mut table = Table::default();
 	///
-	/// let row = TableRow::default()
-	///     .push("Row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	/// let row = Row::default()
+	///     .push("Row 1", Align::Left, Style::Normal);
 	///
 	/// table.add_row(row);
 	///
@@ -89,15 +93,15 @@ impl Table {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::{Table, TableRow, TableRowAlign, TableRowStyle};
+	/// use kwik::table::{Table, Row, Align, Style};
 	///
 	/// let mut table = Table::default();
 	///
-	/// let row1 = TableRow::default()
-	///     .push("Row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	/// let row1 = Row::default()
+	///     .push("Row 1", Align::Left, Style::Normal);
 	///
-	/// let row2 = TableRow::default()
-	///     .push("Row 2", TableRowAlign::Left, TableRowStyle::Normal);
+	/// let row2 = Row::default()
+	///     .push("Row 2", Align::Left, Style::Normal);
 	///
 	/// table.add_row(row1);
 	/// table.add_spacer();
@@ -122,15 +126,15 @@ impl Table {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::{Table, TableRow, TableRowAlign, TableRowStyle};
+	/// use kwik::table::{Table, Row, Align, Style};
 	///
 	/// let mut table = Table::default();
 	///
-	/// let header = TableRow::default()
-	///     .push("Header 1", TableRowAlign::Center, TableRowStyle::Bold);
+	/// let header = Row::default()
+	///     .push("Header 1", Align::Center, Style::Bold);
 	///
-	/// let row = TableRow::default()
-	///     .push("Longer row 1", TableRowAlign::Left, TableRowStyle::Normal);
+	/// let row = Row::default()
+	///     .push("Longer row 1", Align::Left, Style::Normal);
 	///
 	/// table.set_header(header);
 	/// table.add_row(row);
@@ -167,6 +171,46 @@ impl Table {
 				self.print_spacer_row(stdout, &column_lens);
 			}
 		}
+	}
+
+	/// Writes the table to the file at the supplied path.
+	///
+	/// # Examples
+	/// ```
+	/// use std::env;
+	/// use kwik::table::{Table, Row, Align, Style};
+	///
+	/// let mut table = Table::default();
+	///
+	/// let header = Row::default()
+	///     .push("Header 1", Align::Center, Style::Bold);
+	///
+	/// let row = Row::default()
+	///     .push("Longer row 1", Align::Left, Style::Normal);
+	///
+	/// table.set_header(header);
+	/// table.add_row(row);
+	///
+	/// let mut path = env::var("CARGO_MANIFEST_DIR").unwrap();
+	/// path.push_str("/target/table.csv");
+	///
+	/// table.to_file(path).expect("Could not write table to file.");
+	/// ```
+	pub fn to_file<P>(&self, path: P) -> Result<(), Error>
+	where
+		P: AsRef<Path>,
+	{
+		let mut writer = CsvWriter::<Row>::new(path)?;
+
+		if let Some(header) = &self.header {
+			writer.write_row(header);
+		}
+
+		for row in &self.rows {
+			writer.write_row(row);
+		}
+
+		Ok(())
 	}
 
 	fn print_spacer_row(
