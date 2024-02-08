@@ -14,7 +14,7 @@ use rand::{
 
 use crate::genetic::genes::{Genes, Gene};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Individual<GS>
 where
 	GS: Genes,
@@ -110,15 +110,6 @@ where
 {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		Some(self.cmp(other))
-	}
-}
-
-impl<GS> PartialEq for Individual<GS>
-where
-	GS: Genes,
-{
-	fn eq(&self, other: &Self) -> bool {
-		self.genes.eq(&other.genes)
 	}
 }
 
