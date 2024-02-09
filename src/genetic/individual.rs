@@ -5,8 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::cmp::{Ord, Ordering};
-
 use rand::{
 	Rng,
 	rngs::ThreadRng,
@@ -14,7 +12,7 @@ use rand::{
 
 use crate::genetic::genes::{Genes, Gene};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Individual<GS>
 where
 	GS: Genes,
@@ -94,26 +92,3 @@ fn get_mate_result(rng: &mut ThreadRng, mutation_probability: f64) -> MateResult
 
 	MateResult::Mutation
 }
-
-impl<GS> Ord for Individual<GS>
-where
-	GS: Genes,
-{
-	fn cmp(&self, other: &Self) -> Ordering {
-		self.genes.cmp(&other.genes)
-	}
-}
-
-impl<GS> PartialOrd for Individual<GS>
-where
-	GS: Genes,
-{
-	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		Some(self.cmp(other))
-	}
-}
-
-impl<GS> Eq for Individual<GS>
-where
-	GS: Genes,
-{}
