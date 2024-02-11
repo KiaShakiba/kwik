@@ -5,10 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-#![allow(incomplete_features)]
-#![feature(generic_const_exprs)]
-#![feature(associated_type_bounds)]
-
 pub mod utils;
 pub mod fmt;
 pub mod math;
