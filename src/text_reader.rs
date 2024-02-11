@@ -47,7 +47,7 @@ impl FileReader for TextReader {
 }
 
 impl TextReader {
-	pub fn read_line(&mut self) -> Option<&String> {
+	pub fn read_line(&mut self) -> Option<String> {
 		self.buf.clear();
 
 		match self.file.read_line(&mut self.buf) {
@@ -66,11 +66,19 @@ impl TextReader {
 					}
 				}
 
-				Some(&self.buf)
+				Some(self.buf.clone())
 			},
 
 			Err(ref err) if err.kind() ==  ErrorKind::UnexpectedEof => None,
 			Err(_) => panic!("An error occurred on line {} when reading text file.", self.count + 1),
 		}
+	}
+}
+
+impl Iterator for TextReader {
+	type Item = String;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.read_line()
 	}
 }

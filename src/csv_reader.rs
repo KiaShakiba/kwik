@@ -122,3 +122,14 @@ impl RowData {
 		items_size + self.data.len()
 	}
 }
+
+impl<T> Iterator for CsvReader<T>
+where
+	T: Row,
+{
+	type Item = T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.read_row()
+	}
+}

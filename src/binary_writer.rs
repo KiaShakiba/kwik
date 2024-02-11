@@ -45,7 +45,7 @@ where
 
 		let writer = BinaryWriter {
 			file: BufWriter::new(opened_file),
-			buf: Vec::<u8>::with_capacity(T::SIZE),
+			buf: Vec::<u8>::with_capacity(T::size()),
 			count: 0,
 
 			_marker: PhantomData,

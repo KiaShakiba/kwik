@@ -6,6 +6,7 @@
  */
 
 use std::{
+	marker::PhantomData,
 	path::Path,
 	fs::File,
 	io::{BufReader, Read, Error, ErrorKind},
@@ -17,11 +18,12 @@ pub use crate::file_reader::FileReader;
 pub struct BinaryReader<T>
 where
 	T: Chunk,
-	[u8; T::SIZE]: Sized,
 {
 	file: BufReader<File>,
-	buf: [u8; T::SIZE],
+	buf: Box<[u8]>,
 	count: u64,
+
+	_marker: PhantomData<T>,
 }
 
 /// Implementing this trait specifies the number of bytes each
@@ -37,11 +39,11 @@ where
 /// }
 ///
 /// impl SizedChunk for MyStruct {
-///     const SIZE: usize = 10;
+///     fn size() -> usize { 10 }
 /// }
 /// ```
 pub trait SizedChunk {
-	const SIZE: usize;
+	fn size() -> usize;
 }
 
 /// Implementing this trait allows the binary reader to parse chunks
@@ -61,7 +63,7 @@ pub trait Chunk: SizedChunk {
 	/// }
 	///
 	/// impl Chunk for MyStruct {
-	///     fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error>
+	///     fn new(chunk: &[u8]) -> Result<Self, Error>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -71,10 +73,10 @@ pub trait Chunk: SizedChunk {
 	/// }
 	///
 	/// impl SizedChunk for MyStruct {
-	///     const SIZE: usize = 0;
+	///     fn size -> usize { 0 }
 	/// }
 	/// ```
-	fn new(buf: &[u8; Self::SIZE]) -> Result<Self, Error>
+	fn new(buf: &[u8]) -> Result<Self, Error>
 	where
 		Self: Sized,
 	;
@@ -83,7 +85,6 @@ pub trait Chunk: SizedChunk {
 impl<T> FileReader for BinaryReader<T>
 where
 	T: Chunk,
-	[u8; T::SIZE]: Sized,
 {
 	/// Opens the file at the supplied path. If the file could not be
 	/// opened, returns an error result.
@@ -96,8 +97,10 @@ where
 
 		let reader = BinaryReader {
 			file: BufReader::new(opened_file),
-			buf: [0; T::SIZE],
+			buf: vec![0; T::size()].into_boxed_slice(),
 			count: 0,
+
+			_marker: PhantomData,
 		};
 
 		Ok(reader)
@@ -117,7 +120,6 @@ where
 impl<T> BinaryReader<T>
 where
 	T: Chunk,
-	[u8; T::SIZE]: Sized,
 {
 	/// Reads one chunk of the binary file, as specified by the chunk size,
 	/// and returns an option containing the parsed chunk. If the end of the
@@ -144,7 +146,7 @@ where
 	/// }
 	///
 	/// impl Chunk for MyStruct {
-	///     fn new(chunk: &[u8; Self::SIZE]) -> Result<Self, Error>
+	///     fn new(chunk: &[u8]) -> Result<Self, Error>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -154,7 +156,7 @@ where
 	/// }
 	///
 	/// impl SizedChunk for MyStruct {
-	///     const SIZE: usize = 4;
+	///     fn size() -> usize { 4 }
 	/// }
 	/// ```
 	pub fn read_chunk(&mut self) -> Option<T> {
@@ -173,5 +175,16 @@ where
 			Err(ref err) if err.kind() ==  ErrorKind::UnexpectedEof => None,
 			Err(_) => panic!("An error occurred when reading binary file."),
 		}
+	}
+}
+
+impl<T> Iterator for BinaryReader<T>
+where
+	T: Chunk,
+{
+	type Item = T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.read_chunk()
 	}
 }
