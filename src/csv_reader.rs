@@ -37,6 +37,20 @@ pub trait Row {
 	;
 }
 
+pub struct Iter<'a, T>
+where
+	T: Row,
+{
+	reader: &'a mut CsvReader<T>,
+}
+
+pub struct IntoIter<T>
+where
+	T: Row,
+{
+	reader: CsvReader<T>,
+}
+
 impl<T> FileReader for CsvReader<T>
 where
 	T: Row,
@@ -95,6 +109,12 @@ where
 
 		Some(row)
 	}
+
+	pub fn iter(&mut self) -> Iter<T> {
+		Iter {
+			reader: self
+		}
+	}
 }
 
 impl RowData {
@@ -123,13 +143,38 @@ impl RowData {
 	}
 }
 
-impl<T> Iterator for CsvReader<T>
+impl<'a, T> Iterator for Iter<'a, T>
 where
 	T: Row,
 {
 	type Item = T;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		self.read_row()
+		self.reader.read_row()
+	}
+}
+
+impl<T> IntoIterator for CsvReader<T>
+where
+	T: Row,
+{
+	type Item = T;
+	type IntoIter = IntoIter<T>;
+
+	fn into_iter(self) -> Self::IntoIter {
+		IntoIter {
+			reader: self
+		}
+	}
+}
+
+impl<T> Iterator for IntoIter<T>
+where
+	T: Row,
+{
+	type Item = T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.reader.read_row()
 	}
 }

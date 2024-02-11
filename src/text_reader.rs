@@ -19,6 +19,15 @@ pub struct TextReader {
 	count: u64,
 }
 
+pub struct Iter<'a>
+{
+	reader: &'a mut TextReader,
+}
+
+pub struct IntoIter {
+	reader: TextReader,
+}
+
 impl FileReader for TextReader {
 	fn new<P>(path: P) -> Result<Self, Error>
 	where
@@ -73,12 +82,37 @@ impl TextReader {
 			Err(_) => panic!("An error occurred on line {} when reading text file.", self.count + 1),
 		}
 	}
+
+	pub fn iter(&mut self) -> Iter {
+		Iter {
+			reader: self
+		}
+	}
 }
 
-impl Iterator for TextReader {
+impl<'a> Iterator for Iter<'a> {
 	type Item = String;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		self.read_line()
+		self.reader.read_line()
+	}
+}
+
+impl IntoIterator for TextReader {
+	type Item = String;
+	type IntoIter = IntoIter;
+
+	fn into_iter(self) -> Self::IntoIter {
+		IntoIter {
+			reader: self
+		}
+	}
+}
+
+impl Iterator for IntoIter {
+	type Item = String;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.reader.read_line()
 	}
 }

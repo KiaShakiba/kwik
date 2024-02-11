@@ -26,6 +26,20 @@ where
 	_marker: PhantomData<T>,
 }
 
+pub struct Iter<'a, T>
+where
+	T: Chunk,
+{
+	reader: &'a mut BinaryReader<T>,
+}
+
+pub struct IntoIter<T>
+where
+	T: Chunk,
+{
+	reader: BinaryReader<T>,
+}
+
 /// Implementing this trait specifies the number of bytes each
 /// chunk occupies in the binary file. The file will be read in chunks
 /// of that size.
@@ -176,15 +190,46 @@ where
 			Err(_) => panic!("An error occurred when reading binary file."),
 		}
 	}
+
+	pub fn iter(&mut self) -> Iter<T> {
+		Iter {
+			reader: self
+		}
+	}
 }
 
-impl<T> Iterator for BinaryReader<T>
+impl<'a, T> Iterator for Iter<'a, T>
 where
 	T: Chunk,
 {
 	type Item = T;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		self.read_chunk()
+		self.reader.read_chunk()
+	}
+}
+
+impl<T> IntoIterator for BinaryReader<T>
+where
+	T: Chunk,
+{
+	type Item = T;
+	type IntoIter = IntoIter<T>;
+
+	fn into_iter(self) -> Self::IntoIter {
+		IntoIter {
+			reader: self
+		}
+	}
+}
+
+impl<T> Iterator for IntoIter<T>
+where
+	T: Chunk,
+{
+	type Item = T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.reader.read_chunk()
 	}
 }
