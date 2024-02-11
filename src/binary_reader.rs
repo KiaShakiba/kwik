@@ -87,7 +87,7 @@ pub trait Chunk: SizedChunk {
 	/// }
 	///
 	/// impl SizedChunk for MyStruct {
-	///     fn size -> usize { 0 }
+	///     fn size() -> usize { 0 }
 	/// }
 	/// ```
 	fn new(buf: &[u8]) -> Result<Self, Error>
