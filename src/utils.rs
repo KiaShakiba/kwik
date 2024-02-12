@@ -15,6 +15,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 ///
 /// assert!(utils::timestamp() > 0);
 /// ```
+#[inline]
 pub fn timestamp() -> u64 {
 	let now = SystemTime::now()
 		.duration_since(UNIX_EPOCH)

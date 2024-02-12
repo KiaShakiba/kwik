@@ -34,16 +34,19 @@ where
 	}
 
 	/// Returns a reference to the fittest individual's genes.
+	#[inline]
 	pub fn genes(&self) -> &GS {
 		&self.genes
 	}
 
 	/// Returns the number of generations processed during the run.
+	#[inline]
 	pub fn generations(&self) -> u64 {
 		self.generations
 	}
 
 	/// Returns the total runtime of the run.
+	#[inline]
 	pub fn runtime(&self) -> u64 {
 		self.runtime
 	}

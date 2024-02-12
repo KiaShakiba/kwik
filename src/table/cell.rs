@@ -35,14 +35,17 @@ impl Cell {
 		}
 	}
 
+	#[inline]
 	pub fn value(&self) -> &str {
 		&self.value
 	}
 
+	#[inline]
 	pub fn size(&self) -> usize {
 		self.value.len()
 	}
 
+	#[inline]
 	pub fn to_sized_string(&self, size: usize) -> String {
 		let string = match &self.align {
 			Align::Left => format!("{:<size$}", self.value),

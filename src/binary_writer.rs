@@ -59,6 +59,7 @@ impl<T> BinaryWriter<T>
 where
 	T: Chunk,
 {
+	#[inline]
 	pub fn write_chunk(&mut self, object: &T) {
 		self.buf.clear();
 		self.count += 1;

@@ -45,6 +45,7 @@ impl FileReader for TextReader {
 		Ok(reader)
 	}
 
+	#[inline]
 	fn size(&self) -> u64 {
 		let metadata = self.file
 			.get_ref()
@@ -56,6 +57,7 @@ impl FileReader for TextReader {
 }
 
 impl TextReader {
+	#[inline]
 	pub fn read_line(&mut self) -> Option<String> {
 		self.buf.clear();
 
@@ -83,6 +85,7 @@ impl TextReader {
 		}
 	}
 
+	#[inline]
 	pub fn iter(&mut self) -> Iter {
 		Iter {
 			reader: self

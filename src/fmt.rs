@@ -17,6 +17,7 @@ pub const MEMORY_UNITS: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB
 ///
 /// assert_eq!(fmt::number(1234567), "1,234,567");
 /// ```
+#[inline]
 pub fn number(value: u64) -> String {
 	value.to_formatted_string(&Locale::en)
 }

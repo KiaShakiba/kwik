@@ -57,6 +57,7 @@ impl ThreadPool {
 	///     // do work here
 	/// });
 	/// ```
+	#[inline]
 	pub fn execute<F>(&self, f: F)
 	where
 		F: 'static + FnOnce() + Send,

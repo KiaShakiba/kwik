@@ -75,10 +75,12 @@ impl Progress {
 		progress
 	}
 
+	#[inline]
 	pub fn is_complete(&self) -> bool {
 		self.current == self.total
 	}
 
+	#[inline]
 	pub fn tick<T>(&mut self, value: T)
 	where
 		T: TryInto<u64> + Copy,
@@ -123,6 +125,7 @@ impl Progress {
 		}
 	}
 
+	#[inline]
 	fn pulse(&mut self, now: u64) -> u64 {
 		let difference = now - self.pulse_time;
 
@@ -184,6 +187,7 @@ impl Progress {
 		(now as f64 - (m as f64 * x + b as f64)) as u64
 	}
 
+	#[inline]
 	fn get_time(&self, now: u64) -> u64 {
 		now - self.initial_time
 	}

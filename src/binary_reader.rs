@@ -121,6 +121,7 @@ where
 	}
 
 	/// Returns the number of bytes in the opened file.
+	#[inline]
 	fn size(&self) -> u64 {
 		let metadata = self.file
 			.get_ref()
@@ -173,6 +174,7 @@ where
 	///     fn size() -> usize { 4 }
 	/// }
 	/// ```
+	#[inline]
 	pub fn read_chunk(&mut self) -> Option<T> {
 		match self.file.read_exact(&mut self.buf) {
 			Ok(_) => {
@@ -191,6 +193,45 @@ where
 		}
 	}
 
+	/// Returns an iterator over the binary file. The iterator takes a mutable
+	/// reference to `self` as it is iterating over a stream. This means performing
+	/// the iterator modifies the reader's position in the file.
+	///
+	/// # Examples
+	/// ```
+	/// use std::io::Error;
+	/// use std::env;
+	/// use kwik::binary_reader::{FileReader, BinaryReader, Chunk, SizedChunk};
+	///
+	/// let mut path = env::var("CARGO_MANIFEST_DIR").unwrap();
+	/// path.push_str("/target/file.bin");
+	///
+	/// let mut reader = BinaryReader::<MyStruct>::new(&path).unwrap();
+	///
+	/// for chunk in reader.iter() {
+	///     // do something with the object
+	/// }
+	///
+	/// struct MyStruct {
+	///     // data fields
+	///     data: u32,
+	/// }
+	///
+	/// impl Chunk for MyStruct {
+	///     fn new(chunk: &[u8]) -> Result<Self, Error>
+	///     where
+	///         Self: Sized,
+	///     {
+	///         // parse the chunk and return an instance of `Self` on success
+	///         Ok(MyStruct { data: 0 })
+	///     }
+	/// }
+	///
+	/// impl SizedChunk for MyStruct {
+	///     fn size() -> usize { 4 }
+	/// }
+	/// ```
+	#[inline]
 	pub fn iter(&mut self) -> Iter<T> {
 		Iter {
 			reader: self

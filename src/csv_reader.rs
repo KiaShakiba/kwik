@@ -75,6 +75,7 @@ where
 		Ok(reader)
 	}
 
+	#[inline]
 	fn size(&self) -> u64 {
 		let metadata = self.file
 			.get_ref()
@@ -89,6 +90,7 @@ impl<T> CsvReader<T>
 where
 	T: Row,
 {
+	#[inline]
 	pub fn read_row(&mut self) -> Option<T> {
 		self.buf.data.clear();
 
@@ -110,6 +112,7 @@ where
 		Some(row)
 	}
 
+	#[inline]
 	pub fn iter(&mut self) -> Iter<T> {
 		Iter {
 			reader: self
@@ -124,6 +127,7 @@ impl RowData {
 		}
 	}
 
+	#[inline]
 	pub fn get(&self, index: usize) -> Result<&str, Error> {
 		self.data
 			.get(index)
@@ -133,6 +137,7 @@ impl RowData {
 			))
 	}
 
+	#[inline]
 	pub fn size(&self) -> usize {
 		let items_size = self.data
 			.iter()

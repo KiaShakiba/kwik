@@ -36,6 +36,7 @@ impl FileWriter for TextWriter {
 }
 
 impl TextWriter {
+	#[inline]
 	pub fn write_line(&mut self, line: &[u8]) {
 		self.count += 1;
 

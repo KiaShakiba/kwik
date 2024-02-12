@@ -61,6 +61,7 @@ impl<T> CsvWriter<T>
 where
 	T: Row,
 {
+	#[inline]
 	pub fn write_row(&mut self, object: &T) {
 		self.buf.data.clear();
 		self.count += 1;
@@ -82,10 +83,12 @@ impl RowData {
 		}
 	}
 
+	#[inline]
 	pub fn push(&mut self, value: &str) {
 		self.data.push_field(value);
 	}
 
+	#[inline]
 	pub fn size(&self) -> usize {
 		let items_size = self.data
 			.iter()

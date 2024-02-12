@@ -47,6 +47,7 @@ impl Row {
 	///
 	/// assert!(!row.is_empty());
 	/// ```
+	#[inline]
 	pub fn is_empty(&self) -> bool {
 		self.cells.is_empty()
 	}
@@ -62,6 +63,7 @@ impl Row {
 	///
 	/// assert_eq!(row.len(), 1);
 	/// ```
+	#[inline]
 	pub fn len(&self) -> usize {
 		self.cells.len()
 	}
@@ -75,6 +77,7 @@ impl Row {
 	/// let mut row = Row::default()
 	///     .push("Row 1", Align::Left, Style::Normal);
 	/// ```
+	#[inline]
 	pub fn push<T>(
 		mut self,
 		value: T,
@@ -105,16 +108,19 @@ impl Row {
 	/// let mut row = Row::default()
 	///     .blank();
 	/// ```
+	#[inline]
 	pub fn blank(self) -> Self {
 		self.push("", Align::Left, Style::Normal)
 	}
 
 	/// Returns the printed size of the row.
+	#[inline]
 	pub fn size(&self) -> usize {
 		self.to_string(None, ColumnJoinType::Spaced).len()
 	}
 
 	/// Returns the printed size of the column at the supplied index.
+	#[inline]
 	pub fn get_column_size(&self, index: usize) -> usize {
 		if index >= self.cells.len() {
 			panic!("Invalid column index.");
@@ -124,6 +130,7 @@ impl Row {
 	}
 
 	/// Prints the column to the supplied stream.
+	#[inline]
 	pub fn print(
 		&self,
 		stdout: &mut impl Write,
@@ -138,6 +145,7 @@ impl Row {
 	}
 
 	/// Returns the string value of the row.
+	#[inline]
 	fn to_string(
 		&self,
 		sizes: Option<&Vec<usize>>,

@@ -103,6 +103,7 @@ where
 ///     }
 /// }
 /// ```
+#[inline]
 pub fn hwm(pid: Option<&Pid>) -> Result<u64, MemError> {
 	stat::<u64>("VmHWM", pid).map(|value| value * 1024)
 }
@@ -128,6 +129,7 @@ pub fn hwm(pid: Option<&Pid>) -> Result<u64, MemError> {
 ///     }
 /// }
 /// ```
+#[inline]
 pub fn rss(pid: Option<&Pid>) -> Result<u64, MemError> {
 	stat::<u64>("VmRSS", pid).map(|value| value * 1024)
 }
@@ -151,6 +153,7 @@ pub fn rss(pid: Option<&Pid>) -> Result<u64, MemError> {
 ///     }
 /// }
 /// ```
+#[inline]
 pub fn sys() -> Result<u64, MemError> {
 	match mem_info() {
 		Ok(info) => Ok(info.total * 1024),
@@ -203,6 +206,7 @@ pub fn clear(pid: Option<&Pid>) -> Result<(), MemError> {
 ///
 /// assert_eq!(size, 4);
 /// ```
+#[inline]
 pub fn size_of<T>(value: &T) -> usize {
 	mem::size_of_val(value)
 }
@@ -218,6 +222,7 @@ pub fn size_of<T>(value: &T) -> usize {
 ///
 /// assert_eq!(size, 40);
 /// ```
+#[inline]
 pub fn size_of_vec<T>(value: &Vec<T>) -> usize {
 	let container_size = size_of(value);
 

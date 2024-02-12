@@ -52,6 +52,7 @@ impl Table {
 	///
 	/// assert_eq!(stdout, b"| \x1B[1mHeader 1\x1B[0m |\n|----------|\n");
 	/// ```
+	#[inline]
 	pub fn set_header(&mut self, header: Row) {
 		if !self.rows.is_empty() && header.len() != self.row_len {
 			panic!("Invalid number of columns in row.");
@@ -80,6 +81,7 @@ impl Table {
 	///
 	/// assert_eq!(stdout, b"| Row 1 |\n");
 	/// ```
+	#[inline]
 	pub fn add_row(&mut self, row: Row) {
 		if !self.rows.is_empty() && row.len() != self.row_len {
 			panic!("Invalid number of columns in row.");
@@ -112,6 +114,7 @@ impl Table {
 	///
 	/// assert_eq!(stdout, b"| Row 1 |\n|-------|\n| Row 2 |\n");
 	/// ```
+	#[inline]
 	pub fn add_spacer(&mut self) {
 		let mut index = self.rows.len();
 

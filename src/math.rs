@@ -17,6 +17,7 @@
 /// let value = math::min::<u64>(&[3, 4, 1, 2]);
 /// assert_eq!(value, 1);
 /// ```
+#[inline]
 pub fn min<T>(values: &[T]) -> T
 where
 	T: Clone + PartialOrd,
@@ -48,6 +49,7 @@ where
 /// let value = math::max::<u64>(&[3, 4, 1, 2]);
 /// assert_eq!(value, 4);
 /// ```
+#[inline]
 pub fn max<T>(values: &[T]) -> T
 where
 	T: Clone + PartialOrd,

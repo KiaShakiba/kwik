@@ -36,10 +36,12 @@ where
 		}
 	}
 
+	#[inline]
 	pub fn genes(&self) -> &GS {
 		&self.genes
 	}
 
+	#[inline]
 	pub fn is_optimal(&self) -> bool {
 		self.genes.is_optimal()
 	}
@@ -79,6 +81,7 @@ where
 	}
 }
 
+#[inline]
 fn get_mate_result(rng: &mut ThreadRng, mutation_probability: f64) -> MateResult {
 	let random: f64 = rng.gen();
 

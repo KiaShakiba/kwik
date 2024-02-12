@@ -159,6 +159,7 @@ where
 	}
 
 	/// Sets the population size and fills the population with individuals.
+	#[inline]
 	pub fn set_population_size(&mut self, population_size: usize) {
 		self.population_size = population_size;
 		self.population.clear();
@@ -169,61 +170,72 @@ where
 	}
 
 	/// Sets the population size and fills the population with individuals.
+	#[inline]
 	pub fn with_population_size(mut self, population_size: usize) -> Self {
 		self.set_population_size(population_size);
 		self
 	}
 
 	/// Sets the convergence.
+	#[inline]
 	pub fn set_convergence_limit(&mut self, convergence_limit: u64) {
 		self.convergence_limit = convergence_limit;
 	}
 
 	/// Sets the convergence.
+	#[inline]
 	pub fn with_convergence_limit(mut self, convergence_limit: u64) -> Self {
 		self.set_convergence_limit(convergence_limit);
 		self
 	}
 
 	/// Sets the max runtime.
+	#[inline]
 	pub fn set_max_runtime(&mut self, max_runtime: u64) {
 		self.max_runtime = max_runtime;
 	}
 
 	/// Sets the max runtime.
+	#[inline]
 	pub fn with_max_runtime(mut self, max_runtime: u64) -> Self {
 		self.set_max_runtime(max_runtime);
 		self
 	}
 
 	/// Sets the mutation probability.
+	#[inline]
 	pub fn set_mutation_probability(&mut self, mutation_probability: f64) {
 		self.mutation_probability = mutation_probability;
 	}
 
 	/// Sets the mutation probability.
+	#[inline]
 	pub fn with_mutation_probability(mut self, mutation_probability: f64) -> Self {
 		self.set_mutation_probability(mutation_probability);
 		self
 	}
 
 	/// Sets the elite ratio.
+	#[inline]
 	pub fn set_elite_ratio(&mut self, elite_ratio: f64) {
 		self.elite_ratio = elite_ratio;
 	}
 
 	/// Sets the elite ratio.
+	#[inline]
 	pub fn with_elite_ratio(mut self, elite_ratio: f64) -> Self {
 		self.set_elite_ratio(elite_ratio);
 		self
 	}
 
 	/// Sets the mating ratio.
+	#[inline]
 	pub fn set_mating_ratio(&mut self, mating_ratio: f64) {
 		self.mating_ratio = mating_ratio;
 	}
 
 	/// Sets the mating ratio.
+	#[inline]
 	pub fn with_mating_ratio(mut self, mating_ratio: f64) -> Self {
 		self.set_mating_ratio(mating_ratio);
 		self
