@@ -1,1 +1,1 @@
-# kwik-rs
+# kwik
