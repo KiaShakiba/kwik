@@ -7,7 +7,6 @@
 
 use std::{
 	io::Write,
-	convert::TryInto,
 	fmt::Debug,
 	cmp::Ordering,
 };
