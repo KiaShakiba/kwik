@@ -135,24 +135,18 @@ where
 	GS: Genes,
 {
 	/// Creates an instance of the genetic runner using the supplied genes as initial values.
-	pub fn new(initial_genes: GS) -> Self {
+	pub fn new(initial_genes: GS) -> Result<Self, GeneticError> {
 		if !initial_genes.is_valid() {
-			panic!("Invalid initial genes.");
+			return Err(GeneticError::InvalidInitialGenes);
 		}
 
-		Genetic::new_unchecked(initial_genes)
-	}
-
-	/// Creates an instance of the genetic runner using the supplied genes as initial values
-	/// without performing a valid check on the genes.
-	pub fn new_unchecked(initial_genes: GS) -> Self {
 		let mut population = Vec::<Individual<GS>>::new();
 
 		for _ in 0..POPULATION_SIZE {
 			population.push(Individual::new(initial_genes.clone()));
 		}
 
-		Genetic {
+		let genetic = Genetic {
 			initial_genes,
 			population,
 
@@ -164,7 +158,9 @@ where
 			mating_ratio: MATING_RATIO,
 
 			rng: thread_rng(),
-		}
+		};
+
+		Ok(genetic)
 	}
 
 	/// Sets the population size and fills the population with individuals.
