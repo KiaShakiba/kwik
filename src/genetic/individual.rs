@@ -5,12 +5,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use std::time::{Duration, Instant};
+
 use rand::{
 	Rng,
 	rngs::ThreadRng,
 };
 
-use crate::genetic::genes::{Genes, Gene};
+use crate::genetic::{
+	error::GeneticError,
+	genes::{Genes, Gene},
+};
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Individual<GS>
@@ -50,11 +55,17 @@ where
 		&self,
 		rng: &mut ThreadRng,
 		partner: &Individual<GS>,
-		mutation_probability: f64
-	) -> Individual<GS> {
+		mutation_probability: f64,
+		max_runtime: &Duration,
+	) -> Result<Individual<GS>, GeneticError> {
+		let time = Instant::now();
 		let mut child_genes = self.genes.base();
 
 		loop {
+			if time.elapsed().ge(max_runtime) {
+				return Err(GeneticError::MateTimeout);
+			}
+
 			for i in 0..self.genes.len() {
 				let gene = match get_mate_result(rng, mutation_probability) {
 					MateResult::Parent1 => self.genes.get(i).clone(),
@@ -77,11 +88,10 @@ where
 			}
 		}
 
-		Individual::<GS>::new(child_genes)
+		Ok(Individual::<GS>::new(child_genes))
 	}
 }
 
-#[inline]
 fn get_mate_result(rng: &mut ThreadRng, mutation_probability: f64) -> MateResult {
 	let random: f64 = rng.gen();
 

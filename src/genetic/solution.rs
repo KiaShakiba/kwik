@@ -5,27 +5,28 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use std::time::Duration;
 pub use crate::genetic::genes::Genes;
 
-/// The result of a genetic run. Holds the genes of the fittest individual,
-/// the number of generations processed during the run, and the total runtime
+/// The solution of a genetic run. Holds the genes of the fittest individual,
+/// the number of generations processed during the run, and the total duration
 /// of the run.
-pub struct GeneticResult<GS>
+pub struct GeneticSolution<GS>
 where
 	GS: Genes,
 {
 	genes: GS,
 
 	generations: u64,
-	runtime: u64,
+	runtime: Duration,
 }
 
-impl<GS> GeneticResult<GS>
+impl<GS> GeneticSolution<GS>
 where
 	GS: Genes,
 {
-	pub fn new(genes: GS, generations: u64, runtime: u64) -> Self {
-		GeneticResult {
+	pub fn new(genes: GS, generations: u64, runtime: Duration) -> Self {
+		GeneticSolution {
 			genes,
 
 			generations,
@@ -47,7 +48,7 @@ where
 
 	/// Returns the total runtime of the run.
 	#[inline]
-	pub fn runtime(&self) -> u64 {
-		self.runtime
+	pub fn runtime(&self) -> &Duration {
+		&self.runtime
 	}
 }

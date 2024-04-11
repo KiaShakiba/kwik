@@ -5,23 +5,26 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+mod error;
 mod individual;
 mod gene;
 mod genes;
-mod result;
+mod solution;
 
-pub use rand::Rng;
+use std::time::{Duration, Instant};
 use rand::thread_rng;
-pub use rand::rngs::ThreadRng;
 
-use crate::{
-	utils,
-	genetic::individual::Individual,
+pub use rand::{
+	Rng,
+	rngs::ThreadRng,
 };
 
-pub use crate::{
-	genetic::genes::{Genes, Gene},
-	genetic::result::GeneticResult,
+use crate::genetic::individual::Individual;
+
+pub use crate::genetic::{
+	error::GeneticError,
+	genes::{Genes, Gene},
+	solution::GeneticSolution,
 };
 
 pub type MutateRng = ThreadRng;
@@ -119,7 +122,7 @@ where
 
 	population_size: usize,
 	convergence_limit: u64,
-	max_runtime: u64,
+	max_runtime: Duration,
 	mutation_probability: f64,
 	elite_ratio: f64,
 	mating_ratio: f64,
@@ -155,7 +158,7 @@ where
 
 			population_size: POPULATION_SIZE,
 			convergence_limit: CONVERGENCE_LIMIT,
-			max_runtime: MAX_RUNTIME,
+			max_runtime: Duration::from_millis(MAX_RUNTIME),
 			mutation_probability: MUTATION_PROBABILITY,
 			elite_ratio: ELITE_RATIO,
 			mating_ratio: MATING_RATIO,
@@ -197,13 +200,13 @@ where
 
 	/// Sets the max runtime.
 	#[inline]
-	pub fn set_max_runtime(&mut self, max_runtime: u64) {
+	pub fn set_max_runtime(&mut self, max_runtime: Duration) {
 		self.max_runtime = max_runtime;
 	}
 
 	/// Sets the max runtime.
 	#[inline]
-	pub fn with_max_runtime(mut self, max_runtime: u64) -> Self {
+	pub fn with_max_runtime(mut self, max_runtime: Duration) -> Self {
 		self.set_max_runtime(max_runtime);
 		self
 	}
@@ -249,21 +252,21 @@ where
 
 	/// Runs the genetic algorithm until either the most fit individual has a fitness
 	/// of 0 or the population has converged and is no longer changing.
-	pub fn run(&mut self) -> GeneticResult<GS> {
-		let start = utils::timestamp();
+	pub fn run(&mut self) -> Result<GeneticSolution<GS>, GeneticError> {
+		let time = Instant::now();
 
-		self.iterate();
+		self.iterate()?;
 
 		let mut generation_count: u64 = 1;
 		let mut convergence_count: u64 = 0;
 		let mut last_fittest = self.population[0].clone();
 
 		while
-			!last_fittest.is_optimal() &&
-			convergence_count < self.convergence_limit &&
-			(utils::timestamp() - start) < self.max_runtime
+			!last_fittest.is_optimal()
+				&& convergence_count < self.convergence_limit
+				&& time.elapsed().lt(&self.max_runtime)
 		{
-			self.iterate();
+			self.iterate()?;
 
 			let fittest = &self.population[0];
 
@@ -277,16 +280,18 @@ where
 			generation_count += 1;
 		}
 
-		GeneticResult::new(
+		let solution = GeneticSolution::new(
 			self.population[0].genes().clone(),
 			generation_count,
-			utils::timestamp() - start
-		)
+			time.elapsed(),
+		);
+
+		Ok(solution)
 	}
 
 	/// Performs one iteration of the genetic algorithm, creating a new generation
 	/// and overwriting the current population.
-	fn iterate(&mut self) {
+	fn iterate(&mut self) -> Result<(), GeneticError> {
 		let elite_population = (self.population_size as f64 * self.elite_ratio) as usize;
 		let mating_population = (self.population_size as f64 * self.mating_ratio) as usize;
 
@@ -306,7 +311,13 @@ where
 
 			let parent1 = &self.population[index1];
 			let parent2 = &self.population[index2];
-			let child = parent1.mate(&mut self.rng, parent2, self.mutation_probability);
+
+			let child = parent1.mate(
+				&mut self.rng,
+				parent2,
+				self.mutation_probability,
+				&self.max_runtime,
+			)?;
 
 			new_generation.push(child);
 		}
@@ -314,5 +325,7 @@ where
 		new_generation.sort();
 
 		self.population = new_generation;
+
+		Ok(())
 	}
 }
