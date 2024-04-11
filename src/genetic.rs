@@ -137,6 +137,12 @@ where
 			panic!("Invalid initial genes.");
 		}
 
+		Genetic::new_unchecked(initial_genes)
+	}
+
+	/// Creates an instance of the genetic runner using the supplied genes as initial values
+	/// without performing a valid check on the genes.
+	pub fn new_unchecked(initial_genes: GS) -> Self {
 		let mut population = Vec::<Individual<GS>>::new();
 
 		for _ in 0..POPULATION_SIZE {
