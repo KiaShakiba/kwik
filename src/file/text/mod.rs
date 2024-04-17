@@ -5,15 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{
-	path::Path,
-	io::Error,
-};
+mod reader;
+mod writer;
 
-pub trait FileWriter {
-	fn new<P>(path: P) -> Result<Self, Error>
-	where
-		Self: Sized,
-		P: AsRef<Path>,
-	;
-}
+pub use crate::file::text::{
+	reader::{TextReader, Iter, IntoIter},
+	writer::TextWriter,
+};

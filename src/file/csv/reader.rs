@@ -8,16 +8,20 @@
 use std::{
 	path::Path,
 	fs::File,
-	io::{Error, ErrorKind},
+	io::Error,
 	marker::PhantomData,
 };
 
-use csv::{Reader, ReaderBuilder, StringRecord};
-pub use crate::file_reader::FileReader;
+use csv::{Reader, ReaderBuilder};
+
+use crate::file::{
+	FileReader,
+	csv::RowData,
+};
 
 pub struct CsvReader<T>
 where
-	T: Row,
+	T: ReadRow,
 {
 	file: Reader<File>,
 	buf: RowData,
@@ -26,11 +30,7 @@ where
 	_marker: PhantomData<T>,
 }
 
-pub struct RowData {
-	data: StringRecord,
-}
-
-pub trait Row {
+pub trait ReadRow {
 	fn new(csv_row: &RowData) -> Result<Self, Error>
 	where
 		Self: Sized,
@@ -39,21 +39,21 @@ pub trait Row {
 
 pub struct Iter<'a, T>
 where
-	T: Row,
+	T: ReadRow,
 {
 	reader: &'a mut CsvReader<T>,
 }
 
 pub struct IntoIter<T>
 where
-	T: Row,
+	T: ReadRow,
 {
 	reader: CsvReader<T>,
 }
 
 impl<T> FileReader for CsvReader<T>
 where
-	T: Row,
+	T: ReadRow,
 {
 	fn new<P>(path: P) -> Result<Self, Error>
 	where
@@ -88,7 +88,7 @@ where
 
 impl<T> CsvReader<T>
 where
-	T: Row,
+	T: ReadRow,
 {
 	#[inline]
 	pub fn read_row(&mut self) -> Option<T> {
@@ -120,37 +120,9 @@ where
 	}
 }
 
-impl RowData {
-	fn new() -> Self {
-		RowData {
-			data: StringRecord::new(),
-		}
-	}
-
-	#[inline]
-	pub fn get(&self, index: usize) -> Result<&str, Error> {
-		self.data
-			.get(index)
-			.ok_or(Error::new(
-				ErrorKind::InvalidData,
-				format!("Invalid CSV column {}", index)
-			))
-	}
-
-	#[inline]
-	pub fn size(&self) -> usize {
-		let items_size = self.data
-			.iter()
-			.map(|item| item.as_bytes().len())
-			.sum::<usize>();
-
-		items_size + self.data.len()
-	}
-}
-
 impl<'a, T> Iterator for Iter<'a, T>
 where
-	T: Row,
+	T: ReadRow,
 {
 	type Item = T;
 
@@ -161,7 +133,7 @@ where
 
 impl<T> IntoIterator for CsvReader<T>
 where
-	T: Row,
+	T: ReadRow,
 {
 	type Item = T;
 	type IntoIter = IntoIter<T>;
@@ -175,7 +147,7 @@ where
 
 impl<T> Iterator for IntoIter<T>
 where
-	T: Row,
+	T: ReadRow,
 {
 	type Item = T;
 

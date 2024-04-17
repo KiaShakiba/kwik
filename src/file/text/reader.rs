@@ -11,7 +11,7 @@ use std::{
 	io::{BufReader, BufRead, Error, ErrorKind},
 };
 
-pub use crate::file_reader::FileReader;
+use crate::file::FileReader;
 
 pub struct TextReader {
 	file: BufReader<File>,

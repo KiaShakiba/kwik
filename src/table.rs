@@ -15,7 +15,10 @@ use std::{
 };
 
 pub use crate::{
-	csv_writer::{FileWriter, CsvWriter},
+	file::{
+		FileWriter,
+		csv::CsvWriter,
+	},
 	table::{
 		row::{Row, ColumnJoinType},
 		cell::{Align, Style},

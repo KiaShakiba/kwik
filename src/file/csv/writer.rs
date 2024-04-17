@@ -12,12 +12,16 @@ use std::{
 	marker::PhantomData,
 };
 
-use csv::{Writer, StringRecord};
-pub use crate::file_writer::FileWriter;
+use csv::Writer;
+
+use crate::file::{
+	FileWriter,
+	csv::RowData,
+};
 
 pub struct CsvWriter<T>
 where
-	T: Row,
+	T: WriteRow,
 {
 	file: Writer<File>,
 	buf: RowData,
@@ -26,17 +30,13 @@ where
 	_marker: PhantomData<T>,
 }
 
-pub struct RowData {
-	data: StringRecord,
-}
-
-pub trait Row {
+pub trait WriteRow {
 	fn as_row(&self, row_data: &mut RowData) -> Result<(), Error>;
 }
 
 impl<T> FileWriter for CsvWriter<T>
 where
-	T: Row,
+	T: WriteRow,
 {
 	fn new<P>(path: P) -> Result<Self, Error>
 	where
@@ -59,7 +59,7 @@ where
 
 impl<T> CsvWriter<T>
 where
-	T: Row,
+	T: WriteRow,
 {
 	#[inline]
 	pub fn write_row(&mut self, object: &T) {
@@ -73,28 +73,5 @@ where
 		if self.file.write_record(&self.buf.data).is_err() {
 			panic!("Could not write to CSV file at row {}.", self.count);
 		}
-	}
-}
-
-impl RowData {
-	fn new() -> Self {
-		RowData {
-			data: StringRecord::new(),
-		}
-	}
-
-	#[inline]
-	pub fn push(&mut self, value: &str) {
-		self.data.push_field(value);
-	}
-
-	#[inline]
-	pub fn size(&self) -> usize {
-		let items_size = self.data
-			.iter()
-			.map(|item| item.as_bytes().len())
-			.sum::<usize>();
-
-		items_size + self.data.len()
 	}
 }

@@ -61,7 +61,7 @@ const MATING_RATIO: f64 = 0.5;
 /// initial_genes.push(MyData { data: 0 });
 /// initial_genes.push(MyData { data: 0 });
 ///
-/// let mut genetic = Genetic::<MyConfig>::new(initial_genes);
+/// let mut genetic = Genetic::<MyConfig>::new(initial_genes).unwrap();
 /// let result = genetic.run();
 ///
 /// impl Genes for MyConfig {

@@ -11,7 +11,7 @@ use std::{
 };
 
 use crate::{
-	csv_writer::{Row as CsvRow, RowData as CsvRowData},
+	file::csv::{WriteRow, RowData},
 	table::cell::{
 		Cell,
 		Align,
@@ -179,8 +179,8 @@ impl Row {
 	}
 }
 
-impl CsvRow for Row {
-	fn as_row(&self, row_data: &mut CsvRowData) -> Result<(), Error> {
+impl WriteRow for Row {
+	fn as_row(&self, row_data: &mut RowData) -> Result<(), Error> {
 		for cell in &self.cells {
 			row_data.push(cell.value());
 		}

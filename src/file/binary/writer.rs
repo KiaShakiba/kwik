@@ -12,14 +12,14 @@ use std::{
 	marker::PhantomData,
 };
 
-pub use crate::{
-	file_writer::FileWriter,
-	binary_reader::SizedChunk,
+use crate::file::{
+	FileWriter,
+	binary::SizedChunk,
 };
 
 pub struct BinaryWriter<T>
 where
-	T: Chunk,
+	T: WriteChunk,
 {
 	file: BufWriter<File>,
 	buf: Vec<u8>,
@@ -28,13 +28,13 @@ where
 	_marker: PhantomData<T>,
 }
 
-pub trait Chunk: SizedChunk {
+pub trait WriteChunk: SizedChunk {
 	fn as_chunk(&self, buf: &mut Vec<u8>) -> Result<(), Error>;
 }
 
 impl<T> FileWriter for BinaryWriter<T>
 where
-	T: Chunk,
+	T: WriteChunk,
 {
 	fn new<P>(path: P) -> Result<Self, Error>
 	where
@@ -57,7 +57,7 @@ where
 
 impl<T> BinaryWriter<T>
 where
-	T: Chunk,
+	T: WriteChunk,
 {
 	#[inline]
 	pub fn write_chunk(&mut self, object: &T) {

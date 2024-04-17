@@ -11,7 +11,7 @@ use std::{
 	io::{LineWriter, Write, Error},
 };
 
-pub use crate::file_writer::FileWriter;
+use crate::file::FileWriter;
 
 pub struct TextWriter {
 	file: LineWriter<File>,

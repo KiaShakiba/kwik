@@ -12,12 +12,15 @@ use std::{
 	io::{BufReader, Read, Error, ErrorKind},
 };
 
-pub use crate::file_reader::FileReader;
+use crate::file::{
+	FileReader,
+	binary::SizedChunk,
+};
 
 /// Reads a binary file in chunks
 pub struct BinaryReader<T>
 where
-	T: Chunk,
+	T: ReadChunk,
 {
 	file: BufReader<File>,
 	buf: Box<[u8]>,
@@ -28,41 +31,21 @@ where
 
 pub struct Iter<'a, T>
 where
-	T: Chunk,
+	T: ReadChunk,
 {
 	reader: &'a mut BinaryReader<T>,
 }
 
 pub struct IntoIter<T>
 where
-	T: Chunk,
+	T: ReadChunk,
 {
 	reader: BinaryReader<T>,
 }
 
-/// Implementing this trait specifies the number of bytes each
-/// chunk occupies in the binary file. The file will be read in chunks
-/// of that size.
-///
-/// # Examples
-/// ```
-/// use kwik::binary_reader::SizedChunk;
-///
-/// struct MyStruct {
-///     // data fields
-/// }
-///
-/// impl SizedChunk for MyStruct {
-///     fn size() -> usize { 10 }
-/// }
-/// ```
-pub trait SizedChunk {
-	fn size() -> usize;
-}
-
 /// Implementing this trait allows the binary reader to parse chunks
 /// of the binary file into the specified type.
-pub trait Chunk: SizedChunk {
+pub trait ReadChunk: SizedChunk {
 	/// Returns an instance of the implemented struct, given a chunk
 	/// of the binary file. If the chunk could not be parsed, an
 	/// error result is returned.
@@ -70,13 +53,13 @@ pub trait Chunk: SizedChunk {
 	/// # Examples
 	/// ```
 	/// use std::io::Error;
-	/// use kwik::binary_reader::{Chunk, SizedChunk};
+	/// use kwik::file::binary::{ReadChunk, SizedChunk};
 	///
 	/// struct MyStruct {
 	///     // data fields
 	/// }
 	///
-	/// impl Chunk for MyStruct {
+	/// impl ReadChunk for MyStruct {
 	///     fn new(chunk: &[u8]) -> Result<Self, Error>
 	///     where
 	///         Self: Sized,
@@ -98,7 +81,7 @@ pub trait Chunk: SizedChunk {
 
 impl<T> FileReader for BinaryReader<T>
 where
-	T: Chunk,
+	T: ReadChunk,
 {
 	/// Opens the file at the supplied path. If the file could not be
 	/// opened, returns an error result.
@@ -134,7 +117,7 @@ where
 
 impl<T> BinaryReader<T>
 where
-	T: Chunk,
+	T: ReadChunk,
 {
 	/// Reads one chunk of the binary file, as specified by the chunk size,
 	/// and returns an option containing the parsed chunk. If the end of the
@@ -144,7 +127,11 @@ where
 	/// ```
 	/// use std::io::Error;
 	/// use std::env;
-	/// use kwik::binary_reader::{FileReader, BinaryReader, Chunk, SizedChunk};
+	///
+	/// use kwik::file::{
+	///     FileReader,
+	///     binary::{BinaryReader, ReadChunk, SizedChunk},
+	/// };
 	///
 	/// let mut path = env::var("CARGO_MANIFEST_DIR").unwrap();
 	/// path.push_str("/target/file.bin");
@@ -160,7 +147,7 @@ where
 	///     data: u32,
 	/// }
 	///
-	/// impl Chunk for MyStruct {
+	/// impl ReadChunk for MyStruct {
 	///     fn new(chunk: &[u8]) -> Result<Self, Error>
 	///     where
 	///         Self: Sized,
@@ -201,7 +188,11 @@ where
 	/// ```
 	/// use std::io::Error;
 	/// use std::env;
-	/// use kwik::binary_reader::{FileReader, BinaryReader, Chunk, SizedChunk};
+	///
+	/// use kwik::file::{
+	///     FileReader,
+	///     binary::{BinaryReader, ReadChunk, SizedChunk},
+	/// };
 	///
 	/// let mut path = env::var("CARGO_MANIFEST_DIR").unwrap();
 	/// path.push_str("/target/file.bin");
@@ -217,7 +208,7 @@ where
 	///     data: u32,
 	/// }
 	///
-	/// impl Chunk for MyStruct {
+	/// impl ReadChunk for MyStruct {
 	///     fn new(chunk: &[u8]) -> Result<Self, Error>
 	///     where
 	///         Self: Sized,
@@ -241,7 +232,7 @@ where
 
 impl<'a, T> Iterator for Iter<'a, T>
 where
-	T: Chunk,
+	T: ReadChunk,
 {
 	type Item = T;
 
@@ -252,7 +243,7 @@ where
 
 impl<T> IntoIterator for BinaryReader<T>
 where
-	T: Chunk,
+	T: ReadChunk,
 {
 	type Item = T;
 	type IntoIter = IntoIter<T>;
@@ -266,7 +257,7 @@ where
 
 impl<T> Iterator for IntoIter<T>
 where
-	T: Chunk,
+	T: ReadChunk,
 {
 	type Item = T;
 

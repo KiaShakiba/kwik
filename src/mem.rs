@@ -14,9 +14,9 @@ use std::{
 use thiserror::Error;
 use sys_info::mem_info;
 
-use crate::{
-	file_reader::FileReader,
-	text_reader::TextReader,
+use crate::file::{
+	FileReader,
+	text::TextReader,
 };
 
 pub type Pid = u32;
