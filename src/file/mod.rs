@@ -8,6 +8,7 @@
 pub mod binary;
 pub mod text;
 pub mod csv;
+pub mod hash;
 
 use std::{
 	path::Path,
