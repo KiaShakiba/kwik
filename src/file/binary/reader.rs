@@ -9,7 +9,14 @@ use std::{
 	marker::PhantomData,
 	path::Path,
 	fs::File,
-	io::{BufReader, Read, Error, ErrorKind},
+	io::{
+		Error,
+		ErrorKind,
+		BufReader,
+		Read,
+		Seek,
+		SeekFrom,
+	},
 };
 
 use crate::file::{
@@ -119,14 +126,62 @@ impl<T> BinaryReader<T>
 where
 	T: ReadChunk,
 {
+	/// Offsets the starting position of the reader by the specified
+	/// number of bytes.
+	///
+	/// # Examples
+	/// ```
+	/// use std::{
+	///     env,
+	///     io::Error,
+	/// };
+	///
+	/// use kwik::file::{
+	///     FileReader,
+	///     binary::{BinaryReader, ReadChunk, SizedChunk},
+	/// };
+	///
+	/// let mut path = env::var("CARGO_MANIFEST_DIR").unwrap();
+	/// path.push_str("/target/file.bin");
+	///
+	/// let mut reader = BinaryReader::<MyStruct>::new(&path).unwrap();
+	///
+	/// reader.offset(5).unwrap(); // skip the first 5 bytes
+	///
+	/// struct MyStruct {
+	///     // data fields
+	///     data: u32,
+	/// }
+	///
+	/// impl ReadChunk for MyStruct {
+	///     fn new(chunk: &[u8]) -> Result<Self, Error>
+	///     where
+	///         Self: Sized,
+	///     {
+	///         // parse the chunk and return an instance of `Self` on success
+	///         Ok(MyStruct { data: 0 })
+	///     }
+	/// }
+	///
+	/// impl SizedChunk for MyStruct {
+	///     fn size() -> usize { 4 }
+	/// }
+	/// ```
+	#[inline]
+	pub fn offset(&mut self, pos: u64) -> Result<(), Error> {
+		self.file.seek(SeekFrom::Start(pos)).map(|_| ())
+	}
+
 	/// Reads one chunk of the binary file, as specified by the chunk size,
 	/// and returns an option containing the parsed chunk. If the end of the
 	/// file is reached, `None` is returned.
 	///
 	/// # Examples
 	/// ```
-	/// use std::io::Error;
-	/// use std::env;
+	/// use std::{
+	///     env,
+	///     io::Error,
+	/// };
 	///
 	/// use kwik::file::{
 	///     FileReader,
@@ -186,8 +241,10 @@ where
 	///
 	/// # Examples
 	/// ```
-	/// use std::io::Error;
-	/// use std::env;
+	/// use std::{
+	///     env,
+	///     io::Error,
+	/// };
 	///
 	/// use kwik::file::{
 	///     FileReader,
