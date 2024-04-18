@@ -55,6 +55,10 @@ impl Table {
 	///
 	/// assert_eq!(stdout, b"| \x1B[1mHeader 1\x1B[0m |\n|----------|\n");
 	/// ```
+	///
+	/// # Panics
+	///
+	/// Panics if the header length does not match the existing row length.
 	#[inline]
 	pub fn set_header(&mut self, header: Row) {
 		if !self.rows.is_empty() && header.len() != self.row_len {
@@ -84,6 +88,10 @@ impl Table {
 	///
 	/// assert_eq!(stdout, b"| Row 1 |\n");
 	/// ```
+	///
+	/// # Panics
+	///
+	/// Panics if the row length does not match the existing row length.
 	#[inline]
 	pub fn add_row(&mut self, row: Row) {
 		if !self.rows.is_empty() && row.len() != self.row_len {
@@ -202,6 +210,11 @@ impl Table {
 	///
 	/// table.to_file(path).expect("Could not write table to file.");
 	/// ```
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the file at the supplied path
+	/// could not be opened.
 	pub fn to_file<P>(&self, path: P) -> Result<(), Error>
 	where
 		P: AsRef<Path>,

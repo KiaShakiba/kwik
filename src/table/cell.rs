@@ -64,7 +64,7 @@ impl Cell {
 		};
 
 		match &self.style {
-			Style::Bold => format!("\x1B[1m{}\x1B[0m", string),
+			Style::Bold => format!("\x1B[1m{string}\x1B[0m"),
 			Style::Normal => string,
 		}
 	}

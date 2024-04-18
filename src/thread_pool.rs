@@ -28,6 +28,7 @@ impl ThreadPool {
 	/// // create a thread pool with 4 threads
 	/// let pool = ThreadPool::new(4);
 	/// ```
+	#[must_use]
 	pub fn new(size: usize) -> ThreadPool {
 		let mut workers = Vec::<Worker>::new();
 		let (sender, receiver) = mpsc::channel();
@@ -57,6 +58,10 @@ impl ThreadPool {
 	///     // do work here
 	/// });
 	/// ```
+	///
+	/// # Panics
+	///
+	/// Panics if the job cannot be sent to a worker.
 	#[inline]
 	pub fn execute<F>(&self, f: F)
 	where
