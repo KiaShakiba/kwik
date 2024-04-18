@@ -12,6 +12,7 @@ use std::{
 };
 
 use sha2::{Digest, Sha256, Sha512};
+use md5::Md5;
 
 /// Computes the SHA256 hash of the file at the provided path.
 ///
@@ -52,6 +53,29 @@ where
 	P: AsRef<Path>,
 {
 	let mut hasher = Sha512::new();
+	let mut file = File::open(path)?;
+
+	io::copy(&mut file, &mut hasher)?;
+
+	Ok(format!("{:x}", hasher.finalize()))
+}
+
+/// Computes the MD5 hash of the file at the provided path.
+///
+/// # Examples
+/// ```
+/// use kwik::file::hash::md5sum;
+///
+/// match md5sum("/path/to/file") {
+///     Ok(digest) => println!("{digest}"),
+///     Err(err) => println!("{:?}", err),
+/// }
+/// ```
+pub fn md5sum<P>(path: P) -> Result<String, Error>
+where
+	P: AsRef<Path>,
+{
+	let mut hasher = Md5::new();
 	let mut file = File::open(path)?;
 
 	io::copy(&mut file, &mut hasher)?;
