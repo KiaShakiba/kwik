@@ -17,14 +17,14 @@ use sha2::{Digest, Sha256, Sha512};
 ///
 /// # Examples
 /// ```
-/// use kwik::file::hash::sha256;
+/// use kwik::file::hash::sha256sum;
 ///
-/// match sha256("/path/to/file") {
+/// match sha256sum("/path/to/file") {
 ///     Ok(digest) => println!("{digest}"),
 ///     Err(err) => println!("{:?}", err),
 /// }
 /// ```
-pub fn sha256<P>(path: P) -> Result<String, Error>
+pub fn sha256sum<P>(path: P) -> Result<String, Error>
 where
 	P: AsRef<Path>,
 {
@@ -40,14 +40,14 @@ where
 ///
 /// # Examples
 /// ```
-/// use kwik::file::hash::sha512;
+/// use kwik::file::hash::sha512sum;
 ///
-/// match sha512("/path/to/file") {
+/// match sha512sum("/path/to/file") {
 ///     Ok(digest) => println!("{digest}"),
 ///     Err(err) => println!("{:?}", err),
 /// }
 /// ```
-pub fn sha512<P>(path: P) -> Result<String, Error>
+pub fn sha512sum<P>(path: P) -> Result<String, Error>
 where
 	P: AsRef<Path>,
 {
