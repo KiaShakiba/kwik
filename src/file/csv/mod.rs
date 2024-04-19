@@ -33,7 +33,7 @@ impl RowData {
 			.get(index)
 			.ok_or(Error::new(
 				ErrorKind::InvalidData,
-				format!("Invalid CSV column {}", index)
+				format!("Invalid CSV column {index}"),
 			))
 	}
 

@@ -31,6 +31,9 @@ pub enum MemError {
 
 	#[error("could not clear memory HWM")]
 	Clear,
+
+	#[error("an internal error occurred")]
+	Internal,
 }
 
 /// Returns a parsed status member from the process status file.
@@ -64,7 +67,7 @@ where
 	};
 
 	let mut reader = TextReader::new(path)
-		.expect("Could not open process status file.");
+		.map_err(|_| MemError::Internal)?;
 
 	while let Some(line) = reader.read_line() {
 		if line.starts_with(key) {
@@ -181,13 +184,11 @@ pub fn clear(pid: Option<&Pid>) -> Result<(), MemError> {
 		None => String::from("echo 1 > /proc/self/clear_refs"),
 	};
 
-	let error = "Could not clear memory refs.";
-
 	let status = Command::new("sh")
 		.arg("-c")
 		.arg(command)
 		.status()
-		.expect(error);
+		.map_err(|_| MemError::Internal)?;
 
 	match status.success() {
 		true => Ok(()),
@@ -207,6 +208,7 @@ pub fn clear(pid: Option<&Pid>) -> Result<(), MemError> {
 /// assert_eq!(size, 4);
 /// ```
 #[inline]
+#[must_use]
 pub fn size_of<T>(value: &T) -> usize {
 	mem::size_of_val(value)
 }
@@ -223,6 +225,7 @@ pub fn size_of<T>(value: &T) -> usize {
 /// assert_eq!(size, 40);
 /// ```
 #[inline]
+#[must_use]
 pub fn size_of_vec<T>(value: &Vec<T>) -> usize {
 	let container_size = size_of(value);
 

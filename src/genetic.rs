@@ -176,6 +176,7 @@ where
 
 	/// Sets the population size and fills the population with individuals.
 	#[inline]
+	#[must_use]
 	pub fn with_population_size(mut self, population_size: usize) -> Self {
 		self.set_population_size(population_size);
 		self
@@ -189,6 +190,7 @@ where
 
 	/// Sets the convergence.
 	#[inline]
+	#[must_use]
 	pub fn with_convergence_limit(mut self, convergence_limit: u64) -> Self {
 		self.set_convergence_limit(convergence_limit);
 		self
@@ -202,6 +204,7 @@ where
 
 	/// Sets the max runtime.
 	#[inline]
+	#[must_use]
 	pub fn with_max_runtime(mut self, max_runtime: Duration) -> Self {
 		self.set_max_runtime(max_runtime);
 		self
@@ -215,6 +218,7 @@ where
 
 	/// Sets the mutation probability.
 	#[inline]
+	#[must_use]
 	pub fn with_mutation_probability(mut self, mutation_probability: f64) -> Self {
 		self.set_mutation_probability(mutation_probability);
 		self
@@ -228,6 +232,7 @@ where
 
 	/// Sets the elite ratio.
 	#[inline]
+	#[must_use]
 	pub fn with_elite_ratio(mut self, elite_ratio: f64) -> Self {
 		self.set_elite_ratio(elite_ratio);
 		self
@@ -241,6 +246,7 @@ where
 
 	/// Sets the mating ratio.
 	#[inline]
+	#[must_use]
 	pub fn with_mating_ratio(mut self, mating_ratio: f64) -> Self {
 		self.set_mating_ratio(mating_ratio);
 		self
@@ -266,11 +272,11 @@ where
 
 			let fittest = &self.population[0];
 
-			if !fittest.eq(&last_fittest) {
+			if fittest.eq(&last_fittest) {
+				convergence_count += 1;
+			} else {
 				last_fittest = fittest.clone();
 				convergence_count = 0;
-			} else {
-				convergence_count += 1;
 			}
 
 			generation_count += 1;

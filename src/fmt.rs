@@ -18,6 +18,7 @@ pub const MEMORY_UNITS: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB
 /// assert_eq!(fmt::number(1234567), "1,234,567");
 /// ```
 #[inline]
+#[must_use]
 pub fn number(value: u64) -> String {
 	value.to_formatted_string(&Locale::en)
 }
@@ -31,6 +32,7 @@ pub fn number(value: u64) -> String {
 ///
 /// assert_eq!(fmt::memory(1234567, Some(2)), "1.18 MiB");
 /// ```
+#[must_use]
 pub fn memory(value: u64, precision: Option<usize>) -> String {
 	let mut copy = value as f64;
 	let decimals = precision.unwrap_or(0);
@@ -43,7 +45,7 @@ pub fn memory(value: u64, precision: Option<usize>) -> String {
 
 	let unit = MEMORY_UNITS[count];
 
-	format!("{:.1$} {unit}", copy, decimals)
+	format!("{copy:.decimals$} {unit}")
 }
 
 /// Formats a timespan in milliseconds to D.hh:mm:ss.ms.
@@ -54,6 +56,7 @@ pub fn memory(value: u64, precision: Option<usize>) -> String {
 ///
 /// assert_eq!(fmt::timespan(1234567), "20:34.567");
 /// ```
+#[must_use]
 pub fn timespan(value: u64) -> String {
 	let mut milliseconds: u64 = value;
 
@@ -79,24 +82,24 @@ pub fn timespan(value: u64) -> String {
 
 	if started || hours > 0 {
 		let padding = if started { 2 } else { 0 };
-		formatted.push_str(&format!("{:0width$}:", hours, width = padding));
+		formatted.push_str(&format!("{hours:0padding$}:"));
 		started = true;
 	}
 
 	if started || minutes > 0 {
 		let padding = if started { 2 } else { 0 };
-		formatted.push_str(&format!("{:0width$}:", minutes, width = padding));
+		formatted.push_str(&format!("{minutes:0padding$}:"));
 		started = true;
 	}
 
 	if started || seconds > 0 {
 		let padding = if started { 2 } else { 0 };
-		formatted.push_str(&format!("{:0width$}.", seconds, width = padding));
+		formatted.push_str(&format!("{seconds:0padding$}."));
 		started = true;
 	}
 
 	let padding = if started { 3 } else { 0 };
-	formatted.push_str(&format!("{:0width$}", milliseconds, width = padding));
+	formatted.push_str(&format!("{milliseconds:0padding$}"));
 
 	formatted
 }

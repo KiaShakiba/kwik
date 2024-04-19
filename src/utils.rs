@@ -15,11 +15,16 @@ use std::time::{SystemTime, UNIX_EPOCH};
 ///
 /// assert!(utils::timestamp() > 0);
 /// ```
+///
+/// # Panics
+///
+/// Panics if the current timestamp could not be calculated.
 #[inline]
+#[must_use]
 pub fn timestamp() -> u64 {
 	let now = SystemTime::now()
 		.duration_since(UNIX_EPOCH)
 		.expect("Could not calculate timestamp");
 
-	now.as_secs() * 1000 + now.subsec_nanos() as u64 / 1_000_000
+	now.as_secs() * 1000 + u64::from(now.subsec_nanos()) / 1_000_000
 }

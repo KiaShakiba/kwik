@@ -61,9 +61,10 @@ impl Table {
 	/// Panics if the header length does not match the existing row length.
 	#[inline]
 	pub fn set_header(&mut self, header: Row) {
-		if !self.rows.is_empty() && header.len() != self.row_len {
-			panic!("Invalid number of columns in row.");
-		}
+		assert!(
+			self.rows.is_empty() || header.len() == self.row_len,
+			"Invalid number of columns in row.",
+		);
 
 		self.row_len = header.len();
 		self.header = Some(header);
@@ -94,9 +95,10 @@ impl Table {
 	/// Panics if the row length does not match the existing row length.
 	#[inline]
 	pub fn add_row(&mut self, row: Row) {
-		if !self.rows.is_empty() && row.len() != self.row_len {
-			panic!("Invalid number of columns in row.");
-		}
+		assert!(
+			self.rows.is_empty() || row.len() == self.row_len,
+			"Invalid number of columns in row.",
+		);
 
 		self.row_len = row.len();
 		self.rows.push(row);

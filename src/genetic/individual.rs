@@ -81,11 +81,11 @@ where
 				child_genes.push(gene);
 			}
 
-			if !child_genes.is_valid() {
-				child_genes.clear();
-			} else {
+			if child_genes.is_valid() {
 				break;
 			}
+
+			child_genes.clear();
 		}
 
 		Ok(Individual::<GS>::new(child_genes))

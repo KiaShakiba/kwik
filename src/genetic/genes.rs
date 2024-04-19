@@ -80,12 +80,15 @@ where
 	type Gene: Gene;
 
 	/// Creates a new, empty instance of the base genes.
+	#[must_use]
 	fn base(&self) -> Self;
 
 	/// Returns true if there are no genes.
+	#[must_use]
 	fn is_empty(&self) -> bool;
 
 	/// Returns the number of genes.
+	#[must_use]
 	fn len(&self) -> usize;
 
 	/// Adds a gene to the genes.
@@ -95,9 +98,11 @@ where
 	fn clear(&mut self);
 
 	/// Retrieves a reference to a gene from the genes.
+	#[must_use]
 	fn get(&self, index: usize) -> &Self::Gene;
 
 	/// Returns true if the genes are valid.
+	#[must_use]
 	fn is_valid(&self) -> bool {
 		true
 	}

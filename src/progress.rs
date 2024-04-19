@@ -48,6 +48,7 @@ pub enum Tag {
 }
 
 impl Progress {
+	#[must_use]
 	pub fn new(total: u64, tags: &[Tag]) -> Self {
 		let now = timestamp();
 		let mut amount_timestamps = [0; 101];
@@ -75,6 +76,7 @@ impl Progress {
 	}
 
 	#[inline]
+	#[must_use]
 	pub fn is_complete(&self) -> bool {
 		self.current == self.total
 	}
@@ -89,9 +91,11 @@ impl Progress {
 	}
 
 	fn set(&mut self, value: u64) {
-		if value > self.total {
-			panic!("Progress value ({}) larger than total ({}).", value, self.total);
-		}
+		assert!(
+			value <= self.total,
+			"Progress value ({value}) larger than total ({}).",
+			self.total,
+		);
 
 		let previous = self.current;
 		self.current = value;
@@ -125,6 +129,7 @@ impl Progress {
 	}
 
 	#[inline]
+	#[must_use]
 	fn pulse(&mut self, now: u64) -> u64 {
 		let difference = now - self.pulse_time;
 
@@ -136,6 +141,7 @@ impl Progress {
 		0
 	}
 
+	#[must_use]
 	fn get_rate(&mut self, interval: u64) -> u64 {
 		self.rate_count += 1;
 
@@ -151,6 +157,7 @@ impl Progress {
 		self.previous_rate
 	}
 
+	#[must_use]
 	fn get_eta(&self, now: u64) -> u64 {
 		let amount = 100.0 * self.current as f64 / self.total as f64;
 
@@ -187,6 +194,7 @@ impl Progress {
 	}
 
 	#[inline]
+	#[must_use]
 	fn get_time(&self, now: u64) -> u64 {
 		now - self.initial_time
 	}
@@ -204,9 +212,9 @@ impl Progress {
 			};
 
 			if amount < 100 {
-				print!("\x1B[33m{}\x1B[0m", character);
+				print!("\x1B[33m{character}\x1B[0m");
 			} else {
-				print!("\x1B[32m{}\x1B[0m", character);
+				print!("\x1B[32m{character}\x1B[0m");
 			}
 		}
 

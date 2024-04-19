@@ -22,9 +22,7 @@ pub fn min<T>(values: &[T]) -> T
 where
 	T: Clone + PartialOrd,
 {
-	if values.is_empty() {
-		panic!("Cannot find min value.");
-	}
+	assert!(!values.is_empty(), "Cannot find min value.");
 
 	let mut min_value = &values[0];
 
@@ -54,9 +52,7 @@ pub fn max<T>(values: &[T]) -> T
 where
 	T: Clone + PartialOrd,
 {
-	if values.is_empty() {
-		panic!("Cannot find max value.");
-	}
+	assert!(!values.is_empty(), "Cannot find max value.");
 
 	let mut max_value = &values[0];
 

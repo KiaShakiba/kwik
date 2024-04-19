@@ -66,12 +66,16 @@ where
 		self.buf.data.clear();
 		self.count += 1;
 
-		if object.as_row(&mut self.buf).is_err() {
-			panic!("Error converting object {} to row", self.count);
-		}
+		assert!(
+			object.as_row(&mut self.buf).is_ok(),
+			"Error converting object {} to row",
+			self.count,
+		);
 
-		if self.file.write_record(&self.buf.data).is_err() {
-			panic!("Could not write to CSV file at row {}.", self.count);
-		}
+		assert!(
+			self.file.write_record(&self.buf.data).is_ok(),
+			"Could not write to CSV file at row {}.",
+			self.count,
+		);
 	}
 }
