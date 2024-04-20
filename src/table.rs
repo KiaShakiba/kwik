@@ -14,15 +14,14 @@ use std::{
 	collections::HashSet,
 };
 
-pub use crate::{
-	file::{
-		FileWriter,
-		csv::CsvWriter,
-	},
-	table::{
-		row::{Row, ColumnJoinType},
-		cell::{Align, Style},
-	},
+use crate::file::{
+	FileWriter,
+	csv::CsvWriter,
+};
+
+pub use crate::table::{
+	row::{Row, ColumnJoinType},
+	cell::{Align, Style},
 };
 
 #[derive(Default)]

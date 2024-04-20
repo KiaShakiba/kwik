@@ -6,7 +6,7 @@
  */
 
 use std::time::Duration;
-pub use crate::genetic::genes::Genes;
+use crate::genetic::genes::Genes;
 
 /// The solution of a genetic run. Holds the genes of the fittest individual,
 /// the number of generations processed during the run, and the total duration
