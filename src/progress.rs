@@ -14,7 +14,7 @@ use std::{
 use crate::{
 	fmt,
 	math,
-	utils::timestamp,
+	time::timestamp,
 };
 
 const WIDTH: u64 = 70;
