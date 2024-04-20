@@ -45,7 +45,14 @@ pub fn usage(pid: Option<Pid>) -> Result<f64, CpuError> {
 	sys.refresh_process(sys_pid);
 
 	match sys.process(sys_pid) {
-		Some(process) => Ok(process.cpu_usage() as f64 / sys.cpus().len() as f64),
+		Some(process) => {
+			let usage = process.cpu_usage() as f64
+				/ sys.cpus().len() as f64
+				/ 100.0;
+
+			Ok(usage)
+		},
+
 		None => Err(CpuError::InvalidPid(pid)),
 	}
 }
