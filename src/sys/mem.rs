@@ -12,14 +12,15 @@ use std::{
 };
 
 use thiserror::Error;
-use sys_info::mem_info;
+use sysinfo::System;
 
-use crate::file::{
-	FileReader,
-	text::TextReader,
+use crate::{
+	file::{
+		FileReader,
+		text::TextReader,
+	},
+	sys::Pid,
 };
-
-pub type Pid = u32;
 
 #[derive(Debug, Error)]
 pub enum MemError {
@@ -40,11 +41,9 @@ pub enum MemError {
 /// If a pid is supplied, the status member of that process is returned;
 /// otherwise, the status member of the current process is returned.
 ///
-/// If the status member could not be found, an error result is returned.
-///
 /// # Examples
 /// ```
-/// use kwik::mem;
+/// use kwik::sys::mem;
 ///
 /// // returns the "VmHWM" status member of the current process
 /// match mem::stat::<u64>("VmHWM", None) {
@@ -57,7 +56,11 @@ pub enum MemError {
 ///     }
 /// }
 /// ```
-pub fn stat<T>(key: &str, pid: Option<&Pid>) -> Result<T, MemError>
+///
+/// # Errors
+///
+/// This function returns an error if the status member could not be found.
+pub fn stat<T>(key: &str, pid: Option<Pid>) -> Result<T, MemError>
 where
 	T: FromStr + Copy,
 {
@@ -88,12 +91,9 @@ where
 /// Returns the high water mark of the supplied pid in bytes. If no pid
 /// is supplied, the high water mark of the current process is returned.
 ///
-/// If the high water mark could not be determined, an error result
-/// is returned.
-///
 /// # Examples
 /// ```
-/// use kwik::mem;
+/// use kwik::sys::mem;
 ///
 /// // returns the high water mark of the current process
 /// match mem::hwm(None) {
@@ -106,20 +106,22 @@ where
 ///     }
 /// }
 /// ```
+///
+/// # Errors
+///
+/// This function returns an error if the high water mark could not
+/// be determined.
 #[inline]
-pub fn hwm(pid: Option<&Pid>) -> Result<u64, MemError> {
+pub fn hwm(pid: Option<Pid>) -> Result<u64, MemError> {
 	stat::<u64>("VmHWM", pid).map(|value| value * 1024)
 }
 
 /// Returns the resident set size of the supplied pid in bytes. If no pid
 /// is supplied, the resident set size of the current process is returned.
 ///
-/// If the resident set size could not be determined, an error result
-/// is returned.
-///
 /// # Examples
 /// ```
-/// use kwik::mem;
+/// use kwik::sys::mem;
 ///
 /// // returns the resident set size of the current process
 /// match mem::rss(None) {
@@ -132,53 +134,55 @@ pub fn hwm(pid: Option<&Pid>) -> Result<u64, MemError> {
 ///     }
 /// }
 /// ```
+///
+/// # Errors
+///
+/// This function returns an error if the resident set size could not
+/// be determined.
 #[inline]
-pub fn rss(pid: Option<&Pid>) -> Result<u64, MemError> {
+pub fn rss(pid: Option<Pid>) -> Result<u64, MemError> {
 	stat::<u64>("VmRSS", pid).map(|value| value * 1024)
 }
 
 /// Returns the total physical memory of the system in bytes.
 ///
-/// If the memory size could not be determined, an error result
-/// is returned.
-///
 /// # Examples
 /// ```
-/// use kwik::mem;
+/// use kwik::sys::mem;
 ///
-/// match mem::sys() {
-///     Ok(value) => {
-///         // process system memory size
-///     },
-///
-///     Err(err) => {
-///         // handle error
-///     }
-/// }
+/// assert!(mem::total() > 0);
 /// ```
+///
+/// # Errors
+///
+/// This function will return an error if the memory size
+/// could not be determined.
 #[inline]
-pub fn sys() -> Result<u64, MemError> {
-	match mem_info() {
-		Ok(info) => Ok(info.total * 1024),
-		Err(_) => Err(MemError::MemInfo)
-	}
+#[must_use]
+pub fn total() -> u64 {
+	let mut sys = System::new();
+
+	sys.refresh_memory();
+	sys.total_memory()
 }
 
 /// Clears the memory refs of the supplied pid. If no pid is supplied,
 /// clears the memory refs of the current process.
 ///
-/// If the memory refs could not be cleared, an error result is returned.
-///
 /// # Examples
 /// ```
-/// use kwik::mem;
+/// use kwik::sys::mem;
 ///
 /// // clears the memory refs of the current process
 /// if let Err(err) = mem::clear(None) {
 ///     // handle error
 /// }
 /// ```
-pub fn clear(pid: Option<&Pid>) -> Result<(), MemError> {
+///
+/// # Errors
+///
+/// This function returns an error if the memory refs could not be cleared.
+pub fn clear(pid: Option<Pid>) -> Result<(), MemError> {
 	let command = match pid {
 		Some(pid) => format!("echo 1 > /proc/{pid}/clear_refs"),
 		None => String::from("echo 1 > /proc/self/clear_refs"),
@@ -200,7 +204,7 @@ pub fn clear(pid: Option<&Pid>) -> Result<(), MemError> {
 ///
 /// # Examples
 /// ```
-/// use kwik::mem;
+/// use kwik::sys::mem;
 ///
 /// let num: u32 = 5;
 /// let size = mem::size_of(&num);
@@ -217,7 +221,7 @@ pub fn size_of<T>(value: &T) -> usize {
 ///
 /// # Examples
 /// ```
-/// use kwik::mem;
+/// use kwik::sys::mem;
 ///
 /// let values = vec![0u32, 1, 2, 3];
 /// let size = mem::size_of_vec(&values);

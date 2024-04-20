@@ -164,7 +164,7 @@ impl Table {
 		let column_lens = self.max_column_lens();
 
 		if self.spacers.contains(&index) {
-			self.print_spacer_row(stdout, &column_lens);
+			print_spacer_row(stdout, &column_lens);
 		}
 
 		if let Some(header) = &self.header {
@@ -173,7 +173,7 @@ impl Table {
 			header.print(stdout, &column_lens, ColumnJoinType::Spaced);
 
 			if self.spacers.contains(&index) {
-				self.print_spacer_row(stdout, &column_lens);
+				print_spacer_row(stdout, &column_lens);
 			}
 		}
 
@@ -183,7 +183,7 @@ impl Table {
 			row.print(stdout, &column_lens, ColumnJoinType::Spaced);
 
 			if self.spacers.contains(&index) {
-				self.print_spacer_row(stdout, &column_lens);
+				print_spacer_row(stdout, &column_lens);
 			}
 		}
 	}
@@ -233,21 +233,6 @@ impl Table {
 		Ok(())
 	}
 
-	fn print_spacer_row(
-		&self,
-		stdout: &mut impl Write,
-		sizes: &Vec<usize>
-	) {
-		let mut row = Row::default();
-
-		for size in sizes {
-			let value = vec!["-"; *size + 2].join("");
-			row = row.push(value, Align::Left, Style::Normal);
-		}
-
-		row.print(stdout, sizes, ColumnJoinType::Plus);
-	}
-
 	fn max_column_lens(&self) -> Vec<usize> {
 		let mut sizes: Vec<usize> = vec![0; self.row_len];
 
@@ -273,4 +258,18 @@ impl Table {
 
 		sizes
 	}
+}
+
+fn print_spacer_row(
+	stdout: &mut impl Write,
+	sizes: &Vec<usize>
+) {
+	let mut row = Row::default();
+
+	for size in sizes {
+		let value = vec!["-"; *size + 2].join("");
+		row = row.push(value, Align::Left, Style::Normal);
+	}
+
+	row.print(stdout, sizes, ColumnJoinType::Plus);
 }

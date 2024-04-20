@@ -11,9 +11,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 ///
 /// # Examples
 /// ```
-/// use kwik::utils;
+/// use kwik::time::timestamp;
 ///
-/// assert!(utils::timestamp() > 0);
+/// assert!(timestamp() > 0);
 /// ```
 ///
 /// # Panics

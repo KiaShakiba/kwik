@@ -23,7 +23,7 @@ impl ThreadPool {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::ThreadPool;
+	/// use kwik::thread_pool::ThreadPool;
 	///
 	/// // create a thread pool with 4 threads
 	/// let pool = ThreadPool::new(4);
@@ -50,7 +50,7 @@ impl ThreadPool {
 	///
 	/// Examples
 	/// ```
-	/// use kwik::ThreadPool;
+	/// use kwik::thread_pool::ThreadPool;
 	///
 	/// let pool = ThreadPool::new(4);
 	///

@@ -40,8 +40,7 @@ const MATING_RATIO: f64 = 0.5;
 ///
 /// # Examples
 /// ```
-/// use kwik::Genetic;
-/// use kwik::genetic::{Gene, Genes, MutateRng, Rng};
+/// use kwik::genetic::{Genetic, Gene, Genes, MutateRng, Rng};
 ///
 /// #[derive(Clone, Ord, PartialOrd, PartialEq, Eq)]
 /// struct MyData {
