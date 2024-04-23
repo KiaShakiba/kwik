@@ -41,7 +41,7 @@ impl TextWriter {
 		self.count += 1;
 
 		if self.file.write_all(&[line, b"\n"].concat()).is_err() {
-			panic!("Could not write to text file at line {}.", self.count);
+			panic!("Could not write to text file at line {}", self.count);
 		}
 	}
 }

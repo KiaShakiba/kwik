@@ -120,7 +120,7 @@ where
 		let metadata = self.file
 			.get_ref()
 			.metadata()
-			.expect("Could not get binary file's size.");
+			.expect("Could not get binary file's size");
 
 		metadata.len()
 	}
@@ -235,7 +235,7 @@ where
 			},
 
 			Err(ref err) if err.kind() ==  ErrorKind::UnexpectedEof => None,
-			Err(_) => panic!("An error occurred when reading binary file."),
+			Err(_) => panic!("An error occurred when reading binary file"),
 		}
 	}
 

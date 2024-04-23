@@ -80,7 +80,7 @@ where
 		let metadata = self.file
 			.get_ref()
 			.metadata()
-			.expect("Could not get binary file's size.");
+			.expect("Could not get binary file's size");
 
 		metadata.len()
 	}
@@ -95,7 +95,7 @@ where
 		self.buf.data.clear();
 
 		let Ok(result) = self.file.read_record(&mut self.buf.data) else {
-			panic!("An error occurred on CSV row {}.", self.count + 1);
+			panic!("An error occurred on CSV row {}", self.count + 1);
 		};
 
 		if !result {

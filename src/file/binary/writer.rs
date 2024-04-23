@@ -17,6 +17,7 @@ use crate::file::{
 	binary::SizedChunk,
 };
 
+/// Writes a binary file in chunks
 pub struct BinaryWriter<T>
 where
 	T: WriteChunk,
@@ -28,7 +29,11 @@ where
 	_marker: PhantomData<T>,
 }
 
+/// Implementing this trait allows the binary writer to convert the
+/// struct into writable chunks.
 pub trait WriteChunk: SizedChunk {
+	/// Fills the supplied buffer with binary data to be written
+	/// to the file as a chunk.
 	fn as_chunk(&self, buf: &mut Vec<u8>) -> Result<(), Error>;
 }
 
@@ -68,8 +73,12 @@ where
 			panic!("Error converting object {} to chunk", self.count);
 		}
 
+		if self.buf.len() != T::size() {
+			panic!("Invalid chunk size at chunk {}", self.count);
+		}
+
 		if self.file.write_all(&self.buf).is_err() {
-			panic!("Could not write to binary file at chunk {}.", self.count);
+			panic!("Could not write to binary file at chunk {}", self.count);
 		}
 	}
 }

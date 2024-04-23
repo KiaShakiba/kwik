@@ -74,7 +74,7 @@ where
 
 		assert!(
 			self.file.write_record(&self.buf.data).is_ok(),
-			"Could not write to CSV file at row {}.",
+			"Could not write to CSV file at row {}",
 			self.count,
 		);
 	}

@@ -50,7 +50,7 @@ impl FileReader for TextReader {
 		let metadata = self.file
 			.get_ref()
 			.metadata()
-			.expect("Could not get binary file's size.");
+			.expect("Could not get binary file's size");
 
 		metadata.len()
 	}
@@ -81,7 +81,7 @@ impl TextReader {
 			},
 
 			Err(ref err) if err.kind() ==  ErrorKind::UnexpectedEof => None,
-			Err(_) => panic!("An error occurred on line {} when reading text file.", self.count + 1),
+			Err(_) => panic!("An error occurred on line {} when reading text file", self.count + 1),
 		}
 	}
 
