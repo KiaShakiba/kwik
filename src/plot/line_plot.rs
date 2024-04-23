@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) Kia Shakiba
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 use gnuplot::{
 	Axes2D,
 	AxesCommon,
@@ -12,25 +19,7 @@ use gnuplot::{
 	PointSize,
 };
 
-use crate::plot::{Plot, auto_option};
-
-const COLORS: &[&str] = &[
-	"#c4342b",
-	"#0071ad",
-	"#71ad00",
-	"#554ec9",
-	"#f7790d",
-	"#e0ca3c",
-	"#47a8bd",
-];
-
-const DASH_TYPES: &[DashType] = &[
-	DashType::Solid,
-	DashType::Dash,
-	DashType::DotDash,
-	DashType::DotDotDash,
-	DashType::Dot,
-];
+use crate::plot::{Plot, auto_option, COLORS, DASH_TYPES};
 
 /// A line plot.
 #[derive(Default)]
@@ -67,7 +56,7 @@ pub struct Line {
 impl Plot for LinePlot {
 	fn is_empty(&self) -> bool {
 		if self.lines.is_empty() {
-			// there are not lines in the plot
+			// there are no lines in the plot
 			return true;
 		}
 

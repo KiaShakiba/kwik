@@ -1,9 +1,35 @@
+/*
+ * Copyright (c) Kia Shakiba
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 pub mod figure;
 pub mod line_plot;
 pub mod box_plot;
 pub mod scatter_plot;
+pub mod bar_plot;
 
-use gnuplot::{Axes2D, AutoOption};
+use gnuplot::{Axes2D, AutoOption, DashType};
+
+const COLORS: &[&str] = &[
+	"#c4342b",
+	"#0071ad",
+	"#71ad00",
+	"#554ec9",
+	"#f7790d",
+	"#e0ca3c",
+	"#47a8bd",
+];
+
+const DASH_TYPES: &[DashType] = &[
+	DashType::Solid,
+	DashType::Dash,
+	DashType::DotDash,
+	DashType::DotDotDash,
+	DashType::Dot,
+];
 
 /// Implementing this trait allows the struct to be added to a
 /// plot figure.
