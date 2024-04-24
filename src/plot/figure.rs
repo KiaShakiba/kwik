@@ -30,26 +30,64 @@ pub const DEFAULT_WIDTH_PX: f32 = 323.0;
 pub const DEFAULT_HEIGHT_PX: f32 = 190.0;
 
 impl Figure {
-	/// Constructs a new figure with the supplied maximum number
-	/// of columns. The number of rows can grow, though the number
-	/// of columns will be limited to the supplied amount.
+	/// Constructs a new figure with one column.
 	///
 	/// # Examples
 	/// ```
 	/// use kwik::plot::Figure;
 	///
-	/// let figure = Figure::new(4); // creates a figure with a maximum of 4 columns
+	/// let figure = Figure::new();
 	/// ```
-	pub fn new(columns: usize) -> Self {
+	pub fn new() -> Self {
 		Figure {
 			figure: GnuplotFigure::new(),
 
-			columns,
+			columns: 1,
 			count: 0,
 
 			plot_width_px: DEFAULT_WIDTH_PX,
 			plot_height_px: DEFAULT_HEIGHT_PX,
 		}
+	}
+
+	/// Sets the maximum number of columns in the figure. The number of
+	/// rows can grow, though the number of columns will be limited to
+	/// the supplied amount. The default number of columns is one.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::plot::Figure;
+	///
+	/// let mut figure = Figure::default();
+	/// figure.set_columns(4);
+	/// ```
+	///
+	/// # Panics
+	///
+	/// Panics if the number of columns is zero.
+	pub fn set_columns(&mut self, columns: usize) {
+		assert!(columns > 0, "Invalid number of columns in figure");
+		self.columns = columns;
+	}
+
+	/// Sets the maximum number of columns in the figure. The number of
+	/// rows can grow, though the number of columns will be limited to
+	/// the supplied amount. The default number of columns is one.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::plot::Figure;
+	///
+	/// let figure = Figure::default()
+	///     .with_columns(4);
+	/// ```
+	///
+	/// # Panics
+	///
+	/// Panics if the number of columns is zero.
+	pub fn with_columns(mut self, columns: usize) -> Self {
+		self.set_columns(columns);
+		self
 	}
 
 	/// Sets the width (in pixels) of an individual plot in the figure.
@@ -59,7 +97,7 @@ impl Figure {
 	/// ```
 	/// use kwik::plot::Figure;
 	///
-	/// let mut figure = Figure::new(1);
+	/// let mut figure = Figure::default();
 	/// figure.set_plot_width(200.0);
 	/// ```
 	pub fn set_plot_width(&mut self, plot_width_px: f32) {
@@ -73,7 +111,7 @@ impl Figure {
 	/// ```
 	/// use kwik::plot::Figure;
 	///
-	/// let figure = Figure::new(1)
+	/// let figure = Figure::default()
 	///     .with_plot_width(200.0);
 	/// ```
 	pub fn with_plot_width(mut self, plot_width_px: f32) -> Self {
@@ -88,7 +126,7 @@ impl Figure {
 	/// ```
 	/// use kwik::plot::Figure;
 	///
-	/// let mut figure = Figure::new(1);
+	/// let mut figure = Figure::default();
 	/// figure.set_plot_height(200.0);
 	/// ```
 	pub fn set_plot_height(&mut self, plot_height_px: f32) {
@@ -102,7 +140,7 @@ impl Figure {
 	/// ```
 	/// use kwik::plot::Figure;
 	///
-	/// let figure = Figure::new(1)
+	/// let figure = Figure::default()
 	///     .with_plot_height(200.0);
 	/// ```
 	pub fn with_plot_height(mut self, plot_height_px: f32) -> Self {
@@ -116,7 +154,7 @@ impl Figure {
 	/// ```
 	/// use kwik::plot::Figure;
 	///
-	/// let figure = Figure::new(1);
+	/// let figure = Figure::default();
 	/// assert!(figure.is_empty());
 	/// ```
 	pub fn is_empty(&self) -> bool {
@@ -173,5 +211,11 @@ impl Figure {
 				"Could not save figure"
 			))
 		}
+	}
+}
+
+impl Default for Figure {
+	fn default() -> Self {
+		Figure::new()
 	}
 }
