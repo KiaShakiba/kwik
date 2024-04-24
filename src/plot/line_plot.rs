@@ -163,7 +163,7 @@ impl Plot for LinePlot {
 
 		for hline_x in &self.hlines {
 			let x = vec![hline_x, hline_x];
-			let y = vec![self.min_y(), self.max_y()];
+			let y = vec![self.min_y_value(), self.max_y_value()];
 
 			axes.lines(x, y, &[
 				LineWidth(2.0),
@@ -185,8 +185,8 @@ impl Plot for LinePlot {
 }
 
 impl LinePlot {
-	fn min_y(&self) -> f64 {
-		let mut min: Option<f64> = None;
+	fn min_y_value(&self) -> f64 {
+		let mut min: Option<f64> = self.y_min;
 
 		for line in &self.lines {
 			let line_min = line.y_values
@@ -203,8 +203,8 @@ impl LinePlot {
 		min.unwrap_or(0.0)
 	}
 
-	fn max_y(&self) -> f64 {
-		let mut max: Option<f64> = None;
+	fn max_y_value(&self) -> f64 {
+		let mut max: Option<f64> = self.y_max;
 
 		for line in &self.lines {
 			let line_max = line.y_values
