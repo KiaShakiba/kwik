@@ -151,7 +151,7 @@ impl Plot for LinePlot {
 			let mut line_config = vec![
 				LineWidth(4.0),
 				Color(COLORS[index % COLORS.len()]),
-				LineStyle(DASH_TYPES[index & COLORS.len()]),
+				LineStyle(DASH_TYPES[index & DASH_TYPES.len()]),
 			];
 
 			if let Some(label) = &line.label {
