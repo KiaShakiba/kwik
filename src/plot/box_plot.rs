@@ -27,7 +27,7 @@ use statrs::statistics::{Data, Min, Max, Distribution, OrderStatistics};
 use crate::plot::Plot;
 
 /// A box plot.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct BoxPlot {
 	title: Option<String>,
 

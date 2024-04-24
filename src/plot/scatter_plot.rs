@@ -20,7 +20,7 @@ use gnuplot::{
 use crate::plot::{Plot, auto_option};
 
 /// A scatter plot.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct ScatterPlot {
 	title: Option<String>,
 

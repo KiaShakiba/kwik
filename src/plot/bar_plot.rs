@@ -26,7 +26,7 @@ use crate::{
 };
 
 /// A bar plot.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct BarPlot {
 	title: Option<String>,
 
@@ -42,13 +42,14 @@ pub struct BarPlot {
 }
 
 /// A group of bars on the bar plot.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct BarGroup {
 	label: Option<String>,
 	bars: Vec<Bar>,
 }
 
 /// An individial bar on the bar plot.
+#[derive(Clone)]
 pub struct Bar {
 	label: Option<String>,
 	value: f64,

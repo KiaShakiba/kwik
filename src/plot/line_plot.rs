@@ -22,7 +22,7 @@ use gnuplot::{
 use crate::plot::{Plot, auto_option, COLORS, DASH_TYPES};
 
 /// A line plot.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct LinePlot {
 	title: Option<String>,
 
@@ -45,7 +45,7 @@ pub struct LinePlot {
 }
 
 /// An individual line on a line plot.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Line {
 	label: Option<String>,
 
