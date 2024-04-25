@@ -186,7 +186,7 @@ impl Plot for LinePlot {
 
 impl LinePlot {
 	fn min_y_value(&self) -> f64 {
-		let mut min: Option<f64> = self.y_min;
+		let mut min = self.y_min;
 
 		for line in &self.lines {
 			let line_min = line.y_values
@@ -204,7 +204,7 @@ impl LinePlot {
 	}
 
 	fn max_y_value(&self) -> f64 {
-		let mut max: Option<f64> = self.y_max;
+		let mut max = self.y_max;
 
 		for line in &self.lines {
 			let line_max = line.y_values
