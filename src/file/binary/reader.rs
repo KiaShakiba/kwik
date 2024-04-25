@@ -241,7 +241,7 @@ where
 
 	/// Returns an iterator over the binary file. The iterator takes a mutable
 	/// reference to `self` as it is iterating over a stream. This means performing
-	/// the iterator modifies the reader's position in the file.
+	/// the iteration modifies the reader's position in the file.
 	///
 	/// # Examples
 	/// ```
