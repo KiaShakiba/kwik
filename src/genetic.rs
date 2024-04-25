@@ -12,7 +12,11 @@ mod genes;
 mod solution;
 
 use std::time::{Duration, Instant};
-use rand::thread_rng;
+
+use rand::{
+	thread_rng,
+	distributions::{Distribution, Uniform},
+};
 
 pub use rand::{
 	Rng,
@@ -127,6 +131,7 @@ where
 	mating_ratio: f64,
 
 	rng: ThreadRng,
+	mating_dist: Uniform<usize>,
 }
 
 impl<GS> Genetic<GS>
@@ -157,6 +162,7 @@ where
 			mating_ratio: MATING_RATIO,
 
 			rng: thread_rng(),
+			mating_dist: init_mating_dist(POPULATION_SIZE, MATING_RATIO),
 		};
 
 		Ok(genetic)
@@ -171,6 +177,8 @@ where
 		for _ in 0..population_size {
 			self.population.push(Individual::new(self.initial_genes.clone()));
 		}
+
+		self.mating_dist = init_mating_dist(self.population_size, self.mating_ratio);
 	}
 
 	/// Sets the population size and fills the population with individuals.
@@ -241,6 +249,7 @@ where
 	#[inline]
 	pub fn set_mating_ratio(&mut self, mating_ratio: f64) {
 		self.mating_ratio = mating_ratio;
+		self.mating_dist = init_mating_dist(self.population_size, self.mating_ratio);
 	}
 
 	/// Sets the mating ratio.
@@ -294,7 +303,6 @@ where
 	/// and overwriting the current population.
 	fn iterate(&mut self) -> Result<(), GeneticError> {
 		let elite_population = (self.population_size as f64 * self.elite_ratio) as usize;
-		let mating_population = (self.population_size as f64 * self.mating_ratio) as usize;
 
 		let mut new_generation = self.population
 			.iter()
@@ -303,12 +311,7 @@ where
 			.collect::<Vec::<Individual<GS>>>();
 
 		for _ in 0..(self.population_size - elite_population) {
-			let index1: usize = self.rng.gen_range(0..mating_population);
-			let mut index2: usize = self.rng.gen_range(0..mating_population);
-
-			while index1 == index2 {
-				index2 = self.rng.gen_range(0..mating_population);
-			}
+			let (index1, index2) = self.gen_mating_pair();
 
 			let parent1 = &self.population[index1];
 			let parent2 = &self.population[index2];
@@ -329,4 +332,23 @@ where
 
 		Ok(())
 	}
+
+	fn gen_mating_pair(&mut self) -> (usize, usize) {
+		let index1 = self.mating_dist.sample(&mut self.rng);
+		let mut index2 = self.mating_dist.sample(&mut self.rng);
+
+		while index1 == index2 {
+			index2 = self.mating_dist.sample(&mut self.rng);
+		}
+
+		(index1, index2)
+	}
+}
+
+fn init_mating_dist(
+	population_size: usize,
+	mating_ratio: f64,
+) -> Uniform<usize> {
+	let mating_population = (population_size as f64 * mating_ratio) as usize;
+	Uniform::from(0..mating_population)
 }
