@@ -6,38 +6,38 @@
  */
 
 use std::time::Duration;
-use crate::genetic::genes::Genes;
+use crate::genetic::chromosome::Chromosome;
 
-/// The solution of a genetic run. Holds the genes of the fittest individual,
+/// The solution of a genetic run. Holds the chromosome of the fittest individual,
 /// the number of generations processed during the run, and the total duration
 /// of the run.
-pub struct GeneticSolution<GS>
+pub struct GeneticSolution<C>
 where
-	GS: Genes,
+	C: Chromosome,
 {
-	genes: GS,
+	chromosome: C,
 
 	generations: u64,
 	runtime: Duration,
 }
 
-impl<GS> GeneticSolution<GS>
+impl<C> GeneticSolution<C>
 where
-	GS: Genes,
+	C: Chromosome,
 {
-	pub fn new(genes: GS, generations: u64, runtime: Duration) -> Self {
+	pub fn new(chromosome: C, generations: u64, runtime: Duration) -> Self {
 		GeneticSolution {
-			genes,
+			chromosome,
 
 			generations,
 			runtime,
 		}
 	}
 
-	/// Returns a reference to the fittest individual's genes.
+	/// Returns a reference to the fittest individual's chromosome.
 	#[inline]
-	pub fn genes(&self) -> &GS {
-		&self.genes
+	pub fn chromosome(&self) -> &C {
+		&self.chromosome
 	}
 
 	/// Returns the number of generations processed during the run.

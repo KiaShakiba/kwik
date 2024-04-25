@@ -9,8 +9,8 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum GeneticError {
-	#[error("invalid initial genes")]
-	InvalidInitialGenes,
+	#[error("invalid initial chromosome")]
+	InvalidInitialChromosome,
 
 	#[error("could not create valid offspring")]
 	MateTimeout,

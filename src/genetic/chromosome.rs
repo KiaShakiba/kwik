@@ -7,12 +7,13 @@
 
 pub use crate::genetic::gene::Gene;
 
-/// This defines a set of genes. With this, genes can be added and
-/// retrieved. The overall fitness of the genes can also be computed.
+/// This defines a chromosome (i.e., a set of genes). With this,
+/// genes can be added and retrieved. The overall fitness of the
+/// chromosome can also be computed.
 ///
 /// # Examples
 /// ```
-/// use kwik::genetic::{Gene, Genes, MutateRng, Rng};
+/// use kwik::genetic::{Gene, Chromosome, MutateRng, Rng};
 ///
 /// #[derive(Clone, Ord, PartialOrd, PartialEq, Eq)]
 /// struct MyData {
@@ -24,7 +25,7 @@ pub use crate::genetic::gene::Gene;
 ///     config: Vec<MyData>,
 /// }
 ///
-/// impl Genes for MyConfig {
+/// impl Chromosome for MyConfig {
 ///     type Gene = MyData;
 ///
 ///     fn base(&self) -> Self {
@@ -73,13 +74,13 @@ pub use crate::genetic::gene::Gene;
 ///     }
 /// }
 /// ```
-pub trait Genes
+pub trait Chromosome
 where
 	Self: Clone + Ord,
 {
 	type Gene: Gene;
 
-	/// Creates a new, empty instance of the base genes.
+	/// Creates a new, empty instance of the base chromosome.
 	#[must_use]
 	fn base(&self) -> Self;
 
@@ -91,23 +92,23 @@ where
 	#[must_use]
 	fn len(&self) -> usize;
 
-	/// Adds a gene to the genes.
+	/// Adds a gene to the chromosome.
 	fn push(&mut self, gene: Self::Gene);
 
-	/// Clears the genes.
+	/// Clears the chromosome.
 	fn clear(&mut self);
 
-	/// Retrieves a reference to a gene from the genes.
+	/// Retrieves a reference to a gene from the chromosome.
 	#[must_use]
 	fn get(&self, index: usize) -> &Self::Gene;
 
-	/// Returns true if the genes are valid.
+	/// Returns true if the chromosome is valid.
 	#[must_use]
 	fn is_valid(&self) -> bool {
 		true
 	}
 
-	/// Returns true if the genes produce an optimal result.
+	/// Returns true if the chromosome produces an optimal result.
 	/// This will stop the genetic algorithm.
 	fn is_optimal(&self) -> bool;
 }

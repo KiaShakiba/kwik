@@ -14,15 +14,15 @@ use rand::{
 
 use crate::genetic::{
 	error::GeneticError,
-	genes::{Genes, Gene},
+	chromosome::{Chromosome, Gene},
 };
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Individual<GS>
+pub struct Individual<C>
 where
-	GS: Genes,
+	C: Chromosome,
 {
-	genes: GS,
+	chromosome: C,
 }
 
 enum MateResult {
@@ -31,64 +31,64 @@ enum MateResult {
 	Mutation,
 }
 
-impl<GS> Individual<GS>
+impl<C> Individual<C>
 where
-	GS: Genes,
+	C: Chromosome,
 {
-	pub fn new(genes: GS) -> Self {
+	pub fn new(chromosome: C) -> Self {
 		Individual {
-			genes,
+			chromosome,
 		}
 	}
 
 	#[inline]
-	pub fn genes(&self) -> &GS {
-		&self.genes
+	pub fn chromosome(&self) -> &C {
+		&self.chromosome
 	}
 
 	#[inline]
 	pub fn is_optimal(&self) -> bool {
-		self.genes.is_optimal()
+		self.chromosome.is_optimal()
 	}
 
 	pub fn mate(
 		&self,
 		rng: &mut ThreadRng,
-		partner: &Individual<GS>,
+		partner: &Individual<C>,
 		mutation_probability: f64,
 		max_runtime: &Duration,
-	) -> Result<Individual<GS>, GeneticError> {
+	) -> Result<Individual<C>, GeneticError> {
 		let time = Instant::now();
-		let mut child_genes = self.genes.base();
+		let mut child_chromosome = self.chromosome.base();
 
 		loop {
 			if time.elapsed().ge(max_runtime) {
 				return Err(GeneticError::MateTimeout);
 			}
 
-			for i in 0..self.genes.len() {
+			for i in 0..self.chromosome.len() {
 				let gene = match get_mate_result(rng, mutation_probability) {
-					MateResult::Parent1 => self.genes.get(i).clone(),
-					MateResult::Parent2 => partner.genes.get(i).clone(),
+					MateResult::Parent1 => self.chromosome.get(i).clone(),
+					MateResult::Parent2 => partner.chromosome.get(i).clone(),
 
 					MateResult::Mutation => {
-						let mut gene = self.genes.get(i).clone();
+						let mut gene = self.chromosome.get(i).clone();
 						gene.mutate(rng);
 						gene
 					},
 				};
 
-				child_genes.push(gene);
+				child_chromosome.push(gene);
 			}
 
-			if child_genes.is_valid() {
+			if child_chromosome.is_valid() {
 				break;
 			}
 
-			child_genes.clear();
+			child_chromosome.clear();
 		}
 
-		Ok(Individual::<GS>::new(child_genes))
+		Ok(Individual::<C>::new(child_chromosome))
 	}
 }
 

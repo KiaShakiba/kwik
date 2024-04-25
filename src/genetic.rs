@@ -8,7 +8,7 @@
 mod error;
 mod individual;
 mod gene;
-mod genes;
+mod chromosome;
 mod solution;
 
 use std::time::{Duration, Instant};
@@ -27,7 +27,7 @@ use crate::genetic::individual::Individual;
 
 pub use crate::genetic::{
 	error::GeneticError,
-	genes::{Genes, Gene},
+	chromosome::{Chromosome, Gene},
 	solution::GeneticSolution,
 };
 
@@ -44,7 +44,7 @@ const MATING_RATIO: f64 = 0.5;
 ///
 /// # Examples
 /// ```
-/// use kwik::genetic::{Genetic, Gene, Genes, MutateRng, Rng};
+/// use kwik::genetic::{Genetic, Gene, Chromosome, MutateRng, Rng};
 ///
 /// #[derive(Clone, Ord, PartialOrd, PartialEq, Eq)]
 /// struct MyData {
@@ -56,18 +56,18 @@ const MATING_RATIO: f64 = 0.5;
 ///     config: Vec<MyData>,
 /// }
 ///
-/// let mut initial_genes = MyConfig::default();
+/// let mut initial_chromosome = MyConfig::default();
 ///
-/// initial_genes.push(MyData { data: 0 });
-/// initial_genes.push(MyData { data: 0 });
-/// initial_genes.push(MyData { data: 0 });
-/// initial_genes.push(MyData { data: 0 });
-/// initial_genes.push(MyData { data: 0 });
+/// initial_chromosome.push(MyData { data: 0 });
+/// initial_chromosome.push(MyData { data: 0 });
+/// initial_chromosome.push(MyData { data: 0 });
+/// initial_chromosome.push(MyData { data: 0 });
+/// initial_chromosome.push(MyData { data: 0 });
 ///
-/// let mut genetic = Genetic::<MyConfig>::new(initial_genes).unwrap();
+/// let mut genetic = Genetic::<MyConfig>::new(initial_chromosome).unwrap();
 /// let result = genetic.run();
 ///
-/// impl Genes for MyConfig {
+/// impl Chromosome for MyConfig {
 ///     type Gene = MyData;
 ///
 ///     fn base(&self) -> Self {
@@ -116,12 +116,12 @@ const MATING_RATIO: f64 = 0.5;
 ///     }
 /// }
 /// ```
-pub struct Genetic<GS>
+pub struct Genetic<C>
 where
-	GS: Genes,
+	C: Chromosome,
 {
-	initial_genes: GS,
-	population: Vec<Individual<GS>>,
+	initial_chromosome: C,
+	population: Vec<Individual<C>>,
 
 	population_size: usize,
 	convergence_limit: u64,
@@ -134,24 +134,25 @@ where
 	mating_dist: Uniform<usize>,
 }
 
-impl<GS> Genetic<GS>
+impl<C> Genetic<C>
 where
-	GS: Genes,
+	C: Chromosome,
 {
-	/// Creates an instance of the genetic runner using the supplied genes as initial values.
-	pub fn new(initial_genes: GS) -> Result<Self, GeneticError> {
-		if !initial_genes.is_valid() {
-			return Err(GeneticError::InvalidInitialGenes);
+	/// Creates an instance of the genetic runner using the supplied
+	/// chromosome as the initial value.
+	pub fn new(initial_chromosome: C) -> Result<Self, GeneticError> {
+		if !initial_chromosome.is_valid() {
+			return Err(GeneticError::InvalidInitialChromosome);
 		}
 
-		let mut population = Vec::<Individual<GS>>::new();
+		let mut population = Vec::<Individual<C>>::new();
 
 		for _ in 0..POPULATION_SIZE {
-			population.push(Individual::new(initial_genes.clone()));
+			population.push(Individual::new(initial_chromosome.clone()));
 		}
 
 		let genetic = Genetic {
-			initial_genes,
+			initial_chromosome,
 			population,
 
 			population_size: POPULATION_SIZE,
@@ -175,7 +176,7 @@ where
 		self.population.clear();
 
 		for _ in 0..population_size {
-			self.population.push(Individual::new(self.initial_genes.clone()));
+			self.population.push(Individual::new(self.initial_chromosome.clone()));
 		}
 
 		self.mating_dist = init_mating_dist(self.population_size, self.mating_ratio);
@@ -262,7 +263,7 @@ where
 
 	/// Runs the genetic algorithm until either the most fit individual has a fitness
 	/// of 0 or the population has converged and is no longer changing.
-	pub fn run(&mut self) -> Result<GeneticSolution<GS>, GeneticError> {
+	pub fn run(&mut self) -> Result<GeneticSolution<C>, GeneticError> {
 		let time = Instant::now();
 
 		self.iterate()?;
@@ -291,7 +292,7 @@ where
 		}
 
 		let solution = GeneticSolution::new(
-			self.population[0].genes().clone(),
+			self.population[0].chromosome().clone(),
 			generation_count,
 			time.elapsed(),
 		);
@@ -308,7 +309,7 @@ where
 			.iter()
 			.take(elite_population)
 			.cloned()
-			.collect::<Vec::<Individual<GS>>>();
+			.collect::<Vec::<Individual<C>>>();
 
 		for _ in 0..(self.population_size - elite_population) {
 			let (index1, index2) = self.gen_mating_pair();
