@@ -209,6 +209,28 @@ impl BarPlot {
 		self
 	}
 
+	/// Enables or disables logarithmic formatting in the y-axis.
+	pub fn set_format_y_log(&mut self, value: bool) {
+		self.format_y_log = value;
+	}
+
+	/// Enables or disables logarithmic formatting in the y-axis.
+	pub fn with_format_y_log(mut self, value: bool) -> Self {
+		self.set_format_y_log(value);
+		self
+	}
+
+	/// Enables or disables memory formatting in the y-axis.
+	pub fn set_format_y_memory(&mut self, value: bool) {
+		self.format_y_memory = value;
+	}
+
+	/// Enables or disables memory formatting in the y-axis.
+	pub fn with_format_y_memory(mut self, value: bool) -> Self {
+		self.set_format_y_memory(value);
+		self
+	}
+
 	/// Adds a bar group to the plot.
 	pub fn add(&mut self, bar_group: BarGroup) {
 		self.bar_groups.push(bar_group);
