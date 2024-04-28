@@ -134,21 +134,15 @@ where
 	/// number of bytes.
 	///
 	/// # Examples
-	/// ```
-	/// use std::{
-	///     env,
-	///     io::Error,
-	/// };
+	/// ```no_run
+	/// use std::io::Error;
 	///
 	/// use kwik::file::{
 	///     FileReader,
 	///     binary::{BinaryReader, ReadChunk, SizedChunk},
 	/// };
 	///
-	/// let mut path = env::var("CARGO_MANIFEST_DIR").unwrap();
-	/// path.push_str("/target/file.bin");
-	///
-	/// let mut reader = BinaryReader::<MyStruct>::new(&path).unwrap();
+	/// let mut reader = BinaryReader::<MyStruct>::new("/path/to/file").unwrap();
 	///
 	/// reader.offset(5).unwrap(); // skip the first 5 bytes
 	///
@@ -181,21 +175,15 @@ where
 	/// file is reached, `None` is returned.
 	///
 	/// # Examples
-	/// ```
-	/// use std::{
-	///     env,
-	///     io::Error,
-	/// };
+	/// ```no_run
+	/// use std::io::Error;
 	///
 	/// use kwik::file::{
 	///     FileReader,
 	///     binary::{BinaryReader, ReadChunk, SizedChunk},
 	/// };
 	///
-	/// let mut path = env::var("CARGO_MANIFEST_DIR").unwrap();
-	/// path.push_str("/target/file.bin");
-	///
-	/// let mut reader = BinaryReader::<MyStruct>::new(&path).unwrap();
+	/// let mut reader = BinaryReader::<MyStruct>::new("/path/to/file").unwrap();
 	///
 	/// while let Some(object) = reader.read_chunk() {
 	///     // do something with the object
@@ -244,21 +232,15 @@ where
 	/// the iteration modifies the reader's position in the file.
 	///
 	/// # Examples
-	/// ```
-	/// use std::{
-	///     env,
-	///     io::Error,
-	/// };
+	/// ```no_run
+	/// use std::io::Error;
 	///
 	/// use kwik::file::{
 	///     FileReader,
 	///     binary::{BinaryReader, ReadChunk, SizedChunk},
 	/// };
 	///
-	/// let mut path = env::var("CARGO_MANIFEST_DIR").unwrap();
-	/// path.push_str("/target/file.bin");
-	///
-	/// let mut reader = BinaryReader::<MyStruct>::new(&path).unwrap();
+	/// let mut reader = BinaryReader::<MyStruct>::new("/path/to/file").unwrap();
 	///
 	/// for chunk in reader.iter() {
 	///     // do something with the object

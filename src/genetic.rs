@@ -346,10 +346,124 @@ where
 	}
 }
 
-fn init_mating_dist(
-	population_size: usize,
-	mating_ratio: f64,
-) -> Uniform<usize> {
+fn init_mating_dist(population_size: usize, mating_ratio: f64) -> Uniform<usize> {
 	let mating_population = (population_size as f64 * mating_ratio) as usize;
 	Uniform::from(0..mating_population)
+}
+
+#[cfg(test)]
+mod tests {
+	use std::cmp::Ordering;
+
+	use crate::genetic::{
+		Genetic,
+		Gene,
+		Chromosome,
+		MutateRng,
+		Rng,
+	};
+
+	#[derive(Clone)]
+	struct TestData {
+		data: u32,
+	}
+
+	#[derive(Default, Clone)]
+	struct TestConfig {
+		config: Vec<TestData>,
+	}
+
+	impl Chromosome for TestConfig {
+		type Gene = TestData;
+
+		fn base(&self) -> Self {
+			TestConfig {
+				config: Vec::new(),
+			}
+		}
+
+		fn is_empty(&self) -> bool {
+			self.config.is_empty()
+		}
+
+		fn len(&self) -> usize {
+			self.config.len()
+		}
+
+		fn push(&mut self, data: TestData) {
+			self.config.push(data);
+		}
+
+		fn get(&self, index: usize) -> &TestData {
+			&self.config[index]
+		}
+
+		fn clear(&mut self) {
+			self.config.clear()
+		}
+
+		fn is_optimal(&self) -> bool {
+			let sum = self.config
+				.iter()
+				.map(|item| item.data)
+				.sum::<u32>();
+
+			sum == 100
+		}
+	}
+
+	impl TestConfig {
+		fn sum(&self) -> u32 {
+			self.config
+				.iter()
+				.map(|item| item.data)
+				.sum::<u32>()
+		}
+	}
+
+	impl Ord for TestConfig {
+		fn cmp(&self, other: &Self) -> Ordering {
+			let self_diff = (100 - self.sum() as i32).abs();
+			let other_diff = (100 - other.sum() as i32).abs();
+
+			self_diff.cmp(&other_diff)
+		}
+	}
+
+	impl PartialOrd for TestConfig {
+		fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+			Some(self.cmp(other))
+		}
+	}
+
+	impl PartialEq for TestConfig {
+		fn eq(&self, other: &Self) -> bool {
+			self.sum() == other.sum()
+		}
+	}
+
+	impl Eq for TestConfig {}
+
+	impl Gene for TestData {
+		fn mutate(&mut self, rng: &mut MutateRng) {
+			self.data = rng.gen_range(0..50);
+		}
+	}
+
+	#[test]
+	fn it_optimizes() {
+		let mut initial_chromosome = TestConfig::default();
+
+		initial_chromosome.push(TestData { data: 0 });
+		initial_chromosome.push(TestData { data: 0 });
+		initial_chromosome.push(TestData { data: 0 });
+		initial_chromosome.push(TestData { data: 0 });
+		initial_chromosome.push(TestData { data: 0 });
+
+		let mut genetic = Genetic::<TestConfig>::new(initial_chromosome).unwrap();
+		let result = genetic.run().unwrap();
+
+		assert_ne!(result.generations(), 0);
+		assert_eq!(result.chromosome().sum(), 100);
+	}
 }

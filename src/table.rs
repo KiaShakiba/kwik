@@ -191,8 +191,7 @@ impl Table {
 	/// Writes the table to the file at the supplied path.
 	///
 	/// # Examples
-	/// ```
-	/// use std::env;
+	/// ```no_run
 	/// use kwik::table::{Table, Row, Align, Style};
 	///
 	/// let mut table = Table::default();
@@ -206,10 +205,7 @@ impl Table {
 	/// table.set_header(header);
 	/// table.add_row(row);
 	///
-	/// let mut path = env::var("CARGO_MANIFEST_DIR").unwrap();
-	/// path.push_str("/target/table.csv");
-	///
-	/// table.to_file(path).expect("Could not write table to file.");
+	/// table.to_file("/path/to/file").unwrap();
 	/// ```
 	///
 	/// # Errors
