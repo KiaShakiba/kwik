@@ -13,7 +13,7 @@ pub use crate::genetic::gene::Gene;
 ///
 /// # Examples
 /// ```
-/// use kwik::genetic::{Gene, Chromosome, MutateRng, Rng};
+/// use kwik::genetic::{Gene, Chromosome, Rng};
 ///
 /// #[derive(Clone, Ord, PartialOrd, PartialEq, Eq)]
 /// struct MyData {
@@ -69,7 +69,7 @@ pub use crate::genetic::gene::Gene;
 /// }
 ///
 /// impl Gene for MyData {
-///     fn mutate(&mut self, rng: &mut MutateRng) {
+///     fn mutate(&mut self, rng: &mut impl Rng) {
 ///         self.data = rng.gen_range(0..10);
 ///     }
 /// }

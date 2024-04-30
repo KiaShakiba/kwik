@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use crate::genetic::MutateRng;
+use rand::Rng;
 
 /// A gene defines the unit of change in a genetic algorithm. Implement this trait
 /// for whichever struct contains the data for an individual member of the genetic
@@ -13,7 +13,7 @@ use crate::genetic::MutateRng;
 ///
 /// # Examples
 /// ```
-/// use kwik::genetic::{Gene, MutateRng, Rng};
+/// use kwik::genetic::{Gene, Rng};
 ///
 /// #[derive(Clone)]
 /// struct MyData {
@@ -21,7 +21,7 @@ use crate::genetic::MutateRng;
 /// }
 ///
 /// impl Gene for MyData {
-///     fn mutate(&mut self, rng: &mut MutateRng) {
+///     fn mutate(&mut self, rng: &mut impl Rng) {
 ///         self.data = rng.gen_range(0..10);
 ///     }
 /// }
@@ -32,5 +32,5 @@ where
 {
 	/// Mutates the value of the gene. Ensure the value is mutated only within
 	/// the acceptable range of possible values.
-	fn mutate(&mut self, rng: &mut MutateRng);
+	fn mutate(&mut self, rng: &mut impl Rng);
 }

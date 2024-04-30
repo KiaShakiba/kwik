@@ -14,4 +14,7 @@ pub enum GeneticError {
 
 	#[error("could not create valid offspring")]
 	MateTimeout,
+
+	#[error("an internal error occurred")]
+	Internal,
 }

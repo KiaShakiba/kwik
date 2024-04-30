@@ -6,11 +6,7 @@
  */
 
 use std::time::{Duration, Instant};
-
-use rand::{
-	Rng,
-	rngs::ThreadRng,
-};
+use rand::Rng;
 
 use crate::genetic::{
 	error::GeneticError,
@@ -53,7 +49,7 @@ where
 
 	pub fn mate(
 		&self,
-		rng: &mut ThreadRng,
+		rng: &mut impl Rng,
 		partner: &Individual<C>,
 		mutation_probability: f64,
 		max_runtime: &Duration,
@@ -92,7 +88,7 @@ where
 	}
 }
 
-fn get_mate_result(rng: &mut ThreadRng, mutation_probability: f64) -> MateResult {
+fn get_mate_result(rng: &mut impl Rng, mutation_probability: f64) -> MateResult {
 	let random: f64 = rng.gen();
 
 	if random < (1.0 - mutation_probability) / 2.0 {

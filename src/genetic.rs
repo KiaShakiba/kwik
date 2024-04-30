@@ -20,7 +20,8 @@ use rand::{
 
 pub use rand::{
 	Rng,
-	rngs::ThreadRng,
+	SeedableRng,
+	rngs::SmallRng,
 };
 
 use crate::genetic::individual::Individual;
@@ -30,8 +31,6 @@ pub use crate::genetic::{
 	chromosome::{Chromosome, Gene},
 	solution::GeneticSolution,
 };
-
-pub type MutateRng = ThreadRng;
 
 const POPULATION_SIZE: usize = 100;
 const CONVERGENCE_LIMIT: u64 = 1_000;
@@ -44,7 +43,7 @@ const MATING_RATIO: f64 = 0.5;
 ///
 /// # Examples
 /// ```
-/// use kwik::genetic::{Genetic, Gene, Chromosome, MutateRng, Rng};
+/// use kwik::genetic::{Genetic, Gene, Chromosome, Rng};
 ///
 /// #[derive(Clone, Ord, PartialOrd, PartialEq, Eq)]
 /// struct MyData {
@@ -111,7 +110,7 @@ const MATING_RATIO: f64 = 0.5;
 /// }
 ///
 /// impl Gene for MyData {
-///     fn mutate(&mut self, rng: &mut MutateRng) {
+///     fn mutate(&mut self, rng: &mut impl Rng) {
 ///         self.data = rng.gen_range(0..50);
 ///     }
 /// }
@@ -130,7 +129,6 @@ where
 	elite_ratio: f64,
 	mating_ratio: f64,
 
-	rng: ThreadRng,
 	mating_dist: Uniform<usize>,
 }
 
@@ -162,7 +160,6 @@ where
 			elite_ratio: ELITE_RATIO,
 			mating_ratio: MATING_RATIO,
 
-			rng: thread_rng(),
 			mating_dist: init_mating_dist(POPULATION_SIZE, MATING_RATIO),
 		};
 
@@ -266,7 +263,10 @@ where
 	pub fn run(&mut self) -> Result<GeneticSolution<C>, GeneticError> {
 		let time = Instant::now();
 
-		self.iterate()?;
+		let mut rng = SmallRng::from_rng(thread_rng())
+			.map_err(|_| GeneticError::Internal)?;
+
+		self.iterate(&mut rng)?;
 
 		let mut generation_count: u64 = 1;
 		let mut convergence_count: u64 = 0;
@@ -277,7 +277,7 @@ where
 				&& convergence_count < self.convergence_limit
 				&& time.elapsed().lt(&self.max_runtime)
 		{
-			self.iterate()?;
+			self.iterate(&mut rng)?;
 
 			let fittest = &self.population[0];
 
@@ -302,8 +302,9 @@ where
 
 	/// Performs one iteration of the genetic algorithm, creating a new generation
 	/// and overwriting the current population.
-	fn iterate(&mut self) -> Result<(), GeneticError> {
+	fn iterate(&mut self, rng: &mut impl Rng) -> Result<(), GeneticError> {
 		let elite_population = (self.population_size as f64 * self.elite_ratio) as usize;
+		let offspring_population = self.population_size - elite_population;
 
 		let mut new_generation = self.population
 			.iter()
@@ -311,44 +312,49 @@ where
 			.cloned()
 			.collect::<Vec::<Individual<C>>>();
 
-		for _ in 0..(self.population_size - elite_population) {
-			let (index1, index2) = self.gen_mating_pair();
+		let offspring_generation = (0..offspring_population)
+			.into_iter()
+			.map(|_| {
+				let (index1, index2) = gen_mating_pair(rng, &self.mating_dist);
 
-			let parent1 = &self.population[index1];
-			let parent2 = &self.population[index2];
+				let parent1 = &self.population[index1];
+				let parent2 = &self.population[index2];
 
-			let child = parent1.mate(
-				&mut self.rng,
-				parent2,
-				self.mutation_probability,
-				&self.max_runtime,
-			)?;
+				parent1.mate(
+					rng,
+					parent2,
+					self.mutation_probability,
+					&self.max_runtime,
+				)
+			})
+			.collect::<Result<Vec<Individual<C>>, GeneticError>>()?;
 
-			new_generation.push(child);
-		}
-
+		new_generation.extend(offspring_generation);
 		new_generation.sort();
 
 		self.population = new_generation;
 
 		Ok(())
 	}
-
-	fn gen_mating_pair(&mut self) -> (usize, usize) {
-		let index1 = self.mating_dist.sample(&mut self.rng);
-		let mut index2 = self.mating_dist.sample(&mut self.rng);
-
-		while index1 == index2 {
-			index2 = self.mating_dist.sample(&mut self.rng);
-		}
-
-		(index1, index2)
-	}
 }
 
 fn init_mating_dist(population_size: usize, mating_ratio: f64) -> Uniform<usize> {
 	let mating_population = (population_size as f64 * mating_ratio) as usize;
 	Uniform::from(0..mating_population)
+}
+
+fn gen_mating_pair(
+	rng: &mut impl Rng,
+	dist: &impl Distribution<usize>,
+) -> (usize, usize) {
+	let index1 = dist.sample(rng);
+	let mut index2 = dist.sample(rng);
+
+	while index1 == index2 {
+		index2 = dist.sample(rng);
+	}
+
+	(index1, index2)
 }
 
 #[cfg(test)]
@@ -359,7 +365,6 @@ mod tests {
 		Genetic,
 		Gene,
 		Chromosome,
-		MutateRng,
 		Rng,
 	};
 
@@ -445,7 +450,7 @@ mod tests {
 	impl Eq for TestConfig {}
 
 	impl Gene for TestData {
-		fn mutate(&mut self, rng: &mut MutateRng) {
+		fn mutate(&mut self, rng: &mut impl Rng) {
 			self.data = rng.gen_range(0..50);
 		}
 	}
