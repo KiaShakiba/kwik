@@ -12,6 +12,7 @@ mod chromosome;
 mod solution;
 
 use std::time::{Duration, Instant};
+use rayon::prelude::*;
 
 use rand::{
 	thread_rng,
@@ -117,7 +118,7 @@ const MATING_RATIO: f64 = 0.5;
 /// ```
 pub struct Genetic<C>
 where
-	C: Chromosome,
+	C: Chromosome + Send + Sync,
 {
 	initial_chromosome: C,
 	population: Vec<Individual<C>>,
@@ -134,7 +135,7 @@ where
 
 impl<C> Genetic<C>
 where
-	C: Chromosome,
+	C: Chromosome + Send + Sync,
 {
 	/// Creates an instance of the genetic runner using the supplied
 	/// chromosome as the initial value.
@@ -263,10 +264,7 @@ where
 	pub fn run(&mut self) -> Result<GeneticSolution<C>, GeneticError> {
 		let time = Instant::now();
 
-		let mut rng = SmallRng::from_rng(thread_rng())
-			.map_err(|_| GeneticError::Internal)?;
-
-		self.iterate(&mut rng)?;
+		self.iterate()?;
 
 		let mut generation_count: u64 = 1;
 		let mut convergence_count: u64 = 0;
@@ -277,7 +275,7 @@ where
 				&& convergence_count < self.convergence_limit
 				&& time.elapsed().lt(&self.max_runtime)
 		{
-			self.iterate(&mut rng)?;
+			self.iterate()?;
 
 			let fittest = &self.population[0];
 
@@ -302,7 +300,7 @@ where
 
 	/// Performs one iteration of the genetic algorithm, creating a new generation
 	/// and overwriting the current population.
-	fn iterate(&mut self, rng: &mut impl Rng) -> Result<(), GeneticError> {
+	fn iterate(&mut self) -> Result<(), GeneticError> {
 		let elite_population = (self.population_size as f64 * self.elite_ratio) as usize;
 		let offspring_population = self.population_size - elite_population;
 
@@ -313,15 +311,18 @@ where
 			.collect::<Vec::<Individual<C>>>();
 
 		let offspring_generation = (0..offspring_population)
-			.into_iter()
+			.into_par_iter()
 			.map(|_| {
-				let (index1, index2) = gen_mating_pair(rng, &self.mating_dist);
+				let mut rng = SmallRng::from_rng(thread_rng())
+					.map_err(|_| GeneticError::Internal)?;
+
+				let (index1, index2) = gen_mating_pair(&mut rng, &self.mating_dist);
 
 				let parent1 = &self.population[index1];
 				let parent2 = &self.population[index2];
 
 				parent1.mate(
-					rng,
+					&mut rng,
 					parent2,
 					self.mutation_probability,
 					&self.max_runtime,
