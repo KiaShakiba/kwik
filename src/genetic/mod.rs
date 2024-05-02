@@ -144,11 +144,22 @@ where
 			return Err(GeneticError::InvalidInitialChromosome);
 		}
 
-		let mut population = Vec::<Individual<C>>::new();
+		let max_runtime = Duration::from_millis(MAX_RUNTIME);
+		let mut population = vec![initial_chromosome.clone().into()];
 
-		for _ in 0..POPULATION_SIZE {
-			population.push(Individual::new(initial_chromosome.clone()));
-		}
+		let mutated_population = (0..(POPULATION_SIZE - 1))
+			.into_par_iter()
+			.map(|_| {
+				let chromosome = init_mutated_chromosome(
+					&initial_chromosome,
+					&max_runtime,
+				)?;
+
+				Ok(chromosome.into())
+			})
+			.collect::<Result<Vec<Individual<C>>, GeneticError>>()?;
+
+		population.extend(mutated_population);
 
 		let genetic = Genetic {
 			initial_chromosome,
@@ -156,7 +167,7 @@ where
 
 			population_size: POPULATION_SIZE,
 			convergence_limit: CONVERGENCE_LIMIT,
-			max_runtime: Duration::from_millis(MAX_RUNTIME),
+			max_runtime,
 			mutation_probability: MUTATION_PROBABILITY,
 			elite_ratio: ELITE_RATIO,
 			mating_ratio: MATING_RATIO,
@@ -168,24 +179,48 @@ where
 	}
 
 	/// Sets the population size and fills the population with individuals.
+	///
+	/// # Errors
+	///
+	/// This function returns an error if the population size is zero.
 	#[inline]
-	pub fn set_population_size(&mut self, population_size: usize) {
+	pub fn set_population_size(&mut self, population_size: usize) -> Result<(), GeneticError> {
+		if population_size == 0 {
+			return Err(GeneticError::InvalidPopulationSize);
+		}
+
 		self.population_size = population_size;
 		self.population.clear();
 
-		for _ in 0..population_size {
-			self.population.push(Individual::new(self.initial_chromosome.clone()));
-		}
+		self.population.push(self.initial_chromosome.clone().into());
 
+		let mutated_population = (0..(POPULATION_SIZE - 1))
+			.into_par_iter()
+			.map(|_| {
+				let chromosome = init_mutated_chromosome(
+					&self.initial_chromosome,
+					&self.max_runtime,
+				)?;
+
+				Ok(chromosome.into())
+			})
+			.collect::<Result<Vec<Individual<C>>, GeneticError>>()?;
+
+		self.population.extend(mutated_population);
 		self.mating_dist = init_mating_dist(self.population_size, self.mating_ratio);
+
+		Ok(())
 	}
 
 	/// Sets the population size and fills the population with individuals.
+	///
+	/// # Errors
+	///
+	/// This function returns an error if the population size is zero.
 	#[inline]
-	#[must_use]
-	pub fn with_population_size(mut self, population_size: usize) -> Self {
-		self.set_population_size(population_size);
-		self
+	pub fn with_population_size(mut self, population_size: usize) -> Result<Self, GeneticError> {
+		self.set_population_size(population_size)?;
+		Ok(self)
 	}
 
 	/// Sets the convergence.
@@ -339,7 +374,40 @@ where
 	}
 }
 
-fn init_mating_dist(population_size: usize, mating_ratio: f64) -> Uniform<usize> {
+fn init_mutated_chromosome<C>(
+	chromosome: &C,
+	max_runtime: &Duration,
+) -> Result<C, GeneticError>
+where
+	C: Chromosome,
+{
+	let time = Instant::now();
+
+	let mut rng = SmallRng::from_rng(thread_rng())
+		.map_err(|_| GeneticError::Internal)?;
+
+	while time.elapsed().lt(max_runtime) {
+		let mut mutated = chromosome.base();
+
+		for index in 0..chromosome.len() {
+			let mut gene = chromosome.get(index).clone();
+
+			gene.mutate(&mut rng);
+			mutated.push(gene);
+		}
+
+		if mutated.is_valid() {
+			return Ok(mutated);
+		}
+	}
+
+	Err(GeneticError::InitialPopulationTimeout)
+}
+
+fn init_mating_dist(
+	population_size: usize,
+	mating_ratio: f64,
+) -> Uniform<usize> {
 	let mating_population = (population_size as f64 * mating_ratio) as usize;
 	Uniform::from(0..mating_population)
 }

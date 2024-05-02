@@ -12,6 +12,12 @@ pub enum GeneticError {
 	#[error("invalid initial chromosome")]
 	InvalidInitialChromosome,
 
+	#[error("invalid population size")]
+	InvalidPopulationSize,
+
+	#[error("could not create valid initial population")]
+	InitialPopulationTimeout,
+
 	#[error("could not create valid offspring")]
 	MateTimeout,
 

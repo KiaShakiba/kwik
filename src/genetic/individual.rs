@@ -31,12 +31,6 @@ impl<C> Individual<C>
 where
 	C: Chromosome,
 {
-	pub fn new(chromosome: C) -> Self {
-		Individual {
-			chromosome,
-		}
-	}
-
 	#[inline]
 	pub fn chromosome(&self) -> &C {
 		&self.chromosome
@@ -84,7 +78,18 @@ where
 			child_chromosome.clear();
 		}
 
-		Ok(Individual::<C>::new(child_chromosome))
+		Ok(child_chromosome.into())
+	}
+}
+
+impl<C> From<C> for Individual<C>
+where
+	C: Chromosome,
+{
+	fn from(chromosome: C) -> Self {
+		Individual {
+			chromosome,
+		}
 	}
 }
 
