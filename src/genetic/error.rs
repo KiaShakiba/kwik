@@ -12,6 +12,9 @@ pub enum GeneticError {
 	#[error("invalid initial chromosome")]
 	InvalidInitialChromosome,
 
+	#[error("empty initial chromosome")]
+	EmptyInitialChromosome,
+
 	#[error("invalid population size")]
 	InvalidPopulationSize,
 

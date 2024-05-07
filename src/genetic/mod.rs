@@ -140,26 +140,23 @@ where
 	/// Creates an instance of the genetic runner using the supplied
 	/// chromosome as the initial value.
 	pub fn new(initial_chromosome: C) -> Result<Self, GeneticError> {
+		if initial_chromosome.is_empty() {
+			return Err(GeneticError::EmptyInitialChromosome);
+		}
+
 		if !initial_chromosome.is_valid() {
 			return Err(GeneticError::InvalidInitialChromosome);
 		}
 
 		let max_runtime = Duration::from_millis(MAX_RUNTIME);
-		let mut population = vec![initial_chromosome.clone().into()];
+		let mut population = vec![];
 
-		let mutated_population = (0..(POPULATION_SIZE - 1))
-			.into_par_iter()
-			.map(|_| {
-				let chromosome = init_mutated_chromosome(
-					&initial_chromosome,
-					&max_runtime,
-				)?;
-
-				Ok(chromosome.into())
-			})
-			.collect::<Result<Vec<Individual<C>>, GeneticError>>()?;
-
-		population.extend(mutated_population);
+		init_population(
+			&mut population,
+			POPULATION_SIZE,
+			&initial_chromosome,
+			&max_runtime,
+		)?;
 
 		let mutation_probability = match initial_chromosome.len() {
 			0 => MUTATION_PROBABILITY,
@@ -194,24 +191,14 @@ where
 			return Err(GeneticError::InvalidPopulationSize);
 		}
 
+		init_population(
+			&mut self.population,
+			population_size,
+			&self.initial_chromosome,
+			&self.max_runtime,
+		)?;
+
 		self.population_size = population_size;
-		self.population.clear();
-
-		self.population.push(self.initial_chromosome.clone().into());
-
-		let mutated_population = (0..(POPULATION_SIZE - 1))
-			.into_par_iter()
-			.map(|_| {
-				let chromosome = init_mutated_chromosome(
-					&self.initial_chromosome,
-					&self.max_runtime,
-				)?;
-
-				Ok(chromosome.into())
-			})
-			.collect::<Result<Vec<Individual<C>>, GeneticError>>()?;
-
-		self.population.extend(mutated_population);
 		self.mating_dist = init_mating_dist(self.population_size, self.mating_ratio);
 
 		Ok(())
@@ -377,6 +364,35 @@ where
 
 		Ok(())
 	}
+}
+
+fn init_population<C>(
+	population: &mut Vec<Individual<C>>,
+	population_size: usize,
+	initial_chromosome: &C,
+	max_runtime: &Duration,
+) -> Result<(), GeneticError>
+where
+	C: Chromosome + Send + Sync,
+{
+	population.clear();
+	population.push(initial_chromosome.clone().into());
+
+	let mutated_population = (0..(population_size - 1))
+		.into_par_iter()
+		.map(|_| {
+			let chromosome = init_mutated_chromosome(
+				initial_chromosome,
+				max_runtime,
+			)?;
+
+			Ok(chromosome.into())
+		})
+		.collect::<Result<Vec<Individual<C>>, GeneticError>>()?;
+
+	population.extend(mutated_population);
+
+	Ok(())
 }
 
 fn init_mutated_chromosome<C>(
