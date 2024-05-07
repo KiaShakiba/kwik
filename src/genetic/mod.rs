@@ -161,6 +161,11 @@ where
 
 		population.extend(mutated_population);
 
+		let mutation_probability = match initial_chromosome.len() {
+			0 => MUTATION_PROBABILITY,
+			num_genes => 1.0 / num_genes as f64,
+		};
+
 		let genetic = Genetic {
 			initial_chromosome,
 			population,
@@ -168,7 +173,7 @@ where
 			population_size: POPULATION_SIZE,
 			convergence_limit: CONVERGENCE_LIMIT,
 			max_runtime,
-			mutation_probability: MUTATION_PROBABILITY,
+			mutation_probability,
 			elite_ratio: ELITE_RATIO,
 			mating_ratio: MATING_RATIO,
 
