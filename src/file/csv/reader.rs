@@ -80,7 +80,7 @@ where
 		let metadata = self.file
 			.get_ref()
 			.metadata()
-			.expect("Could not get binary file's size");
+			.expect("Could not get CSV file's size");
 
 		metadata.len()
 	}
@@ -106,7 +106,7 @@ where
 
 		let row = match T::new(&self.buf) {
 			Ok(row) => row,
-			Err(err) => panic!("Parse error on CSV row {}: {:?}", self.count, err),
+			Err(err) => panic!("Parse error on CSV row {}: {err:?}", self.count),
 		};
 
 		Some(row)

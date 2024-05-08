@@ -50,7 +50,7 @@ impl FileReader for TextReader {
 		let metadata = self.file
 			.get_ref()
 			.metadata()
-			.expect("Could not get binary file's size");
+			.expect("Could not get text file's size");
 
 		metadata.len()
 	}

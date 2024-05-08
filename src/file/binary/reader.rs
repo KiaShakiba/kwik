@@ -216,7 +216,7 @@ where
 
 				let object = match T::new(&self.buf) {
 					Ok(object) => object,
-					Err(err) => panic!("Parse error in chunk {}: {:?}", self.count, err),
+					Err(err) => panic!("Parse error in chunk {}: {err:?}", self.count),
 				};
 
 				Some(object)

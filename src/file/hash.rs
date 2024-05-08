@@ -22,7 +22,7 @@ use md5::Md5;
 ///
 /// match sha256sum("/path/to/file") {
 ///     Ok(digest) => println!("{digest}"),
-///     Err(err) => println!("{:?}", err),
+///     Err(err) => println!("{err:?}"),
 /// }
 /// ```
 pub fn sha256sum<P>(path: P) -> Result<String, Error>
@@ -45,7 +45,7 @@ where
 ///
 /// match sha512sum("/path/to/file") {
 ///     Ok(digest) => println!("{digest}"),
-///     Err(err) => println!("{:?}", err),
+///     Err(err) => println!("{err:?}"),
 /// }
 /// ```
 pub fn sha512sum<P>(path: P) -> Result<String, Error>
@@ -68,7 +68,7 @@ where
 ///
 /// match md5sum("/path/to/file") {
 ///     Ok(digest) => println!("{digest}"),
-///     Err(err) => println!("{:?}", err),
+///     Err(err) => println!("{err:?}"),
 /// }
 /// ```
 pub fn md5sum<P>(path: P) -> Result<String, Error>
