@@ -25,7 +25,14 @@ const REMAINING_CHARACTER: char = ' ';
 
 const PULSE_INTERVAL: u64 = 1000;
 
+/// Displays a progress bar in terminal
 pub struct Progress {
+	width: u64,
+
+	filled_character: char,
+	current_character: char,
+	remaining_character: char,
+
 	total: u64,
 	current: u64,
 
@@ -42,20 +49,49 @@ pub struct Progress {
 
 #[derive(Clone)]
 pub enum Tag {
+	/// Ticks per second
 	Tps,
+
+	/// Estimated remaining time
 	Eta,
+
+	/// Elapsed time
 	Time,
 }
 
 impl Progress {
+	/// Initializes and prints a new progress bar
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::progress::{Progress, Tag};
+	///
+	/// let progress = Progress::new(100, &[
+	///     Tag::Tps,
+	///     Tag::Eta,
+	///     Tag::Time,
+	/// ]);
+	/// ```
+	///
+	/// # Panics
+	///
+	/// Panics if the total is zero.
 	#[must_use]
 	pub fn new(total: u64, tags: &[Tag]) -> Self {
+		assert_ne!(total, 0, "Total cannot be zero.");
+
 		let now = timestamp();
 		let mut amount_timestamps = [0; 101];
 
 		amount_timestamps[0] = now;
 
 		let progress = Progress {
+			width: WIDTH,
+
+			filled_character: FILLED_CHARACTER,
+			current_character: CURRENT_CHARACTER,
+			remaining_character: REMAINING_CHARACTER,
+
 			total,
 			current: 0,
 
@@ -75,12 +111,83 @@ impl Progress {
 		progress
 	}
 
+	/// Sets the progress bar's width. The default is 70.
+	///
+	/// # Panics
+	///
+	/// Panics if the width is zero.
+	#[inline]
+	pub fn set_width(&mut self, width: u64) {
+		assert_ne!(width, 0, "Width cannot be zero.");
+		self.width = width;
+	}
+
+	/// Sets the progress bar's width. The default is 70.
+	///
+	/// # Panics
+	///
+	/// Panics if the width is zero.
+	#[inline]
+	#[must_use]
+	pub fn with_width(mut self, width: u64) -> Self {
+		self.set_width(width);
+		self
+	}
+
+	/// Sets the progress bar's filled character. The default is '='.
+	#[inline]
+	pub fn set_filled_character(&mut self, filled_character: char) {
+		self.filled_character = filled_character;
+	}
+
+	/// Sets the progress bar's filled character. The default is '='.
+	#[inline]
+	#[must_use]
+	pub fn with_filled_character(mut self, filled_character: char) -> Self {
+		self.set_filled_character(filled_character);
+		self
+	}
+
+	/// Sets the progress bar's current character. The default is '>'.
+	#[inline]
+	pub fn set_current_character(&mut self, current_character: char) {
+		self.current_character = current_character;
+	}
+
+	/// Sets the progress bar's current character. The default is '>'.
+	#[inline]
+	#[must_use]
+	pub fn with_current_character(mut self, current_character: char) -> Self {
+		self.set_current_character(current_character);
+		self
+	}
+
+	/// Sets the progress bar's remaining character. The default is ' '.
+	#[inline]
+	pub fn set_remaining_character(&mut self, remaining_character: char) {
+		self.remaining_character = remaining_character;
+	}
+
+	/// Sets the progress bar's remaining character. The default is ' '.
+	#[inline]
+	#[must_use]
+	pub fn with_remaining_character(mut self, remaining_character: char) -> Self {
+		self.set_remaining_character(remaining_character);
+		self
+	}
+
+	/// Checks if the progress is complete.
 	#[inline]
 	#[must_use]
 	pub fn is_complete(&self) -> bool {
 		self.current == self.total
 	}
 
+	/// Ticks the progress bar by the supplied amount.
+	///
+	/// # Panics
+	///
+	/// Panics if the tick amount is greater than the total.
 	#[inline]
 	pub fn tick<T>(&mut self, value: T)
 	where
@@ -200,15 +307,15 @@ impl Progress {
 	}
 
 	fn draw(&self, amount: u64, rate: u64, eta: u64, time: u64) {
-		let position = (WIDTH as f64 * amount as f64 / 100.0) as u64;
+		let position = (self.width as f64 * amount as f64 / 100.0) as u64;
 
 		print!("\x1B[2K\r[");
 
-		for i in 0..WIDTH {
+		for i in 0..self.width {
 			let character = match i.cmp(&position) {
-				Ordering::Less => FILLED_CHARACTER,
-				Ordering::Greater => REMAINING_CHARACTER,
-				Ordering::Equal => CURRENT_CHARACTER,
+				Ordering::Less => self.filled_character,
+				Ordering::Greater => self.remaining_character,
+				Ordering::Equal => self.current_character,
 			};
 
 			if amount < 100 {
