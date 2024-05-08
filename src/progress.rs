@@ -47,7 +47,7 @@ pub struct Progress {
 	amount_timestamps: [u64; 101],
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Tag {
 	/// Ticks per second
 	Tps,
@@ -64,20 +64,16 @@ impl Progress {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::progress::{Progress, Tag};
+	/// use kwik::progress::Progress;
 	///
-	/// let progress = Progress::new(100, &[
-	///     Tag::Tps,
-	///     Tag::Eta,
-	///     Tag::Time,
-	/// ]);
+	/// let progress = Progress::new(100);
 	/// ```
 	///
 	/// # Panics
 	///
 	/// Panics if the total is zero.
 	#[must_use]
-	pub fn new(total: u64, tags: &[Tag]) -> Self {
+	pub fn new(total: u64) -> Self {
 		assert_ne!(total, 0, "Total cannot be zero.");
 
 		let now = timestamp();
@@ -95,7 +91,7 @@ impl Progress {
 			total,
 			current: 0,
 
-			tags: tags.to_vec(),
+			tags: Vec::new(),
 
 			rate_count: 0,
 			previous_rate: 0,
@@ -173,6 +169,54 @@ impl Progress {
 	#[must_use]
 	pub fn with_remaining_character(mut self, remaining_character: char) -> Self {
 		self.set_remaining_character(remaining_character);
+		self
+	}
+
+	/// Adds the supplied tag to the enabled tags.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::progress::{Progress, Tag};
+	///
+	/// let mut progress = Progress::new(100);
+	///
+	/// progress.set_tag(Tag::Tps);
+	/// progress.set_tag(Tag::Eta);
+	/// progress.set_tag(Tag::Time);
+	/// ```
+	///
+	/// # Panics
+	///
+	/// Panics if the tag is already enabled.
+	#[inline]
+	pub fn set_tag(&mut self, tag: Tag) {
+		assert!(
+			!self.tags.contains(&tag),
+			"Progress tag {tag:?} is already enabled.",
+		);
+
+		self.tags.push(tag);
+	}
+
+	/// Adds the supplied tag to the enabled tags.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::progress::{Progress, Tag};
+	///
+	/// let progress = Progress::new(100)
+	///     .with_tag(Tag::Tps)
+	///     .with_tag(Tag::Eta)
+	///     .with_tag(Tag::Time);
+	/// ```
+	///
+	/// # Panics
+	///
+	/// Panics if the tag is already enabled.
+	#[inline]
+	#[must_use]
+	pub fn with_tag(mut self, tag: Tag) -> Self {
+		self.set_tag(tag);
 		self
 	}
 
