@@ -11,6 +11,7 @@ mod writer;
 use std::io::{Error, ErrorKind};
 use csv::StringRecord;
 
+/// CSV row data
 pub struct RowData {
 	data: StringRecord,
 }
@@ -22,11 +23,17 @@ impl RowData {
 		}
 	}
 
+	/// Adds a new column to the end of the row.
 	#[inline]
 	pub fn push(&mut self, value: &str) {
 		self.data.push_field(value);
 	}
 
+	/// Returns the column data at the supplied index.
+	///
+	/// # Errors
+	///
+	/// This function returns an error if the column does not exist.
 	#[inline]
 	pub fn get(&self, index: usize) -> Result<&str, Error> {
 		self.data
@@ -37,6 +44,8 @@ impl RowData {
 			))
 	}
 
+	/// Returns the size of the row in bytes, including commas
+	/// and the new line character.
 	#[inline]
 	pub fn size(&self) -> usize {
 		let items_size = self.data

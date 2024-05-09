@@ -13,12 +13,15 @@ use std::{
 
 use crate::file::FileWriter;
 
+/// Writes a text file line-by-line
 pub struct TextWriter {
 	file: LineWriter<File>,
 	count: u64,
 }
 
 impl FileWriter for TextWriter {
+	/// Opens the file at the supplied path. If the file could not be
+	/// opened, returns an error result.
 	fn new<P>(path: P) -> Result<Self, Error>
 	where
 		Self: Sized,
@@ -36,6 +39,21 @@ impl FileWriter for TextWriter {
 }
 
 impl TextWriter {
+	/// Writes one line to the text file.
+	///
+	/// # Examples
+	/// ```no_run
+	/// use std::io::Error;
+	///
+	/// use kwik::file::{
+	///     FileWriter,
+	///     text::TextWriter,
+	/// };
+	///
+	/// let mut reader = TextWriter::new("/path/to/file").unwrap();
+	///
+	/// reader.write_line(b"data");
+	/// ```
 	#[inline]
 	pub fn write_line(&mut self, line: &[u8]) {
 		self.count += 1;

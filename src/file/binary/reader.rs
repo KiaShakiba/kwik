@@ -83,7 +83,7 @@ pub trait ReadChunk: SizedChunk {
 	///
 	/// # Errors
 	///
-	/// This function will return an error if the chunk could not be processed.
+	/// This function will return an error if the chunk could not be parsed.
 	fn new(buf: &[u8]) -> Result<Self, Error>
 	where
 		Self: Sized,

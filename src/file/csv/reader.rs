@@ -19,6 +19,7 @@ use crate::file::{
 	csv::RowData,
 };
 
+/// Reads a CSV file in rows
 pub struct CsvReader<T>
 where
 	T: ReadRow,
@@ -30,8 +31,37 @@ where
 	_marker: PhantomData<T>,
 }
 
+/// Implementing this trait allows the CSV reader to parse rows
+/// of the CSV file into the specified type.
 pub trait ReadRow {
-	fn new(csv_row: &RowData) -> Result<Self, Error>
+	/// Returns an instance of the implemented struct, given a row
+	/// of the CSV file. If the row could not be parsed, an
+	/// error result is returned.
+	///
+	/// # Examples
+	/// ```
+	/// use std::io::Error;
+	/// use kwik::file::csv::{ReadRow, RowData};
+	///
+	/// struct MyStruct {
+	///     // data fields
+	/// }
+	///
+	/// impl ReadRow for MyStruct {
+	///     fn new(row_data: &RowData) -> Result<Self, Error>
+	///     where
+	///         Self: Sized,
+	///     {
+	///         // parse the row and return an instance of `Self` on success
+	///         Ok(MyStruct {})
+	///     }
+	/// }
+	/// ```
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the row could not be parsed.
+	fn new(row_data: &RowData) -> Result<Self, Error>
 	where
 		Self: Sized,
 	;
@@ -55,6 +85,8 @@ impl<T> FileReader for CsvReader<T>
 where
 	T: ReadRow,
 {
+	/// Opens the file at the supplied path. If the file could not be
+	/// opened, returns an error result.
 	fn new<P>(path: P) -> Result<Self, Error>
 	where
 		Self: Sized,
@@ -75,6 +107,7 @@ where
 		Ok(reader)
 	}
 
+	/// Returns the number of bytes in the opened file.
 	#[inline]
 	fn size(&self) -> u64 {
 		let metadata = self.file
@@ -90,6 +123,39 @@ impl<T> CsvReader<T>
 where
 	T: ReadRow,
 {
+	/// Reads one row of the CSV file and returns an option containing
+	/// the parsed row. If the end of the file is reached, `None` is returned.
+	///
+	/// # Examples
+	/// ```no_run
+	/// use std::io::Error;
+	///
+	/// use kwik::file::{
+	///     FileReader,
+	///     csv::{CsvReader, ReadRow, RowData},
+	/// };
+	///
+	/// let mut reader = CsvReader::<MyStruct>::new("/path/to/file").unwrap();
+	///
+	/// while let Some(object) = reader.read_row() {
+	///     // do something with the object
+	/// }
+	///
+	/// struct MyStruct {
+	///     // data fields
+	///     data: u32,
+	/// }
+	///
+	/// impl ReadRow for MyStruct {
+	///     fn new(row_data: &RowData) -> Result<Self, Error>
+	///     where
+	///         Self: Sized,
+	///     {
+	///         // parse the row and return an instance of `Self` on success
+	///         Ok(MyStruct { data: 0 })
+	///     }
+	/// }
+	/// ```
 	#[inline]
 	pub fn read_row(&mut self) -> Option<T> {
 		self.buf.data.clear();
@@ -112,6 +178,40 @@ where
 		Some(row)
 	}
 
+	/// Returns an iterator over the CSV file. The iterator takes a mutable
+	/// reference to `self` as it is iterating over a stream. This means performing
+	/// the iteration modifies the reader's position in the file.
+	///
+	/// # Examples
+	/// ```no_run
+	/// use std::io::Error;
+	///
+	/// use kwik::file::{
+	///     FileReader,
+	///     csv::{CsvReader, ReadRow, RowData},
+	/// };
+	///
+	/// let mut reader = CsvReader::<MyStruct>::new("/path/to/file").unwrap();
+	///
+	/// for row in reader.iter() {
+	///     // do something with the object
+	/// }
+	///
+	/// struct MyStruct {
+	///     // data fields
+	///     data: u32,
+	/// }
+	///
+	/// impl ReadRow for MyStruct {
+	///     fn new(row: &RowData) -> Result<Self, Error>
+	///     where
+	///         Self: Sized,
+	///     {
+	///         // parse the row and return an instance of `Self` on success
+	///         Ok(MyStruct { data: 0 })
+	///     }
+	/// }
+	/// ```
 	#[inline]
 	pub fn iter(&mut self) -> Iter<T> {
 		Iter {

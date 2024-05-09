@@ -13,6 +13,7 @@ use std::{
 
 use crate::file::FileReader;
 
+/// Reads a text file line-by-line
 pub struct TextReader {
 	file: BufReader<File>,
 	buf: String,
@@ -29,6 +30,8 @@ pub struct IntoIter {
 }
 
 impl FileReader for TextReader {
+	/// Opens the file at the supplied path. If the file could not be
+	/// opened, returns an error result.
 	fn new<P>(path: P) -> Result<Self, Error>
 	where
 		Self: Sized,
@@ -45,6 +48,7 @@ impl FileReader for TextReader {
 		Ok(reader)
 	}
 
+	/// Returns the number of bytes in the opened file.
 	#[inline]
 	fn size(&self) -> u64 {
 		let metadata = self.file
@@ -57,6 +61,24 @@ impl FileReader for TextReader {
 }
 
 impl TextReader {
+	/// Reads one line of the text file and returns an option containing
+	/// the line. If the end of the file is reached, `None` is returned.
+	///
+	/// # Examples
+	/// ```no_run
+	/// use std::io::Error;
+	///
+	/// use kwik::file::{
+	///     FileReader,
+	///     text::TextReader,
+	/// };
+	///
+	/// let mut reader = TextReader::new("/path/to/file").unwrap();
+	///
+	/// while let Some(line) = reader.read_line() {
+	///     // do something with the line
+	/// }
+	/// ```
 	#[inline]
 	pub fn read_line(&mut self) -> Option<String> {
 		self.buf.clear();
@@ -85,6 +107,25 @@ impl TextReader {
 		}
 	}
 
+	/// Returns an iterator over the text file. The iterator takes a mutable
+	/// reference to `self` as it is iterating over a stream. This means performing
+	/// the iteration modifies the reader's position in the file.
+	///
+	/// # Examples
+	/// ```no_run
+	/// use std::io::Error;
+	///
+	/// use kwik::file::{
+	///     FileReader,
+	///     text::TextReader,
+	/// };
+	///
+	/// let mut reader = TextReader::new("/path/to/file").unwrap();
+	///
+	/// for line in reader.iter() {
+	///     // do something with the line
+	/// }
+	/// ```
 	#[inline]
 	pub fn iter(&mut self) -> Iter {
 		Iter {
