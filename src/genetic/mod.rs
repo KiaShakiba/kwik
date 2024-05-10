@@ -43,14 +43,15 @@ const TOURNAMENT_SIZE: usize = 3;
 ///
 /// # Examples
 /// ```
+/// use std::cmp::Ordering;
 /// use kwik::genetic::{Genetic, Gene, Chromosome, Rng};
 ///
-/// #[derive(Clone, Ord, PartialOrd, PartialEq, Eq)]
+/// #[derive(Clone)]
 /// struct MyData {
 ///     data: u32,
 /// }
 ///
-/// #[derive(Default, Clone, Ord, PartialOrd, PartialEq, Eq)]
+/// #[derive(Default, Clone)]
 /// struct MyConfig {
 ///     config: Vec<MyData>,
 /// }
@@ -100,14 +101,41 @@ const TOURNAMENT_SIZE: usize = 3;
 ///     }
 ///
 ///     fn is_optimal(&self) -> bool {
-///         let sum = self.config
-///             .iter()
-///             .map(|item| item.data)
-///             .sum::<u32>();
-///
-///         sum == 100
+///         self.sum() == 100
 ///     }
 /// }
+///
+/// impl MyConfig {
+///     fn sum(&self) -> u32 {
+///         self.config
+///             .iter()
+///             .map(|item| item.data)
+///             .sum::<u32>()
+///     }
+/// }
+///
+/// impl Ord for MyConfig {
+///     fn cmp(&self, other: &Self) -> Ordering {
+///         let self_diff = (100 - self.sum() as i32).abs();
+///         let other_diff = (100 - other.sum() as i32).abs();
+///
+///         self_diff.cmp(&other_diff)
+///     }
+/// }
+///
+/// impl PartialOrd for MyConfig {
+///     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+///         Some(self.cmp(other))
+///     }
+/// }
+///
+/// impl PartialEq for MyConfig {
+///     fn eq(&self, other: &Self) -> bool {
+///         self.sum() == other.sum()
+///     }
+/// }
+///
+/// impl Eq for MyConfig {}
 ///
 /// impl Gene for MyData {
 ///     fn mutate(&mut self, rng: &mut impl Rng) {
@@ -420,13 +448,7 @@ fn init_mating_dist(population_size: usize) -> Uniform<usize> {
 #[cfg(test)]
 mod tests {
 	use std::cmp::Ordering;
-
-	use crate::genetic::{
-		Genetic,
-		Gene,
-		Chromosome,
-		Rng,
-	};
+	use crate::genetic::{Genetic, Gene, Chromosome, Rng};
 
 	#[derive(Clone)]
 	struct TestData {
