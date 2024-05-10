@@ -37,8 +37,7 @@ const POPULATION_SIZE: usize = 100;
 const CONVERGENCE_LIMIT: u64 = 1_000;
 const MAX_RUNTIME: u64 = 30_000;
 const MUTATION_PROBABILITY: f64 = 0.1;
-const ELITE_RATIO: f64 = 0.1;
-const MATING_RATIO: f64 = 0.5;
+const TOURNAMENT_SIZE: usize = 3;
 
 /// Finds the optimal values for a set of inputs using a genetic algorithm.
 ///
@@ -123,12 +122,10 @@ where
 	initial_chromosome: C,
 	population: Vec<Individual<C>>,
 
-	population_size: usize,
 	convergence_limit: u64,
 	max_runtime: Duration,
 	mutation_probability: f64,
-	elite_ratio: f64,
-	mating_ratio: f64,
+	tournament_size: usize,
 
 	mating_dist: Uniform<usize>,
 }
@@ -167,14 +164,12 @@ where
 			initial_chromosome,
 			population,
 
-			population_size: POPULATION_SIZE,
 			convergence_limit: CONVERGENCE_LIMIT,
 			max_runtime,
 			mutation_probability,
-			elite_ratio: ELITE_RATIO,
-			mating_ratio: MATING_RATIO,
+			tournament_size: TOURNAMENT_SIZE,
 
-			mating_dist: init_mating_dist(POPULATION_SIZE, MATING_RATIO),
+			mating_dist: init_mating_dist(POPULATION_SIZE),
 		};
 
 		Ok(genetic)
@@ -198,8 +193,7 @@ where
 			&self.max_runtime,
 		)?;
 
-		self.population_size = population_size;
-		self.mating_dist = init_mating_dist(self.population_size, self.mating_ratio);
+		self.mating_dist = init_mating_dist(population_size);
 
 		Ok(())
 	}
@@ -257,32 +251,17 @@ where
 		self
 	}
 
-	/// Sets the elite ratio.
+	/// Sets the tournament size.
 	#[inline]
-	pub fn set_elite_ratio(&mut self, elite_ratio: f64) {
-		self.elite_ratio = elite_ratio;
+	pub fn set_tournament_size(&mut self, tournament_size: usize) {
+		self.tournament_size = tournament_size;
 	}
 
-	/// Sets the elite ratio.
+	/// Sets the tournament size.
 	#[inline]
 	#[must_use]
-	pub fn with_elite_ratio(mut self, elite_ratio: f64) -> Self {
-		self.set_elite_ratio(elite_ratio);
-		self
-	}
-
-	/// Sets the mating ratio.
-	#[inline]
-	pub fn set_mating_ratio(&mut self, mating_ratio: f64) {
-		self.mating_ratio = mating_ratio;
-		self.mating_dist = init_mating_dist(self.population_size, self.mating_ratio);
-	}
-
-	/// Sets the mating ratio.
-	#[inline]
-	#[must_use]
-	pub fn with_mating_ratio(mut self, mating_ratio: f64) -> Self {
-		self.set_mating_ratio(mating_ratio);
+	pub fn with_tournament_size(mut self, tournament_size: usize) -> Self {
+		self.set_tournament_size(tournament_size);
 		self
 	}
 
@@ -328,25 +307,15 @@ where
 	/// Performs one iteration of the genetic algorithm, creating a new generation
 	/// and overwriting the current population.
 	fn iterate(&mut self) -> Result<(), GeneticError> {
-		let elite_population = (self.population_size as f64 * self.elite_ratio) as usize;
-		let offspring_population = self.population_size - elite_population;
+		let population_size = self.population.len();
 
-		let mut new_generation = self.population
-			.iter()
-			.take(elite_population)
-			.cloned()
-			.collect::<Vec::<Individual<C>>>();
-
-		let offspring_generation = (0..offspring_population)
+		let mut new_generation = (0..population_size)
 			.into_par_iter()
 			.map(|_| {
 				let mut rng = SmallRng::from_rng(thread_rng())
 					.map_err(|_| GeneticError::Internal)?;
 
-				let (index1, index2) = gen_mating_pair(&mut rng, &self.mating_dist);
-
-				let parent1 = &self.population[index1];
-				let parent2 = &self.population[index2];
+				let (parent1, parent2) = self.gen_mating_pair(&mut rng);
 
 				parent1.mate(
 					&mut rng,
@@ -357,12 +326,31 @@ where
 			})
 			.collect::<Result<Vec<Individual<C>>, GeneticError>>()?;
 
-		new_generation.extend(offspring_generation);
 		new_generation.sort();
 
 		self.population = new_generation;
 
 		Ok(())
+	}
+
+	/// Selects two individuals to mate
+	fn gen_mating_pair(&self, rng: &mut impl Rng) -> (&Individual<C>, &Individual<C>) {
+		let index1 = self.gen_tournament_parent(rng);
+		let mut index2 = self.gen_tournament_parent(rng);
+
+		while index1 == index2 {
+			index2 = self.gen_tournament_parent(rng);
+		}
+
+		(&self.population[index1], &self.population[index2])
+	}
+
+	fn gen_tournament_parent(&self, rng: &mut impl Rng) -> usize {
+		self.mating_dist
+			.sample_iter(rng)
+			.take(self.tournament_size)
+			.min()
+			.unwrap_or(0)
 	}
 }
 
@@ -425,26 +413,8 @@ where
 	Err(GeneticError::InitialPopulationTimeout)
 }
 
-fn init_mating_dist(
-	population_size: usize,
-	mating_ratio: f64,
-) -> Uniform<usize> {
-	let mating_population = (population_size as f64 * mating_ratio) as usize;
-	Uniform::from(0..mating_population)
-}
-
-fn gen_mating_pair(
-	rng: &mut impl Rng,
-	dist: &impl Distribution<usize>,
-) -> (usize, usize) {
-	let index1 = dist.sample(rng);
-	let mut index2 = dist.sample(rng);
-
-	while index1 == index2 {
-		index2 = dist.sample(rng);
-	}
-
-	(index1, index2)
+fn init_mating_dist(population_size: usize) -> Uniform<usize> {
+	Uniform::from(0..population_size)
 }
 
 #[cfg(test)]
@@ -556,6 +526,7 @@ mod tests {
 		initial_chromosome.push(TestData { data: 0 });
 
 		let mut genetic = Genetic::<TestConfig>::new(initial_chromosome).unwrap();
+
 		let result = genetic.run().unwrap();
 
 		assert_ne!(result.generations(), 0);
