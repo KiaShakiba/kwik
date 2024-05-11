@@ -35,8 +35,7 @@ pub use crate::genetic::{
 
 const POPULATION_SIZE: usize = 100;
 const CONVERGENCE_LIMIT: u64 = 1_000;
-const MAX_RUNTIME: u64 = 30_000;
-const MUTATION_PROBABILITY: f64 = 0.1;
+const MAX_RUNTIME: Duration = Duration::from_millis(10_000);
 const TOURNAMENT_SIZE: usize = 3;
 
 /// Finds the optimal values for a set of inputs using a genetic algorithm.
@@ -173,27 +172,23 @@ where
 			return Err(GeneticError::InvalidInitialChromosome);
 		}
 
-		let max_runtime = Duration::from_millis(MAX_RUNTIME);
 		let mut population = vec![];
 
 		init_population(
 			&mut population,
 			POPULATION_SIZE,
 			&initial_chromosome,
-			&max_runtime,
+			&MAX_RUNTIME,
 		)?;
 
-		let mutation_probability = match initial_chromosome.len() {
-			0 => MUTATION_PROBABILITY,
-			num_genes => 1.0 / num_genes as f64,
-		};
+		let mutation_probability = 1.0 / initial_chromosome.len() as f64;
 
 		let genetic = Genetic {
 			initial_chromosome,
 			population,
 
 			convergence_limit: CONVERGENCE_LIMIT,
-			max_runtime,
+			max_runtime: MAX_RUNTIME,
 			mutation_probability,
 			tournament_size: TOURNAMENT_SIZE,
 
