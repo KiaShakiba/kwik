@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use crate::genetic::FitnessOrd;
 pub use crate::genetic::gene::Gene;
 
 /// This defines a chromosome (i.e., a set of genes). With this,
@@ -13,14 +14,20 @@ pub use crate::genetic::gene::Gene;
 ///
 /// # Examples
 /// ```
-/// use kwik::genetic::{Gene, Chromosome, Rng};
+/// use kwik::genetic::{
+///     Gene,
+///     Chromosome,
+///     Fitness,
+///     FitnessOrd,
+///     Rng,
+/// };
 ///
-/// #[derive(Clone, Ord, PartialOrd, PartialEq, Eq)]
+/// #[derive(Clone)]
 /// struct MyData {
 ///     data: u32,
 /// }
 ///
-/// #[derive(Clone, Ord, PartialOrd, PartialEq, Eq)]
+/// #[derive(Clone)]
 /// struct MyConfig {
 ///     config: Vec<MyData>,
 /// }
@@ -59,12 +66,33 @@ pub use crate::genetic::gene::Gene;
 ///     }
 ///
 ///     fn is_optimal(&self) -> bool {
-///         let sum = self.config
+///         self.sum() == 100
+///     }
+/// }
+///
+/// impl MyConfig {
+///     fn sum(&self) -> u32 {
+///         self.config
 ///             .iter()
 ///             .map(|item| item.data)
-///             .sum::<u32>();
+///             .sum::<u32>()
+///     }
+/// }
 ///
-///         sum == 100
+/// impl FitnessOrd for MyConfig {
+///     fn fitness_cmp(&self, other: &Self) -> Fitness {
+///         let self_diff = (100 - self.sum() as i32).abs();
+///         let other_diff = (100 - other.sum() as i32).abs();
+///
+///         if self_diff < other_diff {
+///             return Fitness::Stronger;
+///         }
+///
+///         if self_diff > other_diff {
+///             return Fitness::Weaker;
+///         }
+///
+///         Fitness::Equal
 ///     }
 /// }
 ///
@@ -76,7 +104,7 @@ pub use crate::genetic::gene::Gene;
 /// ```
 pub trait Chromosome
 where
-	Self: Clone + Ord,
+	Self: Clone + FitnessOrd,
 {
 	type Gene: Gene;
 

@@ -9,6 +9,7 @@ mod error;
 mod individual;
 mod gene;
 mod chromosome;
+mod fitness;
 mod solution;
 
 use std::time::{Duration, Instant};
@@ -30,6 +31,7 @@ use crate::genetic::individual::Individual;
 pub use crate::genetic::{
 	error::GeneticError,
 	chromosome::{Chromosome, Gene},
+	fitness::{Fitness, FitnessOrd},
 	solution::GeneticSolution,
 };
 
@@ -42,8 +44,14 @@ const TOURNAMENT_SIZE: usize = 3;
 ///
 /// # Examples
 /// ```
-/// use std::cmp::Ordering;
-/// use kwik::genetic::{Genetic, Gene, Chromosome, Rng};
+/// use kwik::genetic::{
+///     Genetic,
+///     Gene,
+///     Chromosome,
+///     Fitness,
+///     FitnessOrd,
+///     Rng,
+/// };
 ///
 /// #[derive(Clone)]
 /// struct MyData {
@@ -113,28 +121,22 @@ const TOURNAMENT_SIZE: usize = 3;
 ///     }
 /// }
 ///
-/// impl Ord for MyConfig {
-///     fn cmp(&self, other: &Self) -> Ordering {
+/// impl FitnessOrd for MyConfig {
+///     fn fitness_cmp(&self, other: &Self) -> Fitness {
 ///         let self_diff = (100 - self.sum() as i32).abs();
 ///         let other_diff = (100 - other.sum() as i32).abs();
 ///
-///         self_diff.cmp(&other_diff)
+///         if self_diff < other_diff {
+///             return Fitness::Stronger;
+///         }
+///
+///         if self_diff > other_diff {
+///             return Fitness::Weaker;
+///         }
+///
+///         Fitness::Equal
 ///     }
 /// }
-///
-/// impl PartialOrd for MyConfig {
-///     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-///         Some(self.cmp(other))
-///     }
-/// }
-///
-/// impl PartialEq for MyConfig {
-///     fn eq(&self, other: &Self) -> bool {
-///         self.sum() == other.sum()
-///     }
-/// }
-///
-/// impl Eq for MyConfig {}
 ///
 /// impl Gene for MyData {
 ///     fn mutate(&mut self, rng: &mut impl Rng) {
@@ -442,8 +444,14 @@ fn init_mating_dist(population_size: usize) -> Uniform<usize> {
 
 #[cfg(test)]
 mod tests {
-	use std::cmp::Ordering;
-	use crate::genetic::{Genetic, Gene, Chromosome, Rng};
+	use crate::genetic::{
+		Genetic,
+		Gene,
+		Chromosome,
+		Fitness,
+		FitnessOrd,
+		Rng
+	};
 
 	#[derive(Clone)]
 	struct TestData {
@@ -503,28 +511,22 @@ mod tests {
 		}
 	}
 
-	impl Ord for TestConfig {
-		fn cmp(&self, other: &Self) -> Ordering {
+	impl FitnessOrd for TestConfig {
+		fn fitness_cmp(&self, other: &Self) -> Fitness {
 			let self_diff = (100 - self.sum() as i32).abs();
 			let other_diff = (100 - other.sum() as i32).abs();
 
-			self_diff.cmp(&other_diff)
+			if self_diff < other_diff {
+				return Fitness::Stronger;
+			}
+
+			if self_diff > other_diff {
+				return Fitness::Weaker;
+			}
+
+			Fitness::Equal
 		}
 	}
-
-	impl PartialOrd for TestConfig {
-		fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-			Some(self.cmp(other))
-		}
-	}
-
-	impl PartialEq for TestConfig {
-		fn eq(&self, other: &Self) -> bool {
-			self.sum() == other.sum()
-		}
-	}
-
-	impl Eq for TestConfig {}
 
 	impl Gene for TestData {
 		fn mutate(&mut self, rng: &mut impl Rng) {

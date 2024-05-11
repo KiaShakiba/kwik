@@ -5,15 +5,20 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::time::{Duration, Instant};
+use std::{
+	cmp::Ordering,
+	time::{Duration, Instant},
+};
+
 use rand::Rng;
 
 use crate::genetic::{
 	error::GeneticError,
 	chromosome::{Chromosome, Gene},
+	fitness::Fitness,
 };
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone)]
 pub struct Individual<C>
 where
 	C: Chromosome,
@@ -92,6 +97,42 @@ where
 		}
 	}
 }
+
+impl<C> Ord for Individual<C>
+where
+	C: Chromosome,
+{
+	fn cmp(&self, other: &Self) -> Ordering {
+		match self.chromosome.fitness_cmp(other.chromosome()) {
+			Fitness::Stronger => Ordering::Less,
+			Fitness::Weaker => Ordering::Greater,
+			Fitness::Equal => Ordering::Equal,
+		}
+	}
+}
+
+impl<C> PartialOrd for Individual<C>
+where
+	C: Chromosome,
+{
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		Some(self.cmp(other))
+	}
+}
+
+impl<C> PartialEq for Individual<C>
+where
+	C: Chromosome,
+{
+	fn eq(&self, other: &Self) -> bool {
+		matches!(self.chromosome.fitness_cmp(other.chromosome()), Fitness::Equal)
+	}
+}
+
+impl<C> Eq for Individual<C>
+where
+	C: Chromosome,
+{}
 
 fn get_mate_result(rng: &mut impl Rng, mutation_probability: f64) -> MateResult {
 	let random: f64 = rng.gen();
