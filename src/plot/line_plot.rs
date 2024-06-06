@@ -38,6 +38,9 @@ pub struct LinePlot {
 	x_tick: Option<f64>,
 	y_tick: Option<f64>,
 
+	format_x_log: bool,
+	format_y_log: bool,
+
 	lines: Vec<Line>,
 
 	hlines: Vec<f64>,
@@ -139,12 +142,20 @@ impl Plot for LinePlot {
 			axes.set_title(title, &[]);
 		}
 
-		if let Some(label) = &self.x_label {
-			axes.set_x_label(label, &[]);
+		if let Some(x_label) = &self.x_label {
+			axes.set_x_label(x_label, &[]);
 		}
 
-		if let Some(label) = &self.y_label {
-			axes.set_y_label(label, &[]);
+		if let Some(y_label) = &self.y_label {
+			axes.set_y_label(y_label, &[]);
+		}
+
+		if self.format_x_log {
+			axes.set_x_log(Some(10.0));
+		}
+
+		if self.format_y_log {
+			axes.set_y_log(Some(10.0));
 		}
 
 		for (index, line) in self.lines.iter().enumerate() {
@@ -284,6 +295,28 @@ impl LinePlot {
 	/// Sets the plot's y-tick value.
 	pub fn with_y_tick(mut self, y_tick: f64) -> Self {
 		self.y_tick = Some(y_tick);
+		self
+	}
+
+	/// Enables or disables logarithmic formatting in the x-axis.
+	pub fn set_format_x_log(&mut self, value: bool) {
+		self.format_x_log = value;
+	}
+
+	/// Enables or disables logarithmic formatting in the x-axis.
+	pub fn with_format_x_log(mut self, value: bool) -> Self {
+		self.set_format_x_log(value);
+		self
+	}
+
+	/// Enables or disables logarithmic formatting in the y-axis.
+	pub fn set_format_y_log(&mut self, value: bool) {
+		self.format_y_log = value;
+	}
+
+	/// Enables or disables logarithmic formatting in the y-axis.
+	pub fn with_format_y_log(mut self, value: bool) -> Self {
+		self.set_format_y_log(value);
 		self
 	}
 

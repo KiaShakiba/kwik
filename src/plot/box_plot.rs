@@ -34,10 +34,10 @@ pub struct BoxPlot {
 	x_label: Option<String>,
 	y_label: Option<String>,
 
-	map: IndexMap<String, Vec<f64>>,
-
 	format_y_log: bool,
 	format_y_memory: bool,
+
+	map: IndexMap<String, Vec<f64>>,
 
 	colors: HashMap<String, String>,
 }

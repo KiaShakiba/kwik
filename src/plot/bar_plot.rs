@@ -35,10 +35,10 @@ pub struct BarPlot {
 
 	y_max: Option<f64>,
 
-	bar_groups: Vec<BarGroup>,
-
 	format_y_log: bool,
 	format_y_memory: bool,
+
+	bar_groups: Vec<BarGroup>,
 }
 
 /// A group of bars on the bar plot.
