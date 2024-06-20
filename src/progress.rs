@@ -9,21 +9,18 @@ use std::{
 	io::Write,
 	fmt::Debug,
 	cmp::Ordering,
+	time::{Instant, Duration},
 };
 
-use crate::{
-	fmt,
-	math,
-	time::timestamp,
-};
+use crate::{fmt, math};
 
-const WIDTH: u64 = 70;
+const DEFAULT_WIDTH: u64 = 70;
 
-const FILLED_CHARACTER: char = '=';
-const CURRENT_CHARACTER: char = '>';
-const REMAINING_CHARACTER: char = ' ';
+const DEFAULT_FILLED_CHARACTER: char = '=';
+const DEFAULT_CURRENT_CHARACTER: char = '>';
+const DEFAULT_REMAINING_CHARACTER: char = ' ';
 
-const PULSE_INTERVAL: u64 = 1000;
+const PULSE_INTERVAL: Duration = Duration::from_secs(1);
 
 /// Displays a progress bar in terminal
 pub struct Progress {
@@ -41,10 +38,10 @@ pub struct Progress {
 	rate_count: u64,
 	previous_rate: u64,
 
-	initial_time: u64,
-	pulse_time: u64,
+	initial_instant: Instant,
+	pulse_instant: Instant,
 
-	amount_timestamps: [u64; 101],
+	instants: [Option<Instant>; 101],
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -76,17 +73,17 @@ impl Progress {
 	pub fn new(total: u64) -> Self {
 		assert_ne!(total, 0, "Total cannot be zero.");
 
-		let now = timestamp();
-		let mut amount_timestamps = [0; 101];
+		let now = Instant::now();
+		let mut instants = [None; 101];
 
-		amount_timestamps[0] = now;
+		instants[0] = Some(now);
 
 		let progress = Progress {
-			width: WIDTH,
+			width: DEFAULT_WIDTH,
 
-			filled_character: FILLED_CHARACTER,
-			current_character: CURRENT_CHARACTER,
-			remaining_character: REMAINING_CHARACTER,
+			filled_character: DEFAULT_FILLED_CHARACTER,
+			current_character: DEFAULT_CURRENT_CHARACTER,
+			remaining_character: DEFAULT_REMAINING_CHARACTER,
 
 			total,
 			current: 0,
@@ -96,13 +93,13 @@ impl Progress {
 			rate_count: 0,
 			previous_rate: 0,
 
-			initial_time: now,
-			pulse_time: now,
+			initial_instant: now,
+			pulse_instant: now,
 
-			amount_timestamps,
+			instants,
 		};
 
-		progress.draw(0, 0, 0, 0);
+		progress.draw(0, 0, None, Duration::ZERO);
 
 		progress
 	}
@@ -251,27 +248,27 @@ impl Progress {
 		let previous = self.current;
 		self.current = value;
 
-		let amount = (100.0 * self.current as f64 / self.total as f64) as u64;
-		let previous_amount = (100.0 * previous as f64 / self.total as f64) as u64;
+		let amount = self.get_progress_amount(self.current) as u64;
+		let previous_amount = self.get_progress_amount(previous) as u64;
 
-		let now = timestamp();
+		let now = Instant::now();
 
-		let interval = self.pulse(now);
-		let rate = self.get_rate(interval);
+		let pulse_duration = self.pulse(&now);
+		let rate = self.get_rate(pulse_duration);
 
-		if amount == previous_amount && amount != 100 && interval == 0 {
+		if amount == previous_amount && amount != 100 && pulse_duration.is_none() {
 			return;
 		}
 
 		if amount != previous_amount {
-			self.amount_timestamps[amount as usize] = now;
+			self.instants[amount as usize] = Some(now);
 		}
 
 		self.draw(
 			amount,
 			rate,
-			self.get_eta(now),
-			self.get_time(now)
+			self.get_eta(&now),
+			now - self.initial_instant,
 		);
 
 		if amount == 100 {
@@ -281,23 +278,29 @@ impl Progress {
 
 	#[inline]
 	#[must_use]
-	fn pulse(&mut self, now: u64) -> u64 {
-		let difference = now - self.pulse_time;
+	fn pulse(&mut self, now: &Instant) -> Option<Duration> {
+		let duration = now.duration_since(self.pulse_instant);
 
-		if difference >= PULSE_INTERVAL {
-			self.pulse_time = now;
-			return difference;
+		if duration >= PULSE_INTERVAL {
+			self.pulse_instant = *now;
+			return Some(duration);
 		}
 
-		0
+		None
 	}
 
 	#[must_use]
-	fn get_rate(&mut self, interval: u64) -> u64 {
+	fn get_progress_amount(&self, amount: u64) -> f64 {
+		100.0 * amount as f64 / self.total as f64
+	}
+
+	#[must_use]
+	fn get_rate(&mut self, pulse_duration: Option<Duration>) -> u64 {
 		self.rate_count += 1;
 
-		if interval > 0 {
-			let rate = self.rate_count as f64 / (interval as f64 / 1000.0);
+		if let Some(pulse_duration) = pulse_duration {
+			let ms = pulse_duration.as_millis() as f64;
+			let rate = self.rate_count as f64 / (ms / 1000.0);
 
 			self.previous_rate = rate as u64;
 			self.rate_count = 0;
@@ -309,25 +312,25 @@ impl Progress {
 	}
 
 	#[must_use]
-	fn get_eta(&self, now: u64) -> u64 {
-		let amount = 100.0 * self.current as f64 / self.total as f64;
+	fn get_eta(&self, now: &Instant) -> Option<Duration> {
+		let amount = self.get_progress_amount(self.current);
+		let elapsed = now.duration_since(self.initial_instant);
 
-		if amount as u64 == 100 || now == self.initial_time {
-			return 0;
+		if amount as u64 == 100 || elapsed.is_zero() {
+			return None;
 		}
 
 		if amount <= 50.0 {
-			if now == self.initial_time {
-				return 0;
-			}
-
-			let rate = self.current as f64 / (now - self.initial_time) as f64;
+			let rate = self.current as f64 / elapsed.as_millis() as f64;
 
 			if rate == 0.0 {
-				return 0;
+				return None;
 			}
 
-			return ((self.total - self.current) as f64 / rate) as u64;
+			let duration_ms = ((self.total - self.current) as f64 / rate) as u64;
+			let duration = Duration::from_millis(duration_ms);
+
+			return Some(duration);
 		}
 
 		let x = amount * 2.0 - 100.0;
@@ -335,22 +338,22 @@ impl Progress {
 		let x1 = math::min(&[x, 98.0]) as usize;
 		let x2 = x1 + 1;
 
-		let y1 = self.amount_timestamps[x1];
-		let y2 = self.amount_timestamps[x2];
+		let y1 = self.instants[x1].unwrap();
+		let y2 = self.instants[x2].unwrap();
 
 		let m = y2 - y1;
-		let b = y1 - m * x1 as u64;
+		let b = y1 - m * x1 as u32;
 
-		(now as f64 - (m as f64 * x + b as f64)) as u64
+		Some(*now - (b + Duration::from_millis((m.as_millis() as f64 * x) as u64)))
 	}
 
-	#[inline]
-	#[must_use]
-	fn get_time(&self, now: u64) -> u64 {
-		now - self.initial_time
-	}
-
-	fn draw(&self, amount: u64, rate: u64, eta: u64, time: u64) {
+	fn draw(
+		&self,
+		amount: u64,
+		rate: u64,
+		eta: Option<Duration>,
+		elapsed: Duration,
+	) {
 		let position = (self.width as f64 * amount as f64 / 100.0) as u64;
 
 		print!("\x1B[2K\r[");
@@ -381,12 +384,12 @@ impl Progress {
 					print!(" ({} tps)", fmt::number(rate));
 				},
 
-				Tag::Eta => if amount < 100 && eta > 0 {
-					print!(" (eta {})", fmt::timespan(eta));
+				Tag::Eta => if amount < 100 && eta.is_some_and(|eta| !eta.is_zero()) {
+					print!(" (eta {})", fmt::timespan(eta.unwrap().as_millis() as u64));
 				},
 
-				Tag::Time => if time > 0 {
-					print!(" (time {})", fmt::timespan(time));
+				Tag::Time => if !elapsed.is_zero() {
+					print!(" (time {})", fmt::timespan(elapsed.as_millis() as u64));
 				},
 			}
 		}
