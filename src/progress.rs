@@ -273,10 +273,7 @@ impl Progress {
 			now - self.instants[0].unwrap(),
 		);
 
-		if amount == 100 {
-			self.stopped = true;
-			println!();
-		}
+		self.stopped = amount == 100;
 	}
 
 	/// Stops the progress bar and moves the cursor to a new line.
