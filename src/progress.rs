@@ -250,8 +250,8 @@ impl Progress {
 		let previous = self.current;
 		self.current = value;
 
-		let amount = self.get_progress_amount(self.current) as u64;
-		let previous_amount = self.get_progress_amount(previous) as u64;
+		let amount = self.get_progress_amount(self.current) as u8;
+		let previous_amount = self.get_progress_amount(previous) as u8;
 
 		let now = Instant::now();
 
@@ -274,6 +274,7 @@ impl Progress {
 		);
 
 		if amount == 100 {
+			self.stopped = true;
 			println!();
 		}
 	}
@@ -292,10 +293,14 @@ impl Progress {
 	///
 	#[inline]
 	pub fn stop(&mut self) {
+		if self.stopped {
+			return;
+		}
+
 		self.stopped = true;
 
 		let now = Instant::now();
-		let amount = self.get_progress_amount(self.current) as u64;
+		let amount = self.get_progress_amount(self.current) as u8;
 
 		self.draw_final(amount, now - self.instants[0].unwrap());
 	}
@@ -314,8 +319,13 @@ impl Progress {
 	}
 
 	#[must_use]
-	fn get_progress_amount(&self, amount: u64) -> f64 {
-		100.0 * amount as f64 / self.total as f64
+	fn get_progress_amount(&self, current: u64) -> f64 {
+		100.0 * current as f64 / self.total as f64
+	}
+
+	#[must_use]
+	fn get_progress_position(&self, amount: u8) -> u64 {
+		(self.width as f64 * amount as f64 / 100.0) as u64
 	}
 
 	#[must_use]
@@ -340,7 +350,7 @@ impl Progress {
 		let amount = self.get_progress_amount(self.current);
 		let elapsed = now.duration_since(self.instants[0].unwrap());
 
-		if amount as u64 == 100 || elapsed.is_zero() {
+		if amount as u8 == 100 || elapsed.is_zero() {
 			return None;
 		}
 
@@ -372,13 +382,17 @@ impl Progress {
 
 	fn draw(
 		&self,
-		amount: u64,
+		amount: u8,
 		rate: u64,
 		eta: Option<Duration>,
 		elapsed: Duration,
 	) {
+		if amount == 100 {
+			return self.draw_final(amount, elapsed);
+		}
+
 		let mut lock = io::stdout().lock();
-		let position = (self.width as f64 * amount as f64 / 100.0) as u64;
+		let position = self.get_progress_position(amount);
 
 		write!(lock, "\x1B[2K\r[").unwrap();
 
@@ -389,26 +403,18 @@ impl Progress {
 				Ordering::Equal => self.current_character,
 			};
 
-			if amount < 100 {
-				write!(lock, "\x1B[33m{character}\x1B[0m").unwrap();
-			} else {
-				write!(lock, "\x1B[32m{character}\x1B[0m").unwrap();
-			}
+			write!(lock, "\x1B[33m{character}\x1B[0m").unwrap();
 		}
 
-		if amount < 100 {
-			write!(lock, "] \x1B[33m{amount} %\x1B[0m").unwrap();
-		} else {
-			write!(lock, "] \x1B[32m{amount} %\x1B[0m").unwrap();
-		}
+		write!(lock, "] \x1B[33m{amount} %\x1B[0m").unwrap();
 
 		for tag in &self.tags {
 			match tag {
-				Tag::Tps => if amount < 100 && rate > 0 {
+				Tag::Tps => if rate > 0 {
 					print_rate(&mut lock, rate);
 				},
 
-				Tag::Eta => if amount < 100 && eta.is_some_and(|eta| !eta.is_zero()) {
+				Tag::Eta => if eta.is_some_and(|eta| !eta.is_zero()) {
 					print_eta(&mut lock, eta.unwrap());
 				},
 
@@ -422,9 +428,9 @@ impl Progress {
 		lock.flush().unwrap();
 	}
 
-	fn draw_final(&self, amount: u64, elapsed: Duration) {
+	fn draw_final(&self, amount: u8, elapsed: Duration) {
 		let mut lock = io::stdout().lock();
-		let position = (self.width as f64 * amount as f64 / 100.0) as u64;
+		let position = self.get_progress_position(amount);
 
 		write!(lock, "\x1B[2K[").unwrap();
 
