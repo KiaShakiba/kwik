@@ -6,7 +6,7 @@
  */
 
 use std::{
-	io::Write,
+	io::{self, Write, StdoutLock},
 	fmt::Debug,
 	cmp::Ordering,
 	time::{Instant, Duration},
@@ -33,15 +33,15 @@ pub struct Progress {
 	total: u64,
 	current: u64,
 
+	stopped: bool,
+
 	tags: Vec<Tag>,
 
 	rate_count: u64,
 	previous_rate: u64,
 
-	initial_instant: Instant,
-	pulse_instant: Instant,
-
 	instants: [Option<Instant>; 101],
+	pulse_instant: Instant,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -88,15 +88,15 @@ impl Progress {
 			total,
 			current: 0,
 
+			stopped: false,
+
 			tags: Vec::new(),
 
 			rate_count: 0,
 			previous_rate: 0,
 
-			initial_instant: now,
-			pulse_instant: now,
-
 			instants,
+			pulse_instant: now,
 		};
 
 		progress.draw(0, 0, None, Duration::ZERO);
@@ -239,6 +239,8 @@ impl Progress {
 	}
 
 	fn set(&mut self, value: u64) {
+		assert!(!self.stopped, "Progress bar has been stopped.");
+
 		assert!(
 			value <= self.total,
 			"Progress value ({value}) larger than total ({}).",
@@ -268,12 +270,34 @@ impl Progress {
 			amount,
 			rate,
 			self.get_eta(&now),
-			now - self.initial_instant,
+			now - self.instants[0].unwrap(),
 		);
 
 		if amount == 100 {
 			println!();
 		}
+	}
+
+	/// Stops the progress bar and moves the cursor to a new line.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::progress::{Progress, Tag};
+	///
+	/// let mut progress = Progress::new(100);
+	///
+	/// progress.tick(50);
+	/// progress.stop(); // the progress bar will stop at 50%
+	/// ```
+	///
+	#[inline]
+	pub fn stop(&mut self) {
+		self.stopped = true;
+
+		let now = Instant::now();
+		let amount = self.get_progress_amount(self.current) as u64;
+
+		self.draw_final(amount, now - self.instants[0].unwrap());
 	}
 
 	#[inline]
@@ -314,17 +338,17 @@ impl Progress {
 	#[must_use]
 	fn get_eta(&self, now: &Instant) -> Option<Duration> {
 		let amount = self.get_progress_amount(self.current);
-		let elapsed = now.duration_since(self.initial_instant);
+		let elapsed = now.duration_since(self.instants[0].unwrap());
 
 		if amount as u64 == 100 || elapsed.is_zero() {
 			return None;
 		}
 
 		let x = amount * 2.0 - 100.0;
-		let x1 = math::min(&[x, 98.0]) as usize;
-		let x2 = x1 + 1;
+		let x1 = math::min(&[x, 98.0]) as i64;
+		let x2 = x1 as usize + 1;
 
-		if x1 <= 0 || self.instants[x1].is_none() {
+		if x1 <= 0 || self.instants[x1 as usize].is_none() {
 			let rate = self.current as f64 / elapsed.as_millis() as f64;
 
 			if rate == 0.0 {
@@ -337,7 +361,7 @@ impl Progress {
 			return Some(duration);
 		}
 
-		let y1 = self.instants[x1].unwrap();
+		let y1 = self.instants[x1 as usize].unwrap();
 		let y2 = self.instants[x2].unwrap();
 
 		let m = y2 - y1;
@@ -353,9 +377,10 @@ impl Progress {
 		eta: Option<Duration>,
 		elapsed: Duration,
 	) {
+		let mut lock = io::stdout().lock();
 		let position = (self.width as f64 * amount as f64 / 100.0) as u64;
 
-		print!("\x1B[2K\r[");
+		write!(lock, "\x1B[2K\r[").unwrap();
 
 		for i in 0..self.width {
 			let character = match i.cmp(&position) {
@@ -365,36 +390,93 @@ impl Progress {
 			};
 
 			if amount < 100 {
-				print!("\x1B[33m{character}\x1B[0m");
+				write!(lock, "\x1B[33m{character}\x1B[0m").unwrap();
 			} else {
-				print!("\x1B[32m{character}\x1B[0m");
+				write!(lock, "\x1B[32m{character}\x1B[0m").unwrap();
 			}
 		}
 
 		if amount < 100 {
-			print!("] \x1B[33m{amount} %\x1B[0m");
+			write!(lock, "] \x1B[33m{amount} %\x1B[0m").unwrap();
 		} else {
-			print!("] \x1B[32m{amount} %\x1B[0m");
+			write!(lock, "] \x1B[32m{amount} %\x1B[0m").unwrap();
 		}
 
 		for tag in &self.tags {
 			match tag {
 				Tag::Tps => if amount < 100 && rate > 0 {
-					print!(" ({} tps)", fmt::number(rate));
+					print_rate(&mut lock, rate);
 				},
 
 				Tag::Eta => if amount < 100 && eta.is_some_and(|eta| !eta.is_zero()) {
-					print!(" (eta {})", fmt::timespan(eta.unwrap().as_millis() as u64));
+					print_eta(&mut lock, eta.unwrap());
 				},
 
 				Tag::Time => if !elapsed.is_zero() {
-					print!(" (time {})", fmt::timespan(elapsed.as_millis() as u64));
+					print_time(&mut lock, elapsed);
 				},
 			}
 		}
 
-		print!("\r");
-
-		std::io::stdout().flush().unwrap();
+		write!(lock, "\r").unwrap();
+		lock.flush().unwrap();
 	}
+
+	fn draw_final(&self, amount: u64, elapsed: Duration) {
+		let mut lock = io::stdout().lock();
+		let position = (self.width as f64 * amount as f64 / 100.0) as u64;
+
+		write!(lock, "\x1B[2K[").unwrap();
+
+		for i in 0..self.width {
+			let character = match i.cmp(&position) {
+				Ordering::Less => self.filled_character,
+				Ordering::Greater => self.remaining_character,
+				Ordering::Equal => self.current_character,
+			};
+
+			if amount < 100 {
+				write!(lock, "\x1B[31m{character}\x1B[0m").unwrap();
+			} else {
+				write!(lock, "\x1B[32m{character}\x1B[0m").unwrap();
+			}
+		}
+
+		if amount < 100 {
+			write!(lock, "] \x1B[31m{amount} %\x1B[0m").unwrap();
+		} else {
+			write!(lock, "] \x1B[32m{amount} %\x1B[0m").unwrap();
+		}
+
+		if self.tags.contains(&Tag::Eta) {
+			print_time(&mut lock, elapsed);
+		}
+
+		writeln!(lock).unwrap();
+		lock.flush().unwrap();
+	}
+}
+
+fn print_rate(lock: &mut StdoutLock, rate: u64) {
+	write!(
+		lock,
+		" ({} tps)",
+		fmt::number(rate),
+	).unwrap();
+}
+
+fn print_eta(lock: &mut StdoutLock, eta: Duration) {
+	write!(
+		lock,
+		" (eta {})",
+		fmt::timespan(eta.as_millis()),
+	).unwrap();
+}
+
+fn print_time(lock: &mut StdoutLock, elapsed: Duration) {
+	write!(
+		lock,
+		" (time {})",
+		fmt::timespan(elapsed.as_millis()),
+	).unwrap();
 }

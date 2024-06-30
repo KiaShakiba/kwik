@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use std::fmt::Debug;
 use num_format::{Locale, ToFormattedString};
 
 pub const MEMORY_UNITS: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
@@ -19,7 +20,12 @@ pub const MEMORY_UNITS: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB
 /// ```
 #[inline]
 #[must_use]
-pub fn number(value: u64) -> String {
+pub fn number<T>(value: T) -> String
+where
+	T: TryInto<u64>,
+	<T as TryInto<u64>>::Error: Debug,
+{
+	let value: u64 = value.try_into().unwrap();
 	value.to_formatted_string(&Locale::en)
 }
 
@@ -32,8 +38,14 @@ pub fn number(value: u64) -> String {
 ///
 /// assert_eq!(fmt::memory(1234567, Some(2)), "1.18 MiB");
 /// ```
+#[inline]
 #[must_use]
-pub fn memory(value: u64, precision: Option<usize>) -> String {
+pub fn memory<T>(value: T, precision: Option<usize>) -> String
+where
+	T: TryInto<u64>,
+	<T as TryInto<u64>>::Error: Debug,
+{
+	let value: u64 = value.try_into().unwrap();
 	let mut copy = value as f64;
 	let decimals = precision.unwrap_or(0);
 	let mut count: usize = 0;
@@ -57,8 +69,12 @@ pub fn memory(value: u64, precision: Option<usize>) -> String {
 /// assert_eq!(fmt::timespan(1234567), "20:34.567");
 /// ```
 #[must_use]
-pub fn timespan(value: u64) -> String {
-	let mut milliseconds: u64 = value;
+pub fn timespan<T>(value: T) -> String
+where
+	T: TryInto<u64>,
+	<T as TryInto<u64>>::Error: Debug,
+{
+	let mut milliseconds: u64 = value.try_into().unwrap();
 
 	let days = milliseconds / 1000 / 60 / 60 / 24;
 	milliseconds -= days * 1000 * 60 * 60 * 24;
