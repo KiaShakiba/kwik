@@ -454,7 +454,7 @@ impl Progress {
 			write!(lock, "] \x1B[32m{amount} %\x1B[0m").unwrap();
 		}
 
-		if self.tags.contains(&Tag::Eta) {
+		if self.tags.contains(&Tag::Time) {
 			print_time(&mut lock, elapsed);
 		}
 
