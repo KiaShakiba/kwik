@@ -8,7 +8,7 @@
 use std::{
 	path::Path,
 	fs::File,
-	io::{BufWriter, Write, Error},
+	io::{self, BufWriter, Write},
 	marker::PhantomData,
 };
 
@@ -37,7 +37,7 @@ pub trait WriteChunk: SizedChunk {
 	///
 	/// # Examples
 	/// ```
-	/// use std::io::Error;
+	/// use std::io;
 	/// use kwik::file::binary::{WriteChunk, SizedChunk};
 	///
 	/// struct MyStruct {
@@ -45,7 +45,7 @@ pub trait WriteChunk: SizedChunk {
 	/// }
 	///
 	/// impl WriteChunk for MyStruct {
-	///     fn as_chunk(&self, buf: &mut Vec<u8>) -> Result<(), Error>
+	///     fn as_chunk(&self, buf: &mut Vec<u8>) -> io::Result<()>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -62,7 +62,7 @@ pub trait WriteChunk: SizedChunk {
 	/// # Errors
 	///
 	/// This function will return an error if the chunk could not be created.
-	fn as_chunk(&self, buf: &mut Vec<u8>) -> Result<(), Error>;
+	fn as_chunk(&self, buf: &mut Vec<u8>) -> io::Result<()>;
 }
 
 impl<T> FileWriter for BinaryWriter<T>
@@ -71,7 +71,7 @@ where
 {
 	/// Opens the file at the supplied path. If the file could not be
 	/// opened, returns an error result.
-	fn new<P>(path: P) -> Result<Self, Error>
+	fn new<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
@@ -98,7 +98,7 @@ where
 	///
 	/// # Examples
 	/// ```no_run
-	/// use std::io::Error;
+	/// use std::io;
 	///
 	/// use kwik::file::{
 	///     FileWriter,
@@ -115,7 +115,7 @@ where
 	/// }
 	///
 	/// impl WriteChunk for MyStruct {
-	///     fn as_chunk(&self, buf: &mut Vec<u8>) -> Result<(), Error>
+	///     fn as_chunk(&self, buf: &mut Vec<u8>) -> io::Result<()>
 	///     where
 	///         Self: Sized,
 	///     {

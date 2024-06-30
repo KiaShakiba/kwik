@@ -6,7 +6,7 @@
  */
 
 use std::{
-	io::{self, Error},
+	io,
 	path::Path,
 	fs::File,
 };
@@ -25,7 +25,7 @@ use md5::Md5;
 ///     Err(err) => println!("{err:?}"),
 /// }
 /// ```
-pub fn sha256sum<P>(path: P) -> Result<String, Error>
+pub fn sha256sum<P>(path: P) -> io::Result<String>
 where
 	P: AsRef<Path>,
 {
@@ -48,7 +48,7 @@ where
 ///     Err(err) => println!("{err:?}"),
 /// }
 /// ```
-pub fn sha512sum<P>(path: P) -> Result<String, Error>
+pub fn sha512sum<P>(path: P) -> io::Result<String>
 where
 	P: AsRef<Path>,
 {
@@ -71,7 +71,7 @@ where
 ///     Err(err) => println!("{err:?}"),
 /// }
 /// ```
-pub fn md5sum<P>(path: P) -> Result<String, Error>
+pub fn md5sum<P>(path: P) -> io::Result<String>
 where
 	P: AsRef<Path>,
 {

@@ -8,7 +8,7 @@
 use std::{
 	path::Path,
 	fs::File,
-	io::{BufReader, BufRead, Error, ErrorKind},
+	io::{self, BufReader, BufRead},
 };
 
 use crate::file::FileReader;
@@ -32,7 +32,7 @@ pub struct IntoIter {
 impl FileReader for TextReader {
 	/// Opens the file at the supplied path. If the file could not be
 	/// opened, returns an error result.
-	fn new<P>(path: P) -> Result<Self, Error>
+	fn new<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
@@ -66,7 +66,7 @@ impl TextReader {
 	///
 	/// # Examples
 	/// ```no_run
-	/// use std::io::Error;
+	/// use std::io;
 	///
 	/// use kwik::file::{
 	///     FileReader,
@@ -102,7 +102,7 @@ impl TextReader {
 				Some(self.buf.clone())
 			},
 
-			Err(ref err) if err.kind() ==  ErrorKind::UnexpectedEof => None,
+			Err(ref err) if err.kind() ==  io::ErrorKind::UnexpectedEof => None,
 			Err(_) => panic!("An error occurred on line {} when reading text file", self.count + 1),
 		}
 	}
@@ -113,7 +113,7 @@ impl TextReader {
 	///
 	/// # Examples
 	/// ```no_run
-	/// use std::io::Error;
+	/// use std::io;
 	///
 	/// use kwik::file::{
 	///     FileReader,

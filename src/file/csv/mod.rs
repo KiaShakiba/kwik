@@ -8,7 +8,7 @@
 mod reader;
 mod writer;
 
-use std::io::{Error, ErrorKind};
+use std::io;
 use csv::StringRecord;
 
 /// CSV row data
@@ -35,11 +35,11 @@ impl RowData {
 	///
 	/// This function returns an error if the column does not exist.
 	#[inline]
-	pub fn get(&self, index: usize) -> Result<&str, Error> {
+	pub fn get(&self, index: usize) -> io::Result<&str> {
 		self.data
 			.get(index)
-			.ok_or(Error::new(
-				ErrorKind::InvalidData,
+			.ok_or(io::Error::new(
+				io::ErrorKind::InvalidData,
 				format!("Invalid CSV column {index}"),
 			))
 	}

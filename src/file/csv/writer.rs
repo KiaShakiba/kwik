@@ -6,9 +6,9 @@
  */
 
 use std::{
+	io,
 	path::Path,
 	fs::File,
-	io::Error,
 	marker::PhantomData,
 };
 
@@ -38,7 +38,7 @@ pub trait WriteRow {
 	///
 	/// # Examples
 	/// ```
-	/// use std::io::Error;
+	/// use std::io;
 	/// use kwik::file::csv::{WriteRow, RowData};
 	///
 	/// struct MyStruct {
@@ -46,7 +46,7 @@ pub trait WriteRow {
 	/// }
 	///
 	/// impl WriteRow for MyStruct {
-	///     fn as_row(&self, row_data: &mut RowData) -> Result<(), Error>
+	///     fn as_row(&self, row_data: &mut RowData) -> io::Result<()>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -59,7 +59,7 @@ pub trait WriteRow {
 	/// # Errors
 	///
 	/// This function will return an error if the row could not be created.
-	fn as_row(&self, row_data: &mut RowData) -> Result<(), Error>;
+	fn as_row(&self, row_data: &mut RowData) -> io::Result<()>;
 }
 
 impl<T> FileWriter for CsvWriter<T>
@@ -68,7 +68,7 @@ where
 {
 	/// Opens the file at the supplied path. If the file could not be
 	/// opened, returns an error result.
-	fn new<P>(path: P) -> Result<Self, Error>
+	fn new<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
@@ -95,7 +95,7 @@ where
 	///
 	/// # Examples
 	/// ```no_run
-	/// use std::io::Error;
+	/// use std::io;
 	///
 	/// use kwik::file::{
 	///     FileWriter,
@@ -112,7 +112,7 @@ where
 	/// }
 	///
 	/// impl WriteRow for MyStruct {
-	///     fn as_row(&self, row_data: &mut RowData) -> Result<(), Error>
+	///     fn as_row(&self, row_data: &mut RowData) -> io::Result<()>
 	///     where
 	///         Self: Sized,
 	///     {

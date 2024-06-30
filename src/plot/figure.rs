@@ -7,8 +7,8 @@
 
 use std::{
 	cmp,
+	io,
 	path::Path,
-	io::{Error, ErrorKind},
 };
 
 use gnuplot::Figure as GnuplotFigure;
@@ -183,13 +183,13 @@ impl Figure {
 	///
 	/// This function will return an error if the figure could not be
 	/// saved to the file at the supplied path.
-	pub fn save<P>(&mut self, path: P) -> Result<(), Error>
+	pub fn save<P>(&mut self, path: P) -> io::Result<()>
 	where
 		P: AsRef<Path>,
 	{
 		if self.is_empty() {
-			return Err(Error::new(
-				ErrorKind::InvalidData,
+			return Err(io::Error::new(
+				io::ErrorKind::InvalidData,
 				"Could not save figure with no plots"
 			));
 		}
@@ -206,10 +206,10 @@ impl Figure {
 		match self.figure.save_to_pdf(path, width, height) {
 			Ok(_) => Ok(()),
 
-			Err(_) => Err(Error::new(
-				ErrorKind::PermissionDenied,
+			Err(_) => Err(io::Error::new(
+				io::ErrorKind::PermissionDenied,
 				"Could not save figure"
-			))
+			)),
 		}
 	}
 }

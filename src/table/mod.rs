@@ -10,7 +10,7 @@ mod cell;
 
 use std::{
 	path::Path,
-	io::{Write, Error},
+	io::{self, Write},
 	collections::HashSet,
 };
 
@@ -212,7 +212,7 @@ impl Table {
 	///
 	/// This function will return an error if the file at the supplied path
 	/// could not be opened.
-	pub fn to_file<P>(&self, path: P) -> Result<(), Error>
+	pub fn to_file<P>(&self, path: P) -> io::Result<()>
 	where
 		P: AsRef<Path>,
 	{

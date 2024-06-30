@@ -8,7 +8,7 @@
 use std::{
 	path::Path,
 	fs::File,
-	io::{LineWriter, Write, Error},
+	io::{self, LineWriter, Write},
 };
 
 use crate::file::FileWriter;
@@ -22,7 +22,7 @@ pub struct TextWriter {
 impl FileWriter for TextWriter {
 	/// Opens the file at the supplied path. If the file could not be
 	/// opened, returns an error result.
-	fn new<P>(path: P) -> Result<Self, Error>
+	fn new<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
@@ -43,7 +43,7 @@ impl TextWriter {
 	///
 	/// # Examples
 	/// ```no_run
-	/// use std::io::Error;
+	/// use std::io;
 	///
 	/// use kwik::file::{
 	///     FileWriter,

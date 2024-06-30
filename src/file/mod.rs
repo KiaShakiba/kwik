@@ -11,12 +11,12 @@ pub mod csv;
 pub mod hash;
 
 use std::{
+	io,
 	path::Path,
-	io::Error,
 };
 
 pub trait FileReader {
-	fn new<P>(path: P) -> Result<Self, Error>
+	fn new<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
@@ -26,7 +26,7 @@ pub trait FileReader {
 }
 
 pub trait FileWriter {
-	fn new<P>(path: P) -> Result<Self, Error>
+	fn new<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,

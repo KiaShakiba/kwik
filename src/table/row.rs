@@ -6,7 +6,7 @@
  */
 
 use std::{
-	io::{Write, Error},
+	io::{self, Write},
 	fmt::Display,
 };
 
@@ -188,7 +188,7 @@ impl Row {
 }
 
 impl WriteRow for Row {
-	fn as_row(&self, row_data: &mut RowData) -> Result<(), Error> {
+	fn as_row(&self, row_data: &mut RowData) -> io::Result<()> {
 		for cell in &self.cells {
 			row_data.push(cell.value());
 		}

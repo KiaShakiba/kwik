@@ -6,9 +6,9 @@
  */
 
 use std::{
+	io,
 	path::Path,
 	fs::File,
-	io::Error,
 	marker::PhantomData,
 };
 
@@ -40,7 +40,7 @@ pub trait ReadRow {
 	///
 	/// # Examples
 	/// ```
-	/// use std::io::Error;
+	/// use std::io;
 	/// use kwik::file::csv::{ReadRow, RowData};
 	///
 	/// struct MyStruct {
@@ -48,7 +48,7 @@ pub trait ReadRow {
 	/// }
 	///
 	/// impl ReadRow for MyStruct {
-	///     fn new(row_data: &RowData) -> Result<Self, Error>
+	///     fn new(row_data: &RowData) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -61,7 +61,7 @@ pub trait ReadRow {
 	/// # Errors
 	///
 	/// This function will return an error if the row could not be parsed.
-	fn new(row_data: &RowData) -> Result<Self, Error>
+	fn new(row_data: &RowData) -> io::Result<Self>
 	where
 		Self: Sized,
 	;
@@ -87,7 +87,7 @@ where
 {
 	/// Opens the file at the supplied path. If the file could not be
 	/// opened, returns an error result.
-	fn new<P>(path: P) -> Result<Self, Error>
+	fn new<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
@@ -128,7 +128,7 @@ where
 	///
 	/// # Examples
 	/// ```no_run
-	/// use std::io::Error;
+	/// use std::io;
 	///
 	/// use kwik::file::{
 	///     FileReader,
@@ -147,7 +147,7 @@ where
 	/// }
 	///
 	/// impl ReadRow for MyStruct {
-	///     fn new(row_data: &RowData) -> Result<Self, Error>
+	///     fn new(row_data: &RowData) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -184,7 +184,7 @@ where
 	///
 	/// # Examples
 	/// ```no_run
-	/// use std::io::Error;
+	/// use std::io;
 	///
 	/// use kwik::file::{
 	///     FileReader,
@@ -203,7 +203,7 @@ where
 	/// }
 	///
 	/// impl ReadRow for MyStruct {
-	///     fn new(row: &RowData) -> Result<Self, Error>
+	///     fn new(row: &RowData) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {

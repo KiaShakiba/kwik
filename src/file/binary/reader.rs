@@ -10,8 +10,7 @@ use std::{
 	path::Path,
 	fs::File,
 	io::{
-		Error,
-		ErrorKind,
+		self,
 		BufReader,
 		Read,
 		Seek,
@@ -59,7 +58,7 @@ pub trait ReadChunk: SizedChunk {
 	///
 	/// # Examples
 	/// ```
-	/// use std::io::Error;
+	/// use std::io;
 	/// use kwik::file::binary::{ReadChunk, SizedChunk};
 	///
 	/// struct MyStruct {
@@ -67,7 +66,7 @@ pub trait ReadChunk: SizedChunk {
 	/// }
 	///
 	/// impl ReadChunk for MyStruct {
-	///     fn new(chunk: &[u8]) -> Result<Self, Error>
+	///     fn new(chunk: &[u8]) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -84,7 +83,7 @@ pub trait ReadChunk: SizedChunk {
 	/// # Errors
 	///
 	/// This function will return an error if the chunk could not be parsed.
-	fn new(buf: &[u8]) -> Result<Self, Error>
+	fn new(buf: &[u8]) -> io::Result<Self>
 	where
 		Self: Sized,
 	;
@@ -96,7 +95,7 @@ where
 {
 	/// Opens the file at the supplied path. If the file could not be
 	/// opened, returns an error result.
-	fn new<P>(path: P) -> Result<Self, Error>
+	fn new<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
@@ -135,7 +134,7 @@ where
 	///
 	/// # Examples
 	/// ```no_run
-	/// use std::io::Error;
+	/// use std::io;
 	///
 	/// use kwik::file::{
 	///     FileReader,
@@ -152,7 +151,7 @@ where
 	/// }
 	///
 	/// impl ReadChunk for MyStruct {
-	///     fn new(chunk: &[u8]) -> Result<Self, Error>
+	///     fn new(chunk: &[u8]) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -166,7 +165,7 @@ where
 	/// }
 	/// ```
 	#[inline]
-	pub fn offset(&mut self, pos: u64) -> Result<(), Error> {
+	pub fn offset(&mut self, pos: u64) -> io::Result<()> {
 		self.file.seek(SeekFrom::Start(pos)).map(|_| ())
 	}
 
@@ -176,7 +175,7 @@ where
 	///
 	/// # Examples
 	/// ```no_run
-	/// use std::io::Error;
+	/// use std::io;
 	///
 	/// use kwik::file::{
 	///     FileReader,
@@ -195,7 +194,7 @@ where
 	/// }
 	///
 	/// impl ReadChunk for MyStruct {
-	///     fn new(chunk: &[u8]) -> Result<Self, Error>
+	///     fn new(chunk: &[u8]) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -222,7 +221,7 @@ where
 				Some(object)
 			},
 
-			Err(ref err) if err.kind() ==  ErrorKind::UnexpectedEof => None,
+			Err(ref err) if err.kind() ==  io::ErrorKind::UnexpectedEof => None,
 			Err(_) => panic!("An error occurred when reading binary file"),
 		}
 	}
@@ -233,7 +232,7 @@ where
 	///
 	/// # Examples
 	/// ```no_run
-	/// use std::io::Error;
+	/// use std::io;
 	///
 	/// use kwik::file::{
 	///     FileReader,
@@ -252,7 +251,7 @@ where
 	/// }
 	///
 	/// impl ReadChunk for MyStruct {
-	///     fn new(chunk: &[u8]) -> Result<Self, Error>
+	///     fn new(chunk: &[u8]) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
