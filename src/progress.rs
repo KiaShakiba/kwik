@@ -353,7 +353,6 @@ impl Progress {
 
 		let x = amount * 2.0 - 100.0;
 		let x1 = math::min(&[x, 98.0]) as i64;
-		let x2 = x1 as usize + 1;
 
 		if x1 <= 0 || self.instants[x1 as usize].is_none() {
 			let rate = self.current as f64 / elapsed.as_millis() as f64;
@@ -367,6 +366,8 @@ impl Progress {
 
 			return Some(duration);
 		}
+
+		let x2 = x1 as usize + 1;
 
 		let y1 = self.instants[x1 as usize].unwrap();
 		let y2 = self.instants[x2].unwrap();
