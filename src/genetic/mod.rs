@@ -351,7 +351,7 @@ where
 			})
 			.collect::<Result<Vec<Individual<C>>, GeneticError>>()?;
 
-		new_generation.sort();
+		new_generation.sort_unstable();
 
 		self.population = new_generation;
 
