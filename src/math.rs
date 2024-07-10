@@ -14,15 +14,17 @@
 /// ```
 /// use kwik::math;
 ///
-/// let value = math::min::<u64>(&[3, 4, 1, 2]);
+/// let value = *math::min::<u64>(&[3, 4, 1, 2]).unwrap();
 /// assert_eq!(value, 1);
 /// ```
 #[inline]
-pub fn min<T>(values: &[T]) -> T
+pub fn min<T>(values: &[T]) -> Option<&T>
 where
-	T: Clone + PartialOrd,
+	T: PartialOrd,
 {
-	assert!(!values.is_empty(), "Cannot find min value.");
+	if values.is_empty() {
+		return None;
+	}
 
 	let mut min_value = &values[0];
 
@@ -32,7 +34,7 @@ where
 		}
 	}
 
-	min_value.clone()
+	Some(min_value)
 }
 
 /// Returns a clone of the maximum value in the supplied splice.
@@ -44,15 +46,17 @@ where
 /// ```
 /// use kwik::math;
 ///
-/// let value = math::max::<u64>(&[3, 4, 1, 2]);
+/// let value = *math::max::<u64>(&[3, 4, 1, 2]).unwrap();
 /// assert_eq!(value, 4);
 /// ```
 #[inline]
-pub fn max<T>(values: &[T]) -> T
+pub fn max<T>(values: &[T]) -> Option<&T>
 where
-	T: Clone + PartialOrd,
+	T: PartialOrd,
 {
-	assert!(!values.is_empty(), "Cannot find max value.");
+	if values.is_empty() {
+		return None;
+	}
 
 	let mut max_value = &values[0];
 
@@ -62,5 +66,5 @@ where
 		}
 	}
 
-	max_value.clone()
+	Some(max_value)
 }

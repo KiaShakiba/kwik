@@ -255,7 +255,7 @@ impl BarGroup {
 	}
 
 	fn bar_width(&self) -> f64 {
-		math::min(&[1.0 / self.bars.len() as f64, 0.15])
+		*math::min(&[1.0 / self.bars.len() as f64, 0.15]).unwrap()
 	}
 
 	fn bar_x_value(

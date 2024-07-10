@@ -20,6 +20,8 @@ pub trait FitnessOrd {
 	/// chromosome is less fit than the `other`. Return `Fitness::Equal`
 	/// if the two chromosomes' fitnesses are equal.
 	///
+	/// The comparison must follow the conditions of [`PartialOrd`].
+	///
 	/// # Examples
 	/// ```
 	/// use kwik::genetic::{Fitness, FitnessOrd};
