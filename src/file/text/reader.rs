@@ -102,7 +102,7 @@ impl TextReader {
 				Some(self.buf.clone())
 			},
 
-			Err(ref err) if err.kind() ==  io::ErrorKind::UnexpectedEof => None,
+			Err(ref err) if err.kind() == io::ErrorKind::UnexpectedEof => None,
 			Err(_) => panic!("An error occurred on line {} when reading text file", self.count + 1),
 		}
 	}

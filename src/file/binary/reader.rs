@@ -221,7 +221,7 @@ where
 				Some(object)
 			},
 
-			Err(ref err) if err.kind() ==  io::ErrorKind::UnexpectedEof => None,
+			Err(ref err) if err.kind() == io::ErrorKind::UnexpectedEof => None,
 			Err(_) => panic!("An error occurred when reading binary file"),
 		}
 	}
