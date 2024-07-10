@@ -7,9 +7,6 @@
 
 /// Returns a clone of the minimum value in the supplied splice.
 ///
-/// # Panics
-/// Panics if the supplied slice is empty.
-///
 /// # Examples
 /// ```
 /// use kwik::math;
@@ -38,9 +35,6 @@ where
 }
 
 /// Returns a clone of the maximum value in the supplied splice.
-///
-/// # Panics
-/// Panics if the supplied slice is empty.
 ///
 /// # Examples
 /// ```
