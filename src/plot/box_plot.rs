@@ -24,7 +24,7 @@ use gnuplot::{
 
 use indexmap::IndexMap;
 use statrs::statistics::{Data, Min, Max, Distribution, OrderStatistics};
-use crate::plot::Plot;
+use crate::plot::{Plot, auto_option};
 
 /// A box plot.
 #[derive(Default, Clone)]
@@ -33,6 +33,11 @@ pub struct BoxPlot {
 
 	x_label: Option<String>,
 	y_label: Option<String>,
+
+	y_min: Option<f64>,
+	y_max: Option<f64>,
+
+	y_tick: Option<f64>,
 
 	format_y_log: bool,
 	format_y_memory: bool,
@@ -101,6 +106,10 @@ impl Plot for BoxPlot {
 				AutoOption::Fix(0.0),
 				AutoOption::Fix(self.map.len() as f64 + 1.0)
 			)
+			.set_y_range(
+				auto_option(self.y_min),
+				auto_option(self.y_max),
+			)
 			.set_x_ticks_custom(
 				labels
 					.iter()
@@ -118,7 +127,7 @@ impl Plot for BoxPlot {
 				]
 			)
 			.set_y_ticks(
-				Some((AutoOption::Auto, 0)),
+				Some((auto_option(self.y_tick), 0)),
 				&[
 					TickOption::Mirror(false),
 					TickOption::Inward(false),
@@ -198,6 +207,39 @@ impl Plot for BoxPlot {
 }
 
 impl BoxPlot {
+	/// Sets the plot's minimum y-value.
+	pub fn set_y_min(&mut self, y_min: f64) {
+		self.y_min = Some(y_min);
+	}
+
+	/// Sets the plot's minimum y-value.
+	pub fn with_y_min(mut self, y_min: f64) -> Self {
+		self.y_min = Some(y_min);
+		self
+	}
+
+	/// Sets the plot's maximum y-value.
+	pub fn set_y_max(&mut self, y_max: f64) {
+		self.y_max = Some(y_max);
+	}
+
+	/// Sets the plot's maximum y-value.
+	pub fn with_y_max(mut self, y_max: f64) -> Self {
+		self.y_max = Some(y_max);
+		self
+	}
+
+	/// Sets the plot's y-tick value.
+	pub fn set_y_tick(&mut self, y_tick: f64) {
+		self.y_tick = Some(y_tick);
+	}
+
+	/// Sets the plot's y-tick value.
+	pub fn with_y_tick(mut self, y_tick: f64) -> Self {
+		self.y_tick = Some(y_tick);
+		self
+	}
+
 	/// Enables or disables logarithmic formatting in the y-axis.
 	pub fn set_format_y_log(&mut self, value: bool) {
 		self.format_y_log = value;
