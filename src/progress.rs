@@ -262,8 +262,8 @@ impl Progress {
 			return;
 		}
 
-		if amount != previous_amount {
-			self.instants[amount as usize] = Some(now);
+		for index in previous_amount..=amount {
+			self.instants[index as usize] = Some(now);
 		}
 
 		self.draw(
