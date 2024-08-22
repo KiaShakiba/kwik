@@ -156,6 +156,12 @@ impl Plot for BoxPlot {
 			]);
 		}
 
+		if let Some(x_label) = &self.x_label {
+			axes.set_x_label(x_label, &[
+				LabelOption::Font("Arial", 16.0),
+			]);
+		}
+
 		if self.format_y_log {
 			axes.set_y_log(Some(10.0));
 		}
