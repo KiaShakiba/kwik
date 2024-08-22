@@ -137,7 +137,7 @@ where
 	///
 	/// let mut reader = CsvReader::<MyStruct>::new("/path/to/file").unwrap();
 	///
-	/// while let Some(object) = reader.read_row() {
+	/// while let Ok(object) = reader.read_row() {
 	///     // do something with the object
 	/// }
 	///
@@ -156,26 +156,36 @@ where
 	///     }
 	/// }
 	/// ```
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the row could not be read.
 	#[inline]
-	pub fn read_row(&mut self) -> Option<T> {
+	pub fn read_row(&mut self) -> io::Result<T> {
 		self.buf.data.clear();
 
-		let Ok(result) = self.file.read_record(&mut self.buf.data) else {
-			panic!("An error occurred on CSV row {}", self.count + 1);
-		};
+		let result = self.file
+			.read_record(&mut self.buf.data)
+			.map_err(|_| {
+				let message = format!(
+					"An error occurred on row {} when reading CSV file",
+					self.count + 1,
+				);
+
+				io::Error::new(io::ErrorKind::InvalidData, message)
+			})?;
 
 		if !result {
-			return None;
+			return Err(io::Error::new(
+				io::ErrorKind::UnexpectedEof,
+				"The end of the file has been reached",
+			));
 		}
 
 		self.count += 1;
 
-		let row = match T::new(&self.buf) {
-			Ok(row) => row,
-			Err(err) => panic!("Parse error on CSV row {}: {err:?}", self.count),
-		};
-
-		Some(row)
+		let row = T::new(&self.buf)?;
+		Ok(row)
 	}
 
 	/// Returns an iterator over the CSV file. The iterator takes a mutable
@@ -227,7 +237,15 @@ where
 	type Item = T;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		self.reader.read_row()
+		match self.reader.read_row() {
+			Ok(line) => Some(line),
+			Err(err) if err.kind() == io::ErrorKind::UnexpectedEof => None,
+
+			Err(_) => panic!(
+				"An error occurred on row {} when reading CSV file",
+				self.reader.count + 1,
+			),
+		}
 	}
 }
 
@@ -252,6 +270,14 @@ where
 	type Item = T;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		self.reader.read_row()
+		match self.reader.read_row() {
+			Ok(line) => Some(line),
+			Err(err) if err.kind() == io::ErrorKind::UnexpectedEof => None,
+
+			Err(_) => panic!(
+				"An error occurred on row {} when reading CSV file",
+				self.reader.count + 1,
+			),
+		}
 	}
 }

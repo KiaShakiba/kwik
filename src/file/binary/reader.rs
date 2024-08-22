@@ -170,8 +170,8 @@ where
 	}
 
 	/// Reads one chunk of the binary file, as specified by the chunk size,
-	/// and returns an option containing the parsed chunk. If the end of the
-	/// file is reached, `None` is returned.
+	/// and returns a `Result` containing the parsed chunk. If the end of the
+	/// file is reached, an `io::Error` is returned.
 	///
 	/// # Examples
 	/// ```no_run
@@ -184,7 +184,7 @@ where
 	///
 	/// let mut reader = BinaryReader::<MyStruct>::new("/path/to/file").unwrap();
 	///
-	/// while let Some(object) = reader.read_chunk() {
+	/// while let Ok(object) = reader.read_chunk() {
 	///     // do something with the object
 	/// }
 	///
@@ -207,23 +207,20 @@ where
 	///     fn size() -> usize { 4 }
 	/// }
 	/// ```
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the chunk could not be read.
 	#[inline]
-	pub fn read_chunk(&mut self) -> Option<T> {
-		match self.file.read_exact(&mut self.buf) {
-			Ok(_) => {
+	pub fn read_chunk(&mut self) -> io::Result<T> {
+		self.file
+			.read_exact(&mut self.buf)
+			.and_then(|_| {
 				self.count += 1;
 
-				let object = match T::new(&self.buf) {
-					Ok(object) => object,
-					Err(err) => panic!("Parse error in chunk {}: {err:?}", self.count),
-				};
-
-				Some(object)
-			},
-
-			Err(ref err) if err.kind() == io::ErrorKind::UnexpectedEof => None,
-			Err(_) => panic!("An error occurred when reading binary file"),
-		}
+				let object = T::new(&self.buf)?;
+				Ok(object)
+			})
 	}
 
 	/// Returns an iterator over the binary file. The iterator takes a mutable
@@ -279,7 +276,15 @@ where
 	type Item = T;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		self.reader.read_chunk()
+		match self.reader.read_chunk() {
+			Ok(chunk) => Some(chunk),
+			Err(err) if err.kind() == io::ErrorKind::UnexpectedEof => None,
+
+			Err(_) => panic!(
+				"An error occurred on chunk {} when reading binary file",
+				self.reader.count + 1,
+			),
+		}
 	}
 }
 
@@ -304,6 +309,14 @@ where
 	type Item = T;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		self.reader.read_chunk()
+		match self.reader.read_chunk() {
+			Ok(chunk) => Some(chunk),
+			Err(err) if err.kind() == io::ErrorKind::UnexpectedEof => None,
+
+			Err(_) => panic!(
+				"An error occurred on chunk {} when reading binary file",
+				self.reader.count + 1,
+			),
+		}
 	}
 }

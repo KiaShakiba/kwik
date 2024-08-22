@@ -52,14 +52,15 @@ impl TextWriter {
 	///
 	/// let mut reader = TextWriter::new("/path/to/file").unwrap();
 	///
-	/// reader.write_line(b"data");
+	/// reader.write_line(b"data").unwrap();
 	/// ```
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the line could not be written.
 	#[inline]
-	pub fn write_line(&mut self, line: &[u8]) {
+	pub fn write_line(&mut self, line: &[u8]) -> io::Result<()> {
 		self.count += 1;
-
-		if self.file.write_all(&[line, b"\n"].concat()).is_err() {
-			panic!("Could not write to text file at line {}", self.count);
-		}
+		self.file.write_all(&[line, b"\n"].concat())
 	}
 }

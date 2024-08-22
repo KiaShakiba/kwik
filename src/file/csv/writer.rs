@@ -104,7 +104,7 @@ where
 	///
 	/// let mut reader = CsvWriter::<MyStruct>::new("/path/to/file").unwrap();
 	///
-	/// reader.write_row(&MyStruct { data: 0 });
+	/// reader.write_row(&MyStruct { data: 0 }).unwrap();
 	///
 	/// struct MyStruct {
 	///     // data fields
@@ -121,21 +121,26 @@ where
 	///     }
 	/// }
 	/// ```
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the row could not be written.
 	#[inline]
-	pub fn write_row(&mut self, object: &T) {
+	pub fn write_row(&mut self, object: &T) -> io::Result<()> {
 		self.buf.data.clear();
 		self.count += 1;
 
-		assert!(
-			object.as_row(&mut self.buf).is_ok(),
-			"Error converting object {} to row",
-			self.count,
-		);
+		object.as_row(&mut self.buf)?;
 
-		assert!(
-			self.file.write_record(&self.buf.data).is_ok(),
-			"Could not write to CSV file at row {}",
-			self.count,
-		);
+		self.file
+			.write_record(&self.buf.data)
+			.map_err(|_| {
+				let message = format!(
+					"An error occurred on row {} when writing CSV file",
+					self.count,
+				);
+
+				io::Error::new(io::ErrorKind::InvalidData, message)
+			})
 	}
 }

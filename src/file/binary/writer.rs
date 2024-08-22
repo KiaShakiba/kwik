@@ -107,7 +107,7 @@ where
 	///
 	/// let mut reader = BinaryWriter::<MyStruct>::new("/path/to/file").unwrap();
 	///
-	/// reader.write_chunk(&MyStruct { data: 0 });
+	/// reader.write_chunk(&MyStruct { data: 0 }).unwrap();
 	///
 	/// struct MyStruct {
 	///     // data fields
@@ -128,21 +128,22 @@ where
 	///     fn size() -> usize { 4 }
 	/// }
 	/// ```
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the chunk could not be written.
 	#[inline]
-	pub fn write_chunk(&mut self, object: &T) {
+	pub fn write_chunk(&mut self, object: &T) -> io::Result<()> {
 		self.buf.clear();
 		self.count += 1;
 
-		if object.as_chunk(&mut self.buf).is_err() {
-			panic!("Error converting object {} to chunk", self.count);
-		}
+		object.as_chunk(&mut self.buf)?;
 
 		if self.buf.len() != T::size() {
-			panic!("Invalid chunk size at chunk {}", self.count);
+			let message = format!("Invalid chunk size at chunk {}", self.count);
+			return Err(io::Error::new(io::ErrorKind::InvalidData, message));
 		}
 
-		if self.file.write_all(&self.buf).is_err() {
-			panic!("Could not write to binary file at chunk {}", self.count);
-		}
+		self.file.write_all(&self.buf)
 	}
 }

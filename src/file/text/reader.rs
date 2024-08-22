@@ -61,8 +61,8 @@ impl FileReader for TextReader {
 }
 
 impl TextReader {
-	/// Reads one line of the text file and returns an option containing
-	/// the line. If the end of the file is reached, `None` is returned.
+	/// Reads one line of the text file and returns a `Result` containing
+	/// the line. If the end of the file is reached, an `io::Error` is returned.
 	///
 	/// # Examples
 	/// ```no_run
@@ -75,18 +75,26 @@ impl TextReader {
 	///
 	/// let mut reader = TextReader::new("/path/to/file").unwrap();
 	///
-	/// while let Some(line) = reader.read_line() {
+	/// while let Ok(line) = reader.read_line() {
 	///     // do something with the line
 	/// }
 	/// ```
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the line could not be read.
 	#[inline]
-	pub fn read_line(&mut self) -> Option<String> {
+	pub fn read_line(&mut self) -> io::Result<String> {
 		self.buf.clear();
 
-		match self.file.read_line(&mut self.buf) {
-			Ok(buf_size) => {
+		self.file
+			.read_line(&mut self.buf)
+			.and_then(|buf_size| {
 				if buf_size == 0 {
-					return None;
+					return Err(io::Error::new(
+						io::ErrorKind::UnexpectedEof,
+						"The end of the file has been reached",
+					));
 				}
 
 				self.count += 1;
@@ -99,12 +107,8 @@ impl TextReader {
 					}
 				}
 
-				Some(self.buf.clone())
-			},
-
-			Err(ref err) if err.kind() == io::ErrorKind::UnexpectedEof => None,
-			Err(_) => panic!("An error occurred on line {} when reading text file", self.count + 1),
-		}
+				Ok(self.buf.clone())
+			})
 	}
 
 	/// Returns an iterator over the text file. The iterator takes a mutable
@@ -138,7 +142,15 @@ impl<'a> Iterator for Iter<'a> {
 	type Item = String;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		self.reader.read_line()
+		match self.reader.read_line() {
+			Ok(line) => Some(line),
+			Err(err) if err.kind() == io::ErrorKind::UnexpectedEof => None,
+
+			Err(_) => panic!(
+				"An error occurred on line {} when reading text file",
+				self.reader.count + 1,
+			),
+		}
 	}
 }
 
@@ -157,6 +169,14 @@ impl Iterator for IntoIter {
 	type Item = String;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		self.reader.read_line()
+		match self.reader.read_line() {
+			Ok(line) => Some(line),
+			Err(err) if err.kind() == io::ErrorKind::UnexpectedEof => None,
+
+			Err(_) => panic!(
+				"An error occurred on line {} when reading text file",
+				self.reader.count + 1,
+			),
+		}
 	}
 }

@@ -6,7 +6,7 @@
  */
 
 use thiserror::Error;
-use sysinfo::{System, Pid as SysPid};
+use sysinfo::{System, Pid as SysPid, ProcessesToUpdate};
 use crate::sys::Pid;
 
 #[derive(Debug, Error)]
@@ -40,9 +40,12 @@ pub enum CpuError {
 pub fn usage(pid: Option<Pid>) -> Result<f64, CpuError> {
 	let pid = pid.unwrap_or(std::process::id());
 	let sys_pid = SysPid::from_u32(pid);
+	let refresh_pid = &[sys_pid];
 
 	let mut sys = System::new_all();
-	sys.refresh_process(sys_pid);
+	let process = ProcessesToUpdate::Some(refresh_pid);
+
+	sys.refresh_processes(process);
 
 	match sys.process(sys_pid) {
 		Some(process) => {

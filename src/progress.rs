@@ -262,7 +262,7 @@ impl Progress {
 			return;
 		}
 
-		for index in previous_amount..=amount {
+		for index in (previous_amount + 1)..=amount {
 			self.instants[index as usize] = Some(now);
 		}
 

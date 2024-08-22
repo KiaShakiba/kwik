@@ -69,10 +69,10 @@ where
 		None => String::from("/proc/self/status"),
 	};
 
-	let mut reader = TextReader::new(path)
+	let reader = TextReader::new(path)
 		.map_err(|_| MemError::Internal)?;
 
-	while let Some(line) = reader.read_line() {
+	for line in reader {
 		if line.starts_with(key) {
 			let parsed = &line[key.len() + 1..line.len() - 2]
 				.trim()

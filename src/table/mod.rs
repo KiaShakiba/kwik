@@ -219,11 +219,11 @@ impl Table {
 		let mut writer = CsvWriter::<Row>::new(path)?;
 
 		if let Some(header) = &self.header {
-			writer.write_row(header);
+			writer.write_row(header).unwrap();
 		}
 
 		for row in &self.rows {
-			writer.write_row(row);
+			writer.write_row(row).unwrap();
 		}
 
 		Ok(())
