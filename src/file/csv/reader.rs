@@ -19,7 +19,7 @@ use crate::file::{
 	csv::RowData,
 };
 
-/// Reads a CSV file in rows
+/// Reads a CSV file in rows.
 pub struct CsvReader<T>
 where
 	T: ReadRow,
@@ -98,7 +98,7 @@ where
 
 		let reader = CsvReader {
 			file: reader,
-			buf: RowData::new(),
+			buf: RowData::default(),
 			count: 0,
 
 			_marker: PhantomData,

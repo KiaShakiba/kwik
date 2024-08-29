@@ -11,22 +11,35 @@ mod writer;
 use std::io;
 use csv::StringRecord;
 
-/// CSV row data
+/// CSV row data.
+#[derive(Default)]
 pub struct RowData {
 	data: StringRecord,
 }
 
 impl RowData {
-	fn new() -> Self {
-		RowData {
-			data: StringRecord::new(),
-		}
+	/// Checks if the row is empty (i.e., has no columns).
+	#[inline]
+	pub fn is_empty(&self) -> bool {
+		self.data.is_empty()
 	}
 
-	/// Adds a new column to the end of the row.
+	/// Returns the number of columns in the row.
 	#[inline]
-	pub fn push(&mut self, value: &str) {
-		self.data.push_field(value);
+	pub fn len(&self) -> usize {
+		self.data.len()
+	}
+
+	/// Returns the size of the row in bytes, including commas
+	/// and the new line character.
+	#[inline]
+	pub fn size(&self) -> usize {
+		let items_size = self.data
+			.iter()
+			.map(|item| item.as_bytes().len())
+			.sum::<usize>();
+
+		items_size + self.data.len()
 	}
 
 	/// Returns the column data at the supplied index.
@@ -44,16 +57,10 @@ impl RowData {
 			))
 	}
 
-	/// Returns the size of the row in bytes, including commas
-	/// and the new line character.
+	/// Adds a new column to the end of the row.
 	#[inline]
-	pub fn size(&self) -> usize {
-		let items_size = self.data
-			.iter()
-			.map(|item| item.as_bytes().len())
-			.sum::<usize>();
-
-		items_size + self.data.len()
+	pub fn push(&mut self, value: &str) {
+		self.data.push_field(value);
 	}
 }
 

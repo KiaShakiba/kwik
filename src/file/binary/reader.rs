@@ -23,7 +23,7 @@ use crate::file::{
 	binary::SizedChunk,
 };
 
-/// Reads a binary file in chunks
+/// Reads a binary file in chunks.
 pub struct BinaryReader<T>
 where
 	T: ReadChunk,

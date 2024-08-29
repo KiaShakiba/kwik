@@ -19,7 +19,7 @@ use crate::file::{
 	csv::RowData,
 };
 
-/// Writes a CSV file in rows
+/// Writes a CSV file in rows.
 pub struct CsvWriter<T>
 where
 	T: WriteRow,
@@ -77,7 +77,7 @@ where
 
 		let writer = CsvWriter {
 			file,
-			buf: RowData::new(),
+			buf: RowData::default(),
 			count: 0,
 
 			_marker: PhantomData,

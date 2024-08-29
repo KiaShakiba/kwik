@@ -13,7 +13,7 @@ use std::{
 
 use crate::file::FileWriter;
 
-/// Writes a text file line-by-line
+/// Writes a text file line-by-line.
 pub struct TextWriter {
 	file: LineWriter<File>,
 	count: u64,

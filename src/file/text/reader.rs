@@ -13,7 +13,7 @@ use std::{
 
 use crate::file::FileReader;
 
-/// Reads a text file line-by-line
+/// Reads a text file line-by-line.
 pub struct TextReader {
 	file: BufReader<File>,
 	buf: String,

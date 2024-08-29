@@ -17,7 +17,7 @@ use crate::file::{
 	binary::SizedChunk,
 };
 
-/// Writes a binary file in chunks
+/// Writes a binary file in chunks.
 pub struct BinaryWriter<T>
 where
 	T: WriteChunk,
