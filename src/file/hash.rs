@@ -29,8 +29,8 @@ pub fn sha256sum<P>(path: P) -> io::Result<String>
 where
 	P: AsRef<Path>,
 {
-	let mut hasher = Sha256::new();
 	let mut file = File::open(path)?;
+	let mut hasher = Sha256::new();
 
 	io::copy(&mut file, &mut hasher)?;
 
@@ -52,8 +52,8 @@ pub fn sha512sum<P>(path: P) -> io::Result<String>
 where
 	P: AsRef<Path>,
 {
-	let mut hasher = Sha512::new();
 	let mut file = File::open(path)?;
+	let mut hasher = Sha512::new();
 
 	io::copy(&mut file, &mut hasher)?;
 
@@ -75,8 +75,8 @@ pub fn md5sum<P>(path: P) -> io::Result<String>
 where
 	P: AsRef<Path>,
 {
-	let mut hasher = Md5::new();
 	let mut file = File::open(path)?;
+	let mut hasher = Md5::new();
 
 	io::copy(&mut file, &mut hasher)?;
 
