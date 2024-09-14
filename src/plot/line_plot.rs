@@ -43,7 +43,7 @@ pub struct LinePlot {
 
 	lines: Vec<Line>,
 
-	hlines: Vec<f64>,
+	vlines: Vec<f64>,
 	points: Vec<(f64, f64)>,
 }
 
@@ -172,8 +172,8 @@ impl Plot for LinePlot {
 			axes.lines(&line.x_values, &line.y_values, &line_config);
 		}
 
-		for hline_x in &self.hlines {
-			let x = vec![hline_x, hline_x];
+		for vline_x in &self.vlines {
+			let x = vec![vline_x, vline_x];
 			let y = vec![self.min_y_value(), self.max_y_value()];
 
 			axes.lines(x, y, &[
@@ -325,9 +325,9 @@ impl LinePlot {
 		self.lines.push(line);
 	}
 
-	/// Adds a horizontal line to the plot at the supplied x-value.
-	pub fn hline(&mut self, x_value: f64) {
-		self.hlines.push(x_value);
+	/// Adds a vertical line to the plot at the supplied x-value.
+	pub fn vline(&mut self, x_value: f64) {
+		self.vlines.push(x_value);
 	}
 
 	/// Adds a point to the plot at the supplied coordinates.
