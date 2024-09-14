@@ -44,6 +44,8 @@ pub struct LinePlot {
 	lines: Vec<Line>,
 
 	vlines: Vec<f64>,
+	hlines: Vec<f64>,
+
 	points: Vec<(f64, f64)>,
 }
 
@@ -182,6 +184,16 @@ impl Plot for LinePlot {
 			]);
 		}
 
+		for hline_y in &self.hlines {
+			let x = vec![self.min_x_value(), self.max_x_value()];
+			let y = vec![hline_y, hline_y];
+
+			axes.lines(x, y, &[
+				LineWidth(2.0),
+				Color("blue"),
+			]);
+		}
+
 		for (x_value, y_value) in &self.points {
 			let x = vec![x_value];
 			let y = vec![y_value];
@@ -196,6 +208,54 @@ impl Plot for LinePlot {
 }
 
 impl LinePlot {
+	fn min_x_value(&self) -> f64 {
+		let mut min = self.x_min;
+
+		for line in &self.lines {
+			let line_min = line.x_values
+				.iter()
+				.min_by(|a, b| a.total_cmp(b))
+				.copied()
+				.unwrap_or(0.0);
+
+			if min.is_none() || min.is_some_and(|value| value > line_min) {
+				min = Some(line_min);
+			}
+		}
+
+		for vline_x in &self.vlines {
+			if min.is_none() || min.is_some_and(|value| value > *vline_x) {
+				min = Some(*vline_x);
+			}
+		}
+
+		min.unwrap_or(0.0)
+	}
+
+	fn max_x_value(&self) -> f64 {
+		let mut max = self.x_max;
+
+		for line in &self.lines {
+			let line_max = line.x_values
+				.iter()
+				.max_by(|a, b| a.total_cmp(b))
+				.copied()
+				.unwrap_or(0.0);
+
+			if max.is_none() || max.is_some_and(|value| value < line_max) {
+				max = Some(line_max);
+			}
+		}
+
+		for vline_x in &self.vlines {
+			if max.is_none() || max.is_some_and(|value| value < *vline_x) {
+				max = Some(*vline_x);
+			}
+		}
+
+		max.unwrap_or(0.0)
+	}
+
 	fn min_y_value(&self) -> f64 {
 		let mut min = self.y_min;
 
@@ -208,6 +268,12 @@ impl LinePlot {
 
 			if min.is_none() || min.is_some_and(|value| value > line_min) {
 				min = Some(line_min);
+			}
+		}
+
+		for hline_y in &self.hlines {
+			if min.is_none() || min.is_some_and(|value| value > *hline_y) {
+				min = Some(*hline_y);
 			}
 		}
 
@@ -226,6 +292,12 @@ impl LinePlot {
 
 			if max.is_none() || max.is_some_and(|value| value < line_max) {
 				max = Some(line_max);
+			}
+		}
+
+		for hline_y in &self.hlines {
+			if max.is_none() || max.is_some_and(|value| value < *hline_y) {
+				max = Some(*hline_y);
 			}
 		}
 
@@ -328,6 +400,11 @@ impl LinePlot {
 	/// Adds a vertical line to the plot at the supplied x-value.
 	pub fn vline(&mut self, x_value: f64) {
 		self.vlines.push(x_value);
+	}
+
+	/// Adds a horizontal line to the plot at the supplied y-value.
+	pub fn hline(&mut self, y_value: f64) {
+		self.hlines.push(y_value);
 	}
 
 	/// Adds a point to the plot at the supplied coordinates.
