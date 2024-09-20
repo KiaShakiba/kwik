@@ -22,7 +22,12 @@ use gnuplot::{
 
 use crate::{
 	math,
-	plot::{Plot, auto_option, COLORS},
+	plot::{
+		Plot,
+		auto_option,
+		COLORS,
+		value::{PlotValue, ToPlotValue},
+	},
 };
 
 /// A bar plot.
@@ -33,7 +38,7 @@ pub struct BarPlot {
 	x_label: Option<String>,
 	y_label: Option<String>,
 
-	y_max: Option<f64>,
+	y_max: Option<PlotValue>,
 
 	format_y_log: bool,
 	format_y_memory: bool,
@@ -52,7 +57,7 @@ pub struct BarGroup {
 #[derive(Clone)]
 pub struct Bar {
 	label: Option<String>,
-	value: f64,
+	value: PlotValue,
 }
 
 impl Plot for BarPlot {
@@ -101,7 +106,7 @@ impl Plot for BarPlot {
 		axes
 			.set_x_range(
 				AutoOption::Fix(0.0),
-				AutoOption::Fix(self.bar_groups.len() as f64 + 1.0)
+				AutoOption::Fix(self.bar_groups.len() as PlotValue + 1.0)
 			)
 			.set_y_range(
 				AutoOption::Fix(0.0),
@@ -112,7 +117,7 @@ impl Plot for BarPlot {
 					.iter()
 					.enumerate()
 					.map(|(index, label)| {
-						Major(index as f64 + 1.0, Fix(label))
+						Major(index as PlotValue + 1.0, Fix(label))
 					}),
 				&[
 					TickOption::Mirror(false),
@@ -199,13 +204,13 @@ impl Plot for BarPlot {
 
 impl BarPlot {
 	/// Sets the plot's maximum y-value.
-	pub fn set_y_max(&mut self, y_max: f64) {
-		self.y_max = Some(y_max);
+	pub fn set_y_max(&mut self, y_max: impl ToPlotValue) {
+		self.y_max = Some(y_max.to_plot_value());
 	}
 
 	/// Sets the plot's maximum y-value.
-	pub fn with_y_max(mut self, y_max: f64) -> Self {
-		self.y_max = Some(y_max);
+	pub fn with_y_max(mut self, y_max: impl ToPlotValue) -> Self {
+		self.y_max = Some(y_max.to_plot_value());
 		self
 	}
 
@@ -254,8 +259,8 @@ impl BarGroup {
 		self.bars.push(bar);
 	}
 
-	fn bar_width(&self) -> f64 {
-		*math::min(&[1.0 / self.bars.len() as f64, 0.15]).unwrap()
+	fn bar_width(&self) -> PlotValue {
+		*math::min(&[1.0 / self.bars.len() as PlotValue, 0.15]).unwrap()
 	}
 
 	fn bar_x_value(
@@ -263,21 +268,21 @@ impl BarGroup {
 		bar_group_index: usize,
 		num_bars: usize,
 		bar_index: usize,
-	) -> f64 {
-		let center = bar_group_index as f64 + 1.0;
-		let offset = num_bars as f64 / 2.0 - 0.5;
+	) -> PlotValue {
+		let center = bar_group_index as PlotValue + 1.0;
+		let offset = num_bars as PlotValue / 2.0 - 0.5;
 		let width = self.bar_width();
 
-		center + (bar_index as f64 - offset) * width
+		center + (bar_index as PlotValue - offset) * width
 	}
 }
 
 impl Bar {
 	/// Create a new bar with the supplied value.
-	pub fn new(value: f64) -> Self {
+	pub fn new(value: impl ToPlotValue) -> Self {
 		Bar {
 			label: None,
-			value,
+			value: value.to_plot_value(),
 		}
 	}
 
