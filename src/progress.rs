@@ -70,7 +70,13 @@ impl Progress {
 	///
 	/// Panics if the total is zero.
 	#[must_use]
-	pub fn new(total: u64) -> Self {
+	pub fn new<T>(total: T) -> Self
+	where
+		T: TryInto<u64> + Copy,
+		<T as TryInto<u64>>::Error: Debug,
+	{
+		let total: u64 = total.try_into().unwrap();
+
 		assert_ne!(total, 0, "Total cannot be zero.");
 
 		let now = Instant::now();
