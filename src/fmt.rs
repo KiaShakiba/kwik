@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::fmt::Debug;
+use num_traits::AsPrimitive;
 use num_format::{Locale, ToFormattedString};
 
 pub const MEMORY_UNITS: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
@@ -20,13 +20,8 @@ pub const MEMORY_UNITS: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB
 /// ```
 #[inline]
 #[must_use]
-pub fn number<T>(value: T) -> String
-where
-	T: TryInto<u64>,
-	<T as TryInto<u64>>::Error: Debug,
-{
-	let value: u64 = value.try_into().unwrap();
-	value.to_formatted_string(&Locale::en)
+pub fn number(value: impl AsPrimitive<u64>) -> String {
+	value.as_().to_formatted_string(&Locale::en)
 }
 
 /// Formats a number of bytes with memory units, rounded
@@ -40,13 +35,10 @@ where
 /// ```
 #[inline]
 #[must_use]
-pub fn memory<T>(value: T, precision: Option<usize>) -> String
-where
-	T: TryInto<u64>,
-	<T as TryInto<u64>>::Error: Debug,
-{
-	let value: u64 = value.try_into().unwrap();
-	let mut copy = value as f64;
+pub fn memory(value: impl AsPrimitive<u64>, precision: Option<usize>) -> String {
+	let value = value.as_();
+	let mut copy: f64 = value.as_();
+
 	let decimals = precision.unwrap_or(0);
 	let mut count: usize = 0;
 
@@ -69,12 +61,8 @@ where
 /// assert_eq!(fmt::timespan(1234567), "20:34.567");
 /// ```
 #[must_use]
-pub fn timespan<T>(value: T) -> String
-where
-	T: TryInto<u64>,
-	<T as TryInto<u64>>::Error: Debug,
-{
-	let mut milliseconds: u64 = value.try_into().unwrap();
+pub fn timespan(value: impl AsPrimitive<u64>) -> String {
+	let mut milliseconds: u64 = value.as_();
 
 	let days = milliseconds / 1000 / 60 / 60 / 24;
 	milliseconds -= days * 1000 * 60 * 60 * 24;

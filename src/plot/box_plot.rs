@@ -22,14 +22,10 @@ use gnuplot::{
 	DashType,
 };
 
+use num_traits::AsPrimitive;
 use indexmap::IndexMap;
 use statrs::statistics::{Data, Min, Max, Distribution, OrderStatistics};
-
-use crate::plot::{
-	Plot,
-	auto_option,
-	value::{PlotValue, ToPlotValue},
-};
+use crate::plot::{Plot, auto_option};
 
 /// A box plot.
 #[derive(Default, Clone)]
@@ -39,28 +35,28 @@ pub struct BoxPlot {
 	x_label: Option<String>,
 	y_label: Option<String>,
 
-	y_min: Option<PlotValue>,
-	y_max: Option<PlotValue>,
+	y_min: Option<f64>,
+	y_max: Option<f64>,
 
-	y_tick: Option<PlotValue>,
+	y_tick: Option<f64>,
 
 	format_y_log: bool,
 	format_y_memory: bool,
 
-	map: IndexMap<String, Vec<PlotValue>>,
+	map: IndexMap<String, Vec<f64>>,
 
 	colors: HashMap<String, String>,
 }
 
 struct Stats {
-	min: PlotValue,
-	max: PlotValue,
+	min: f64,
+	max: f64,
 
-	mean: PlotValue,
-	median: PlotValue,
+	mean: f64,
+	median: f64,
 
-	q1: PlotValue,
-	q3: PlotValue,
+	q1: f64,
+	q3: f64,
 }
 
 impl Plot for BoxPlot {
@@ -109,7 +105,7 @@ impl Plot for BoxPlot {
 		axes
 			.set_x_range(
 				AutoOption::Fix(0.0),
-				AutoOption::Fix(self.map.len() as PlotValue + 1.0)
+				AutoOption::Fix(self.map.len() as f64 + 1.0)
 			)
 			.set_y_range(
 				auto_option(self.y_min),
@@ -120,7 +116,7 @@ impl Plot for BoxPlot {
 					.iter()
 					.enumerate()
 					.map(|(index, label)| {
-						Major(index as PlotValue + 1.0, Fix(label))
+						Major(index as f64 + 1.0, Fix(label))
 					}),
 				&[
 					TickOption::Mirror(false),
@@ -172,7 +168,7 @@ impl Plot for BoxPlot {
 		}
 
 		for (index, label) in labels.iter().enumerate() {
-			let x_value = index as PlotValue + 1.0;
+			let x_value = index as f64 + 1.0;
 			let stats = self.get_stats(label);
 
 			let color = self.colors
@@ -219,35 +215,35 @@ impl Plot for BoxPlot {
 
 impl BoxPlot {
 	/// Sets the plot's minimum y-value.
-	pub fn set_y_min(&mut self, y_min: impl ToPlotValue) {
-		self.y_min = Some(y_min.to_plot_value());
+	pub fn set_y_min(&mut self, y_min: impl AsPrimitive<f64>) {
+		self.y_min = Some(y_min.as_());
 	}
 
 	/// Sets the plot's minimum y-value.
-	pub fn with_y_min(mut self, y_min: impl ToPlotValue) -> Self {
-		self.y_min = Some(y_min.to_plot_value());
+	pub fn with_y_min(mut self, y_min: impl AsPrimitive<f64>) -> Self {
+		self.y_min = Some(y_min.as_());
 		self
 	}
 
 	/// Sets the plot's maximum y-value.
-	pub fn set_y_max(&mut self, y_max: impl ToPlotValue) {
-		self.y_max = Some(y_max.to_plot_value());
+	pub fn set_y_max(&mut self, y_max: impl AsPrimitive<f64>) {
+		self.y_max = Some(y_max.as_());
 	}
 
 	/// Sets the plot's maximum y-value.
-	pub fn with_y_max(mut self, y_max: impl ToPlotValue) -> Self {
-		self.y_max = Some(y_max.to_plot_value());
+	pub fn with_y_max(mut self, y_max: impl AsPrimitive<f64>) -> Self {
+		self.y_max = Some(y_max.as_());
 		self
 	}
 
 	/// Sets the plot's y-tick value.
-	pub fn set_y_tick(&mut self, y_tick: impl ToPlotValue) {
-		self.y_tick = Some(y_tick.to_plot_value());
+	pub fn set_y_tick(&mut self, y_tick: impl AsPrimitive<f64>) {
+		self.y_tick = Some(y_tick.as_());
 	}
 
 	/// Sets the plot's y-tick value.
-	pub fn with_y_tick(mut self, y_tick: impl ToPlotValue) -> Self {
-		self.y_tick = Some(y_tick.to_plot_value());
+	pub fn with_y_tick(mut self, y_tick: impl AsPrimitive<f64>) -> Self {
+		self.y_tick = Some(y_tick.as_());
 		self
 	}
 
@@ -286,12 +282,12 @@ impl BoxPlot {
 
 	/// Adds a data point to a box if it exists. Otherwise, creates a new
 	/// box with the supplied label.
-	pub fn add(&mut self, label: &str, value: impl ToPlotValue) {
+	pub fn add(&mut self, label: &str, value: impl AsPrimitive<f64>) {
 		match self.map.get_mut(label) {
-			Some(values) => values.push(value.to_plot_value()),
+			Some(values) => values.push(value.as_()),
 
 			None => {
-				self.map.insert(label.into(), vec![value.to_plot_value()]);
+				self.map.insert(label.into(), vec![value.as_()]);
 			}
 		}
 	}
@@ -305,7 +301,7 @@ impl BoxPlot {
 }
 
 impl Stats {
-	fn new(values: &mut Vec<PlotValue>) -> Self {
+	fn new(values: &mut Vec<f64>) -> Self {
 		let mut data = Data::new(values);
 
 		Stats {
@@ -320,12 +316,12 @@ impl Stats {
 		}
 	}
 
-	fn min(&self) -> PlotValue { self.min }
-	fn max(&self) -> PlotValue { self.max }
+	fn min(&self) -> f64 { self.min }
+	fn max(&self) -> f64 { self.max }
 
-	fn mean(&self) -> PlotValue { self.mean }
-	fn median(&self) -> PlotValue { self.median }
+	fn mean(&self) -> f64 { self.mean }
+	fn median(&self) -> f64 { self.median }
 
-	fn q1(&self) -> PlotValue { self.q1 }
-	fn q3(&self) -> PlotValue { self.q3 }
+	fn q1(&self) -> f64 { self.q1 }
+	fn q3(&self) -> f64 { self.q3 }
 }

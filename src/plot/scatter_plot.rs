@@ -17,11 +17,8 @@ use gnuplot::{
 	TickOption,
 };
 
-use crate::plot::{
-	Plot,
-	auto_option,
-	value::{PlotValue, ToPlotValue},
-};
+use num_traits::AsPrimitive;
+use crate::plot::{Plot, auto_option};
 
 /// A scatter plot.
 #[derive(Default, Clone)]
@@ -31,19 +28,19 @@ pub struct ScatterPlot {
 	x_label: Option<String>,
 	y_label: Option<String>,
 
-	x_min: Option<PlotValue>,
-	x_max: Option<PlotValue>,
+	x_min: Option<f64>,
+	x_max: Option<f64>,
 
-	y_min: Option<PlotValue>,
-	y_max: Option<PlotValue>,
+	y_min: Option<f64>,
+	y_max: Option<f64>,
 
-	x_tick: Option<PlotValue>,
-	y_tick: Option<PlotValue>,
+	x_tick: Option<f64>,
+	y_tick: Option<f64>,
 
 	format_x_log: bool,
 	format_y_log: bool,
 
-	points: Vec<(PlotValue, PlotValue)>,
+	points: Vec<(f64, f64)>,
 }
 
 impl Plot for ScatterPlot {
@@ -142,8 +139,8 @@ impl Plot for ScatterPlot {
 			axes.set_y_log(Some(10.0));
 		}
 
-		let mut x_values = Vec::<PlotValue>::new();
-		let mut y_values = Vec::<PlotValue>::new();
+		let mut x_values = Vec::<f64>::new();
+		let mut y_values = Vec::<f64>::new();
 
 		for (x_value, y_value) in &self.points {
 			x_values.push(*x_value);
@@ -164,68 +161,68 @@ impl Plot for ScatterPlot {
 
 impl ScatterPlot {
 	/// Sets the plot's minimum x-value.
-	pub fn set_x_min(&mut self, x_min: impl ToPlotValue) {
-		self.x_min = Some(x_min.to_plot_value());
+	pub fn set_x_min(&mut self, x_min: impl AsPrimitive<f64>) {
+		self.x_min = Some(x_min.as_());
 	}
 
 	/// Sets the plot's minimum x-value.
-	pub fn with_x_min(mut self, x_min: impl ToPlotValue) -> Self {
-		self.x_min = Some(x_min.to_plot_value());
+	pub fn with_x_min(mut self, x_min: impl AsPrimitive<f64>) -> Self {
+		self.x_min = Some(x_min.as_());
 		self
 	}
 
 	/// Sets the plot's maximum x-value.
-	pub fn set_x_max(&mut self, x_max: impl ToPlotValue) {
-		self.x_max = Some(x_max.to_plot_value());
+	pub fn set_x_max(&mut self, x_max: impl AsPrimitive<f64>) {
+		self.x_max = Some(x_max.as_());
 	}
 
 	/// Sets the plot's maximum x-value.
-	pub fn with_x_max(mut self, x_max: impl ToPlotValue) -> Self {
-		self.x_max = Some(x_max.to_plot_value());
+	pub fn with_x_max(mut self, x_max: impl AsPrimitive<f64>) -> Self {
+		self.x_max = Some(x_max.as_());
 		self
 	}
 
 	/// Sets the plot's minimum y-value.
-	pub fn set_y_min(&mut self, y_min: impl ToPlotValue) {
-		self.y_min = Some(y_min.to_plot_value());
+	pub fn set_y_min(&mut self, y_min: impl AsPrimitive<f64>) {
+		self.y_min = Some(y_min.as_());
 	}
 
 	/// Sets the plot's minimum y-value.
-	pub fn with_y_min(mut self, y_min: impl ToPlotValue) -> Self {
-		self.y_min = Some(y_min.to_plot_value());
+	pub fn with_y_min(mut self, y_min: impl AsPrimitive<f64>) -> Self {
+		self.y_min = Some(y_min.as_());
 		self
 	}
 
 	/// Sets the plot's maximum y-value.
-	pub fn set_y_max(&mut self, y_max: impl ToPlotValue) {
-		self.y_max = Some(y_max.to_plot_value());
+	pub fn set_y_max(&mut self, y_max: impl AsPrimitive<f64>) {
+		self.y_max = Some(y_max.as_());
 	}
 
 	/// Sets the plot's maximum y-value.
-	pub fn with_y_max(mut self, y_max: impl ToPlotValue) -> Self {
-		self.y_max = Some(y_max.to_plot_value());
+	pub fn with_y_max(mut self, y_max: impl AsPrimitive<f64>) -> Self {
+		self.y_max = Some(y_max.as_());
 		self
 	}
 
 	/// Sets the plot's x-tick value.
-	pub fn set_x_tick(&mut self, x_tick: impl ToPlotValue) {
-		self.x_tick = Some(x_tick.to_plot_value());
+	pub fn set_x_tick(&mut self, x_tick: impl AsPrimitive<f64>) {
+		self.x_tick = Some(x_tick.as_());
 	}
 
 	/// Sets the plot's x-tick value.
-	pub fn with_x_tick(mut self, x_tick: impl ToPlotValue) -> Self {
-		self.x_tick = Some(x_tick.to_plot_value());
+	pub fn with_x_tick(mut self, x_tick: impl AsPrimitive<f64>) -> Self {
+		self.x_tick = Some(x_tick.as_());
 		self
 	}
 
 	/// Sets the plot's y-tick value.
-	pub fn set_y_tick(&mut self, y_tick: impl ToPlotValue) {
-		self.y_tick = Some(y_tick.to_plot_value());
+	pub fn set_y_tick(&mut self, y_tick: impl AsPrimitive<f64>) {
+		self.y_tick = Some(y_tick.as_());
 	}
 
 	/// Sets the plot's y-tick value.
-	pub fn with_y_tick(mut self, y_tick: impl ToPlotValue) -> Self {
-		self.y_tick = Some(y_tick.to_plot_value());
+	pub fn with_y_tick(mut self, y_tick: impl AsPrimitive<f64>) -> Self {
+		self.y_tick = Some(y_tick.as_());
 		self
 	}
 
@@ -252,7 +249,7 @@ impl ScatterPlot {
 	}
 
 	/// Adds a point to the plot at the supplied coordinates.
-	pub fn point(&mut self, x_value: impl ToPlotValue, y_value: impl ToPlotValue) {
-		self.points.push((x_value.to_plot_value(), y_value.to_plot_value()));
+	pub fn point(&mut self, x_value: impl AsPrimitive<f64>, y_value: impl AsPrimitive<f64>) {
+		self.points.push((x_value.as_(), y_value.as_()));
 	}
 }

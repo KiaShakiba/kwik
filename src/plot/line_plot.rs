@@ -19,13 +19,8 @@ use gnuplot::{
 	PointSize,
 };
 
-use crate::plot::{
-	Plot,
-	auto_option,
-	COLORS,
-	DASH_TYPES,
-	value::{PlotValue, ToPlotValue},
-};
+use num_traits::AsPrimitive;
+use crate::plot::{Plot, auto_option, COLORS, DASH_TYPES};
 
 /// A line plot.
 #[derive(Default, Clone)]
@@ -35,24 +30,24 @@ pub struct LinePlot {
 	x_label: Option<String>,
 	y_label: Option<String>,
 
-	x_min: Option<PlotValue>,
-	x_max: Option<PlotValue>,
+	x_min: Option<f64>,
+	x_max: Option<f64>,
 
-	y_min: Option<PlotValue>,
-	y_max: Option<PlotValue>,
+	y_min: Option<f64>,
+	y_max: Option<f64>,
 
-	x_tick: Option<PlotValue>,
-	y_tick: Option<PlotValue>,
+	x_tick: Option<f64>,
+	y_tick: Option<f64>,
 
 	format_x_log: bool,
 	format_y_log: bool,
 
 	lines: Vec<Line>,
 
-	vlines: Vec<PlotValue>,
-	hlines: Vec<PlotValue>,
+	vlines: Vec<f64>,
+	hlines: Vec<f64>,
 
-	points: Vec<(PlotValue, PlotValue)>,
+	points: Vec<(f64, f64)>,
 }
 
 /// An individual line on a line plot.
@@ -60,8 +55,8 @@ pub struct LinePlot {
 pub struct Line {
 	label: Option<String>,
 
-	x_values: Vec<PlotValue>,
-	y_values: Vec<PlotValue>,
+	x_values: Vec<f64>,
+	y_values: Vec<f64>,
 }
 
 impl Plot for LinePlot {
@@ -214,7 +209,7 @@ impl Plot for LinePlot {
 }
 
 impl LinePlot {
-	fn min_x_value(&self) -> PlotValue {
+	fn min_x_value(&self) -> f64 {
 		let mut min = self.x_min;
 
 		for line in &self.lines {
@@ -238,7 +233,7 @@ impl LinePlot {
 		min.unwrap_or(0.0)
 	}
 
-	fn max_x_value(&self) -> PlotValue {
+	fn max_x_value(&self) -> f64 {
 		let mut max = self.x_max;
 
 		for line in &self.lines {
@@ -262,7 +257,7 @@ impl LinePlot {
 		max.unwrap_or(0.0)
 	}
 
-	fn min_y_value(&self) -> PlotValue {
+	fn min_y_value(&self) -> f64 {
 		let mut min = self.y_min;
 
 		for line in &self.lines {
@@ -286,7 +281,7 @@ impl LinePlot {
 		min.unwrap_or(0.0)
 	}
 
-	fn max_y_value(&self) -> PlotValue {
+	fn max_y_value(&self) -> f64 {
 		let mut max = self.y_max;
 
 		for line in &self.lines {
@@ -311,68 +306,68 @@ impl LinePlot {
 	}
 
 	/// Sets the plot's minimum x-value.
-	pub fn set_x_min(&mut self, x_min: impl ToPlotValue) {
-		self.x_min = Some(x_min.to_plot_value());
+	pub fn set_x_min(&mut self, x_min: impl AsPrimitive<f64>) {
+		self.x_min = Some(x_min.as_());
 	}
 
 	/// Sets the plot's minimum x-value.
-	pub fn with_x_min(mut self, x_min: impl ToPlotValue) -> Self {
-		self.x_min = Some(x_min.to_plot_value());
+	pub fn with_x_min(mut self, x_min: impl AsPrimitive<f64>) -> Self {
+		self.x_min = Some(x_min.as_());
 		self
 	}
 
 	/// Sets the plot's maximum x-value.
-	pub fn set_x_max(&mut self, x_max: impl ToPlotValue) {
-		self.x_max = Some(x_max.to_plot_value());
+	pub fn set_x_max(&mut self, x_max: impl AsPrimitive<f64>) {
+		self.x_max = Some(x_max.as_());
 	}
 
 	/// Sets the plot's maximum x-value.
-	pub fn with_x_max(mut self, x_max: impl ToPlotValue) -> Self {
-		self.x_max = Some(x_max.to_plot_value());
+	pub fn with_x_max(mut self, x_max: impl AsPrimitive<f64>) -> Self {
+		self.x_max = Some(x_max.as_());
 		self
 	}
 
 	/// Sets the plot's minimum y-value.
-	pub fn set_y_min(&mut self, y_min: impl ToPlotValue) {
-		self.y_min = Some(y_min.to_plot_value());
+	pub fn set_y_min(&mut self, y_min: impl AsPrimitive<f64>) {
+		self.y_min = Some(y_min.as_());
 	}
 
 	/// Sets the plot's minimum y-value.
-	pub fn with_y_min(mut self, y_min: impl ToPlotValue) -> Self {
-		self.y_min = Some(y_min.to_plot_value());
+	pub fn with_y_min(mut self, y_min: impl AsPrimitive<f64>) -> Self {
+		self.y_min = Some(y_min.as_());
 		self
 	}
 
 	/// Sets the plot's maximum y-value.
-	pub fn set_y_max(&mut self, y_max: impl ToPlotValue) {
-		self.y_max = Some(y_max.to_plot_value());
+	pub fn set_y_max(&mut self, y_max: impl AsPrimitive<f64>) {
+		self.y_max = Some(y_max.as_());
 	}
 
 	/// Sets the plot's maximum y-value.
-	pub fn with_y_max(mut self, y_max: impl ToPlotValue) -> Self {
-		self.y_max = Some(y_max.to_plot_value());
+	pub fn with_y_max(mut self, y_max: impl AsPrimitive<f64>) -> Self {
+		self.y_max = Some(y_max.as_());
 		self
 	}
 
 	/// Sets the plot's x-tick value.
-	pub fn set_x_tick(&mut self, x_tick: impl ToPlotValue) {
-		self.x_tick = Some(x_tick.to_plot_value());
+	pub fn set_x_tick(&mut self, x_tick: impl AsPrimitive<f64>) {
+		self.x_tick = Some(x_tick.as_());
 	}
 
 	/// Sets the plot's x-tick value.
-	pub fn with_x_tick(mut self, x_tick: impl ToPlotValue) -> Self {
-		self.x_tick = Some(x_tick.to_plot_value());
+	pub fn with_x_tick(mut self, x_tick: impl AsPrimitive<f64>) -> Self {
+		self.x_tick = Some(x_tick.as_());
 		self
 	}
 
 	/// Sets the plot's y-tick value.
-	pub fn set_y_tick(&mut self, y_tick: impl ToPlotValue) {
-		self.y_tick = Some(y_tick.to_plot_value());
+	pub fn set_y_tick(&mut self, y_tick: impl AsPrimitive<f64>) {
+		self.y_tick = Some(y_tick.as_());
 	}
 
 	/// Sets the plot's y-tick value.
-	pub fn with_y_tick(mut self, y_tick: impl ToPlotValue) -> Self {
-		self.y_tick = Some(y_tick.to_plot_value());
+	pub fn with_y_tick(mut self, y_tick: impl AsPrimitive<f64>) -> Self {
+		self.y_tick = Some(y_tick.as_());
 		self
 	}
 
@@ -404,18 +399,18 @@ impl LinePlot {
 	}
 
 	/// Adds a vertical line to the plot at the supplied x-value.
-	pub fn vline(&mut self, x_value: impl ToPlotValue) {
-		self.vlines.push(x_value.to_plot_value());
+	pub fn vline(&mut self, x_value: impl AsPrimitive<f64>) {
+		self.vlines.push(x_value.as_());
 	}
 
 	/// Adds a horizontal line to the plot at the supplied y-value.
-	pub fn hline(&mut self, y_value: impl ToPlotValue) {
-		self.hlines.push(y_value.to_plot_value());
+	pub fn hline(&mut self, y_value: impl AsPrimitive<f64>) {
+		self.hlines.push(y_value.as_());
 	}
 
 	/// Adds a point to the plot at the supplied coordinates.
-	pub fn point(&mut self, x_value: impl ToPlotValue, y_value: impl ToPlotValue) {
-		self.points.push((x_value.to_plot_value(), y_value.to_plot_value()));
+	pub fn point(&mut self, x_value: impl AsPrimitive<f64>, y_value: impl AsPrimitive<f64>) {
+		self.points.push((x_value.as_(), y_value.as_()));
 	}
 }
 
@@ -437,8 +432,8 @@ impl Line {
 	}
 
 	/// Adds a data point to the line.
-	pub fn push(&mut self, x: impl ToPlotValue, y: impl ToPlotValue) {
-		self.x_values.push(x.to_plot_value());
-		self.y_values.push(y.to_plot_value());
+	pub fn push(&mut self, x: impl AsPrimitive<f64>, y: impl AsPrimitive<f64>) {
+		self.x_values.push(x.as_());
+		self.y_values.push(y.as_());
 	}
 }

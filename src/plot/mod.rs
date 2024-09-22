@@ -5,7 +5,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-pub mod value;
 pub mod figure;
 pub mod line_plot;
 pub mod box_plot;

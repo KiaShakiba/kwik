@@ -1,6 +1,6 @@
 [package]
 name = "kwik"
-version = "1.9.4"
+version = "1.9.5"
 edition = "2021"
 
 [dependencies]
@@ -9,6 +9,7 @@ gnuplot = "0.0.43"
 indexmap = "2.5.0"
 md-5 = "0.10.6"
 num-format = "0.4.4"
+num-traits = "0.2.19"
 rand = { version = "0.8.5", "features" = ["small_rng"] }
 rayon = "1.10.0"
 sha2 = "0.10.8"

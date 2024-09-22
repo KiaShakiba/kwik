@@ -12,6 +12,7 @@ use std::{
 	time::{Instant, Duration},
 };
 
+use num_traits::AsPrimitive;
 use crate::{fmt, math};
 
 const DEFAULT_WIDTH: u64 = 70;
@@ -70,12 +71,8 @@ impl Progress {
 	///
 	/// Panics if the total is zero.
 	#[must_use]
-	pub fn new<T>(total: T) -> Self
-	where
-		T: TryInto<u64> + Copy,
-		<T as TryInto<u64>>::Error: Debug,
-	{
-		let total: u64 = total.try_into().unwrap();
+	pub fn new(total: impl AsPrimitive<u64>) -> Self {
+		let total = total.as_();
 
 		assert_ne!(total, 0, "Total cannot be zero.");
 
@@ -116,7 +113,9 @@ impl Progress {
 	///
 	/// Panics if the width is zero.
 	#[inline]
-	pub fn set_width(&mut self, width: u64) {
+	pub fn set_width(&mut self, width: impl AsPrimitive<u64>) {
+		let width = width.as_();
+
 		assert_ne!(width, 0, "Width cannot be zero.");
 		self.width = width;
 	}
@@ -128,7 +127,7 @@ impl Progress {
 	/// Panics if the width is zero.
 	#[inline]
 	#[must_use]
-	pub fn with_width(mut self, width: u64) -> Self {
+	pub fn with_width(mut self, width: impl AsPrimitive<u64>) -> Self {
 		self.set_width(width);
 		self
 	}
@@ -236,12 +235,8 @@ impl Progress {
 	///
 	/// Panics if the tick amount is greater than the total.
 	#[inline]
-	pub fn tick<T>(&mut self, value: T)
-	where
-		T: TryInto<u64> + Copy,
-		<T as TryInto<u64>>::Error: Debug,
-	{
-		self.set(self.current + value.try_into().unwrap());
+	pub fn tick(&mut self, value: impl AsPrimitive<u64>) {
+		self.set(self.current + value.as_());
 	}
 
 	fn set(&mut self, value: u64) {
