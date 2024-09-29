@@ -69,8 +69,6 @@ impl<T> FileWriter for BinaryWriter<T>
 where
 	T: WriteChunk,
 {
-	/// Opens the file at the supplied path. If the file could not be
-	/// opened, returns an error result.
 	fn new<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
@@ -87,6 +85,10 @@ where
 		};
 
 		Ok(writer)
+	}
+
+	fn flush(&mut self) -> io::Result<()> {
+		self.file.flush()
 	}
 }
 

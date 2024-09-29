@@ -20,8 +20,6 @@ pub struct TextWriter {
 }
 
 impl FileWriter for TextWriter {
-	/// Opens the file at the supplied path. If the file could not be
-	/// opened, returns an error result.
 	fn new<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
@@ -35,6 +33,10 @@ impl FileWriter for TextWriter {
 		};
 
 		Ok(writer)
+	}
+
+	fn flush(&mut self) -> io::Result<()> {
+		self.file.flush()
 	}
 }
 

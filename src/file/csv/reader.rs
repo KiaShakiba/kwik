@@ -85,8 +85,6 @@ impl<T> FileReader for CsvReader<T>
 where
 	T: ReadRow,
 {
-	/// Opens the file at the supplied path. If the file could not be
-	/// opened, returns an error result.
 	fn new<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
@@ -107,7 +105,6 @@ where
 		Ok(reader)
 	}
 
-	/// Returns the number of bytes in the opened file.
 	#[inline]
 	fn size(&self) -> u64 {
 		let metadata = self.file
