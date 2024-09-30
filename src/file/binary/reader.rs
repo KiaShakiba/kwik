@@ -322,3 +322,61 @@ where
 		}
 	}
 }
+
+macro_rules! impl_read_chunk_primitive {
+	(char) => {
+		impl ReadChunk for char {
+			#[inline]
+			fn new(buf: &[u8]) -> io::Result<Self>
+			where
+				Self: Sized,
+			{
+				Ok(buf[0] as char)
+			}
+		}
+	};
+
+	(bool) => {
+		impl ReadChunk for bool {
+			#[inline]
+			fn new(buf: &[u8]) -> io::Result<Self>
+			where
+				Self: Sized,
+			{
+				Ok(buf[0] != 0)
+			}
+		}
+	};
+
+	($T:ty) => {
+		impl ReadChunk for $T {
+			#[inline]
+			fn new(buf: &[u8]) -> io::Result<Self>
+			where
+				Self: Sized,
+			{
+				let (buf, _) = buf.split_at(<$T>::size());
+				let value = <$T>::from_le_bytes(buf.try_into().unwrap());
+
+				Ok(value)
+			}
+		}
+	};
+}
+
+impl_read_chunk_primitive!(u8);
+impl_read_chunk_primitive!(i8);
+impl_read_chunk_primitive!(u16);
+impl_read_chunk_primitive!(i16);
+impl_read_chunk_primitive!(u32);
+impl_read_chunk_primitive!(i32);
+impl_read_chunk_primitive!(u64);
+impl_read_chunk_primitive!(i64);
+impl_read_chunk_primitive!(u128);
+impl_read_chunk_primitive!(i128);
+impl_read_chunk_primitive!(usize);
+impl_read_chunk_primitive!(isize);
+impl_read_chunk_primitive!(f32);
+impl_read_chunk_primitive!(f64);
+impl_read_chunk_primitive!(char);
+impl_read_chunk_primitive!(bool);

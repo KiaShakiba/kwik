@@ -154,3 +154,53 @@ where
 		self.file.write_all(&self.buf)
 	}
 }
+
+
+macro_rules! impl_write_chunk_primitive {
+	(char) => {
+		impl WriteChunk for char {
+			#[inline]
+			fn as_chunk(&self, buf: &mut Vec<u8>) -> io::Result<()> {
+				let byte = *self as u8;
+				byte.as_chunk(buf)
+			}
+		}
+	};
+
+	(bool) => {
+		impl WriteChunk for bool {
+			#[inline]
+			fn as_chunk(&self, buf: &mut Vec<u8>) -> io::Result<()> {
+				let byte: u8 = if *self { 1 } else { 0 };
+				byte.as_chunk(buf)
+			}
+		}
+	};
+
+	($T:ty) => {
+		impl WriteChunk for $T {
+			#[inline]
+			fn as_chunk(&self, buf: &mut Vec<u8>) -> io::Result<()> {
+				buf.extend_from_slice(&self.to_le_bytes());
+				Ok(())
+			}
+		}
+	};
+}
+
+impl_write_chunk_primitive!(u8);
+impl_write_chunk_primitive!(i8);
+impl_write_chunk_primitive!(u16);
+impl_write_chunk_primitive!(i16);
+impl_write_chunk_primitive!(u32);
+impl_write_chunk_primitive!(i32);
+impl_write_chunk_primitive!(u64);
+impl_write_chunk_primitive!(i64);
+impl_write_chunk_primitive!(u128);
+impl_write_chunk_primitive!(i128);
+impl_write_chunk_primitive!(usize);
+impl_write_chunk_primitive!(isize);
+impl_write_chunk_primitive!(f32);
+impl_write_chunk_primitive!(f64);
+impl_write_chunk_primitive!(char);
+impl_write_chunk_primitive!(bool);
