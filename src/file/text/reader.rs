@@ -30,15 +30,20 @@ pub struct IntoIter {
 }
 
 impl FileReader for TextReader {
-	fn new<P>(path: P) -> io::Result<Self>
+	fn from_path<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
 	{
-		let opened_file = File::open(path)?;
+		TextReader::from_file(File::open(path)?)
+	}
 
+	fn from_file(file: File) -> io::Result<Self>
+	where
+		Self: Sized,
+	{
 		let reader = TextReader {
-			file: BufReader::new(opened_file),
+			file: BufReader::new(file),
 			buf: String::new(),
 			count: 0,
 		};
@@ -70,7 +75,7 @@ impl TextReader {
 	///     text::TextReader,
 	/// };
 	///
-	/// let mut reader = TextReader::new("/path/to/file").unwrap();
+	/// let mut reader = TextReader::from_path("/path/to/file").unwrap();
 	///
 	/// while let Ok(line) = reader.read_line() {
 	///     // do something with the line
@@ -121,7 +126,7 @@ impl TextReader {
 	///     text::TextReader,
 	/// };
 	///
-	/// let mut reader = TextReader::new("/path/to/file").unwrap();
+	/// let mut reader = TextReader::from_path("/path/to/file").unwrap();
 	///
 	/// for line in reader.iter() {
 	///     // do something with the line

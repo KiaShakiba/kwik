@@ -69,7 +69,7 @@ where
 		None => String::from("/proc/self/status"),
 	};
 
-	let reader = TextReader::new(path)
+	let reader = TextReader::from_path(path)
 		.map_err(|_| MemError::Internal)?;
 
 	for line in reader {

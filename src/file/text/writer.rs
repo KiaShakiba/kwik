@@ -20,15 +20,20 @@ pub struct TextWriter {
 }
 
 impl FileWriter for TextWriter {
-	fn new<P>(path: P) -> io::Result<Self>
+	fn from_path<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
 	{
-		let opened_file = File::create(path)?;
+		TextWriter::from_file(File::create(path)?)
+	}
 
+	fn from_file(file: File) -> io::Result<Self>
+	where
+		Self: Sized,
+	{
 		let writer = TextWriter {
-			file: LineWriter::new(opened_file),
+			file: LineWriter::new(file),
 			count: 0,
 		};
 
@@ -52,7 +57,7 @@ impl TextWriter {
 	///     text::TextWriter,
 	/// };
 	///
-	/// let mut reader = TextWriter::new("/path/to/file").unwrap();
+	/// let mut reader = TextWriter::from_path("/path/to/file").unwrap();
 	///
 	/// reader.write_line(b"data").unwrap();
 	/// ```

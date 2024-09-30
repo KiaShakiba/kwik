@@ -216,7 +216,7 @@ impl Table {
 	where
 		P: AsRef<Path>,
 	{
-		let mut writer = CsvWriter::<Row>::new(path)?;
+		let mut writer = CsvWriter::<Row>::from_path(path)?;
 
 		if let Some(header) = &self.header {
 			writer.write_row(header).unwrap();

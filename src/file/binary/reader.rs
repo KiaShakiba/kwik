@@ -93,15 +93,20 @@ impl<T> FileReader for BinaryReader<T>
 where
 	T: ReadChunk,
 {
-	fn new<P>(path: P) -> io::Result<Self>
+	fn from_path<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
 	{
-		let opened_file = File::open(path)?;
+		BinaryReader::from_file(File::open(path)?)
+	}
 
+	fn from_file(file: File) -> io::Result<Self>
+	where
+		Self: Sized,
+	{
 		let reader = BinaryReader {
-			file: BufReader::new(opened_file),
+			file: BufReader::new(file),
 			buf: vec![0; T::size()].into_boxed_slice(),
 			count: 0,
 
@@ -138,7 +143,7 @@ where
 	///     binary::{BinaryReader, ReadChunk, SizedChunk},
 	/// };
 	///
-	/// let mut reader = BinaryReader::<MyStruct>::new("/path/to/file").unwrap();
+	/// let mut reader = BinaryReader::<MyStruct>::from_path("/path/to/file").unwrap();
 	///
 	/// reader.offset(5).unwrap(); // skip the first 5 bytes
 	///
@@ -179,7 +184,7 @@ where
 	///     binary::{BinaryReader, ReadChunk, SizedChunk},
 	/// };
 	///
-	/// let mut reader = BinaryReader::<MyStruct>::new("/path/to/file").unwrap();
+	/// let mut reader = BinaryReader::<MyStruct>::from_path("/path/to/file").unwrap();
 	///
 	/// while let Ok(object) = reader.read_chunk() {
 	///     // do something with the object
@@ -233,7 +238,7 @@ where
 	///     binary::{BinaryReader, ReadChunk, SizedChunk},
 	/// };
 	///
-	/// let mut reader = BinaryReader::<MyStruct>::new("/path/to/file").unwrap();
+	/// let mut reader = BinaryReader::<MyStruct>::from_path("/path/to/file").unwrap();
 	///
 	/// for chunk in reader.iter() {
 	///     // do something with the object

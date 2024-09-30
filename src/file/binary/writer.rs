@@ -69,15 +69,20 @@ impl<T> FileWriter for BinaryWriter<T>
 where
 	T: WriteChunk,
 {
-	fn new<P>(path: P) -> io::Result<Self>
+	fn from_path<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
 	{
-		let opened_file = File::create(path)?;
+		BinaryWriter::from_file(File::create(path)?)
+	}
 
+	fn from_file(file: File) -> io::Result<Self>
+	where
+		Self: Sized,
+	{
 		let writer = BinaryWriter {
-			file: BufWriter::new(opened_file),
+			file: BufWriter::new(file),
 			buf: Vec::<u8>::with_capacity(T::size()),
 			count: 0,
 
@@ -107,7 +112,7 @@ where
 	///     binary::{BinaryWriter, WriteChunk, SizedChunk},
 	/// };
 	///
-	/// let mut reader = BinaryWriter::<MyStruct>::new("/path/to/file").unwrap();
+	/// let mut reader = BinaryWriter::<MyStruct>::from_path("/path/to/file").unwrap();
 	///
 	/// reader.write_chunk(&MyStruct { data: 0 }).unwrap();
 	///

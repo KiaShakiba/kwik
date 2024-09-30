@@ -85,14 +85,21 @@ impl<T> FileReader for CsvReader<T>
 where
 	T: ReadRow,
 {
-	fn new<P>(path: P) -> io::Result<Self>
+	fn from_path<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
 	{
+		CsvReader::from_file(File::open(path)?)
+	}
+
+	fn from_file(file: File) -> io::Result<Self>
+	where
+		Self: Sized,
+	{
 		let reader = ReaderBuilder::new()
 			.has_headers(false)
-			.from_path(path)?;
+			.from_reader(file);
 
 		let reader = CsvReader {
 			file: reader,
@@ -132,7 +139,7 @@ where
 	///     csv::{CsvReader, ReadRow, RowData},
 	/// };
 	///
-	/// let mut reader = CsvReader::<MyStruct>::new("/path/to/file").unwrap();
+	/// let mut reader = CsvReader::<MyStruct>::from_path("/path/to/file").unwrap();
 	///
 	/// while let Ok(object) = reader.read_row() {
 	///     // do something with the object
@@ -198,7 +205,7 @@ where
 	///     csv::{CsvReader, ReadRow, RowData},
 	/// };
 	///
-	/// let mut reader = CsvReader::<MyStruct>::new("/path/to/file").unwrap();
+	/// let mut reader = CsvReader::<MyStruct>::from_path("/path/to/file").unwrap();
 	///
 	/// for row in reader.iter() {
 	///     // do something with the object

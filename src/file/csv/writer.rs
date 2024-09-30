@@ -66,12 +66,19 @@ impl<T> FileWriter for CsvWriter<T>
 where
 	T: WriteRow,
 {
-	fn new<P>(path: P) -> io::Result<Self>
+	fn from_path<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
 		P: AsRef<Path>,
 	{
-		let file = Writer::from_path(path)?;
+		CsvWriter::from_file(File::create(path)?)
+	}
+
+	fn from_file(file: File) -> io::Result<Self>
+	where
+		Self: Sized,
+	{
+		let file = Writer::from_writer(file);
 
 		let writer = CsvWriter {
 			file,
@@ -104,7 +111,7 @@ where
 	///     csv::{CsvWriter, WriteRow, RowData},
 	/// };
 	///
-	/// let mut reader = CsvWriter::<MyStruct>::new("/path/to/file").unwrap();
+	/// let mut reader = CsvWriter::<MyStruct>::from_path("/path/to/file").unwrap();
 	///
 	/// reader.write_row(&MyStruct { data: 0 }).unwrap();
 	///
