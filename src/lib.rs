@@ -15,3 +15,4 @@ pub mod genetic;
 pub mod table;
 pub mod thread_pool;
 pub mod plot;
+pub mod tma;
