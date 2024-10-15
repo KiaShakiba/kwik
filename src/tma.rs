@@ -66,7 +66,7 @@ impl TimeMovingAverage {
 
 	/// Returns the windowed average at the supplied instant based on the
 	/// supplied window duration. The window is centered at the insant. If
-	/// points in the dataset are within the window range at the supplied
+	/// no points in the dataset are within the window range at the supplied
 	/// instant, `None` is returned.
 	///
 	/// # Examples
