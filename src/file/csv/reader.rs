@@ -234,7 +234,7 @@ where
 	}
 }
 
-impl<'a, T> Iterator for Iter<'a, T>
+impl<T> Iterator for Iter<'_, T>
 where
 	T: ReadRow,
 {

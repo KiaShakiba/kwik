@@ -197,7 +197,7 @@ impl TimeMovingAverage {
 	}
 }
 
-impl<'a> Iterator for WindowIter<'a> {
+impl Iterator for WindowIter<'_> {
 	type Item = (Instant, f64);
 
 	fn next(&mut self) -> Option<Self::Item> {
