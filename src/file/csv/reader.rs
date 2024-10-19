@@ -48,7 +48,7 @@ pub trait ReadRow {
 	/// }
 	///
 	/// impl ReadRow for MyStruct {
-	///     fn new(row_data: &RowData) -> io::Result<Self>
+	///     fn from_row(row_data: &RowData) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -61,7 +61,7 @@ pub trait ReadRow {
 	/// # Errors
 	///
 	/// This function will return an error if the row could not be parsed.
-	fn new(row_data: &RowData) -> io::Result<Self>
+	fn from_row(row_data: &RowData) -> io::Result<Self>
 	where
 		Self: Sized,
 	;
@@ -151,7 +151,7 @@ where
 	/// }
 	///
 	/// impl ReadRow for MyStruct {
-	///     fn new(row_data: &RowData) -> io::Result<Self>
+	///     fn from_row(row_data: &RowData) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -188,7 +188,7 @@ where
 
 		self.count += 1;
 
-		let row = T::new(&self.buf)?;
+		let row = T::from_row(&self.buf)?;
 		Ok(row)
 	}
 
@@ -217,7 +217,7 @@ where
 	/// }
 	///
 	/// impl ReadRow for MyStruct {
-	///     fn new(row: &RowData) -> io::Result<Self>
+	///     fn from_row(row: &RowData) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {

@@ -45,7 +45,7 @@ pub fn usage(pid: Option<Pid>) -> Result<f64, CpuError> {
 	let mut sys = System::new_all();
 	let process = ProcessesToUpdate::Some(refresh_pid);
 
-	sys.refresh_processes(process);
+	sys.refresh_processes(process, true);
 
 	match sys.process(sys_pid) {
 		Some(process) => {

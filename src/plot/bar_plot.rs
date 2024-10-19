@@ -99,10 +99,7 @@ impl Plot for BarPlot {
 			.map(|bar_group| bar_group.label.as_deref().unwrap_or("").into())
 			.collect::<Vec<String>>();
 
-		let y_tick_format = match self.format_y_memory {
-			true => "%.1s %cB",
-			false => "%.0f",
-		};
+		let y_tick_format = if self.format_y_memory { "%.1s %cB" } else { "%.0f" };
 
 		axes
 			.set_x_range(

@@ -42,6 +42,9 @@ pub struct LinePlot {
 	format_x_log: bool,
 	format_y_log: bool,
 
+	format_x_memory: bool,
+	format_y_memory: bool,
+
 	lines: Vec<Line>,
 
 	vlines: Vec<f64>,
@@ -100,6 +103,9 @@ impl Plot for LinePlot {
 	}
 
 	fn configure(&mut self, axes: &mut Axes2D) {
+		let x_tick_format = if self.format_x_memory { "%.1s %cB" } else { "%.0f" };
+		let y_tick_format = if self.format_y_memory { "%.1s %cB" } else { "%.0f" };
+
 		axes
 			.set_border(
 				false,
@@ -122,6 +128,7 @@ impl Plot for LinePlot {
 				&[
 					TickOption::Mirror(false),
 					TickOption::Inward(false),
+					TickOption::Format(x_tick_format),
 				],
 				&[]
 			)
@@ -130,6 +137,7 @@ impl Plot for LinePlot {
 				&[
 					TickOption::Mirror(false),
 					TickOption::Inward(false),
+					TickOption::Format(y_tick_format),
 				],
 				&[]
 			)
@@ -390,6 +398,28 @@ impl LinePlot {
 	/// Enables or disables logarithmic formatting in the y-axis.
 	pub fn with_format_y_log(mut self, value: bool) -> Self {
 		self.set_format_y_log(value);
+		self
+	}
+
+	/// Enables or disables memory formatting in the x-axis.
+	pub fn set_format_x_memory(&mut self, value: bool) {
+		self.format_x_memory = value;
+	}
+
+	/// Enables or disables memory formatting in the x-axis.
+	pub fn with_format_x_memory(mut self, value: bool) -> Self {
+		self.set_format_x_memory(value);
+		self
+	}
+
+	/// Enables or disables memory formatting in the y-axis.
+	pub fn set_format_y_memory(&mut self, value: bool) {
+		self.format_y_memory = value;
+	}
+
+	/// Enables or disables memory formatting in the y-axis.
+	pub fn with_format_y_memory(mut self, value: bool) -> Self {
+		self.set_format_y_memory(value);
 		self
 	}
 

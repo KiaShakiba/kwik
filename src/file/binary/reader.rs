@@ -66,7 +66,7 @@ pub trait ReadChunk: SizedChunk {
 	/// }
 	///
 	/// impl ReadChunk for MyStruct {
-	///     fn new(chunk: &[u8]) -> io::Result<Self>
+	///     fn from_chunk(chunk: &[u8]) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -83,7 +83,7 @@ pub trait ReadChunk: SizedChunk {
 	/// # Errors
 	///
 	/// This function will return an error if the chunk could not be parsed.
-	fn new(buf: &[u8]) -> io::Result<Self>
+	fn from_chunk(buf: &[u8]) -> io::Result<Self>
 	where
 		Self: Sized,
 	;
@@ -153,7 +153,7 @@ where
 	/// }
 	///
 	/// impl ReadChunk for MyStruct {
-	///     fn new(chunk: &[u8]) -> io::Result<Self>
+	///     fn from_chunk(chunk: &[u8]) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -196,7 +196,7 @@ where
 	/// }
 	///
 	/// impl ReadChunk for MyStruct {
-	///     fn new(chunk: &[u8]) -> io::Result<Self>
+	///     fn from_chunk(chunk: &[u8]) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -220,7 +220,7 @@ where
 			.and_then(|_| {
 				self.count += 1;
 
-				let object = T::new(&self.buf)?;
+				let object = T::from_chunk(&self.buf)?;
 				Ok(object)
 			})
 	}
@@ -250,7 +250,7 @@ where
 	/// }
 	///
 	/// impl ReadChunk for MyStruct {
-	///     fn new(chunk: &[u8]) -> io::Result<Self>
+	///     fn from_chunk(chunk: &[u8]) -> io::Result<Self>
 	///     where
 	///         Self: Sized,
 	///     {
@@ -327,7 +327,7 @@ macro_rules! impl_read_chunk_primitive {
 	(char) => {
 		impl ReadChunk for char {
 			#[inline]
-			fn new(buf: &[u8]) -> io::Result<Self>
+			fn from_chunk(buf: &[u8]) -> io::Result<Self>
 			where
 				Self: Sized,
 			{
@@ -339,7 +339,7 @@ macro_rules! impl_read_chunk_primitive {
 	(bool) => {
 		impl ReadChunk for bool {
 			#[inline]
-			fn new(buf: &[u8]) -> io::Result<Self>
+			fn from_chunk(buf: &[u8]) -> io::Result<Self>
 			where
 				Self: Sized,
 			{
@@ -351,7 +351,7 @@ macro_rules! impl_read_chunk_primitive {
 	($T:ty) => {
 		impl ReadChunk for $T {
 			#[inline]
-			fn new(buf: &[u8]) -> io::Result<Self>
+			fn from_chunk(buf: &[u8]) -> io::Result<Self>
 			where
 				Self: Sized,
 			{

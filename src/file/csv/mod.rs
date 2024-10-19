@@ -8,7 +8,12 @@
 mod reader;
 mod writer;
 
-use std::io;
+use std::{
+	io,
+	fmt::Display,
+};
+
+use num_traits::AsPrimitive;
 use csv::StringRecord;
 
 /// CSV row data.
@@ -48,19 +53,22 @@ impl RowData {
 	///
 	/// This function returns an error if the column does not exist.
 	#[inline]
-	pub fn get(&self, index: usize) -> io::Result<&str> {
+	pub fn get(&self, index: impl AsPrimitive<usize>) -> io::Result<&str> {
 		self.data
-			.get(index)
+			.get(index.as_())
 			.ok_or(io::Error::new(
 				io::ErrorKind::InvalidData,
-				format!("Invalid CSV column {index}"),
+				format!("Invalid CSV column {}", index.as_()),
 			))
 	}
 
 	/// Adds a new column to the end of the row.
 	#[inline]
-	pub fn push(&mut self, value: &str) {
-		self.data.push_field(value);
+	pub fn push<T>(&mut self, value: T)
+	where
+		T: Display,
+	{
+		self.data.push_field(&value.to_string());
 	}
 }
 
