@@ -46,11 +46,11 @@ pub trait WriteRow {
 	/// }
 	///
 	/// impl WriteRow for MyStruct {
-	///     fn as_row(&self, row_data: &mut RowData) -> io::Result<()>
+	///     fn as_row(&self, row: &mut RowData) -> io::Result<()>
 	///     where
 	///         Self: Sized,
 	///     {
-	///         // modify `row_data`
+	///         // modify `row`
 	///         Ok(())
 	///     }
 	/// }
@@ -59,7 +59,7 @@ pub trait WriteRow {
 	/// # Errors
 	///
 	/// This function will return an error if the row could not be created.
-	fn as_row(&self, row_data: &mut RowData) -> io::Result<()>;
+	fn as_row(&self, row: &mut RowData) -> io::Result<()>;
 }
 
 impl<T> FileWriter for CsvWriter<T>
@@ -121,11 +121,11 @@ where
 	/// }
 	///
 	/// impl WriteRow for MyStruct {
-	///     fn as_row(&self, row_data: &mut RowData) -> io::Result<()>
+	///     fn as_row(&self, row: &mut RowData) -> io::Result<()>
 	///     where
 	///         Self: Sized,
 	///     {
-	///         // modify `row_data`
+	///         // modify `row`
 	///         Ok(())
 	///     }
 	/// }
