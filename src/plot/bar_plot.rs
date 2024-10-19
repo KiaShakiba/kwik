@@ -99,7 +99,14 @@ impl Plot for BarPlot {
 			.map(|bar_group| bar_group.label.as_deref().unwrap_or("").into())
 			.collect::<Vec<String>>();
 
-		let y_tick_format = if self.format_y_memory { "%.1s %cB" } else { "%.0f" };
+		let mut y_tick_options = vec![
+			TickOption::Mirror(false),
+			TickOption::Inward(false),
+		];
+
+		if self.format_y_memory {
+			y_tick_options.push(TickOption::Format("%.1s %cB"));
+		}
 
 		axes
 			.set_x_range(
@@ -127,11 +134,7 @@ impl Plot for BarPlot {
 			)
 			.set_y_ticks(
 				Some((AutoOption::Auto, 0)),
-				&[
-					TickOption::Mirror(false),
-					TickOption::Inward(false),
-					TickOption::Format(y_tick_format),
-				],
+				&y_tick_options,
 				&[]
 			)
 			.set_grid_options(false, &[

@@ -79,8 +79,23 @@ impl Plot for ScatterPlot {
 	}
 
 	fn configure(&mut self, axes: &mut Axes2D) {
-		let x_tick_format = if self.format_x_memory { "%.1s %cB" } else { "%.0f" };
-		let y_tick_format = if self.format_y_memory { "%.1s %cB" } else { "%.0f" };
+		let mut x_tick_options = vec![
+			TickOption::Mirror(false),
+			TickOption::Inward(false),
+		];
+
+		let mut y_tick_options = vec![
+			TickOption::Mirror(false),
+			TickOption::Inward(false),
+		];
+
+		if self.format_x_memory {
+			x_tick_options.push(TickOption::Format("%.1s %cB"));
+		}
+
+		if self.format_y_memory {
+			y_tick_options.push(TickOption::Format("%.1s %cB"));
+		}
 
 		axes
 			.set_border(
@@ -103,20 +118,12 @@ impl Plot for ScatterPlot {
 			)
 			.set_x_ticks(
 				Some((auto_option(self.x_tick), 0)),
-				&[
-					TickOption::Mirror(true),
-					TickOption::Inward(true),
-					TickOption::Format(x_tick_format),
-				],
+				&x_tick_options,
 				&[]
 			)
 			.set_y_ticks(
 				Some((auto_option(self.y_tick), 0)),
-				&[
-					TickOption::Mirror(true),
-					TickOption::Inward(true),
-					TickOption::Format(y_tick_format),
-				],
+				&y_tick_options,
 				&[]
 			)
 			.set_grid_options(false, &[
