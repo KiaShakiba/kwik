@@ -211,7 +211,7 @@ impl BarPlot {
 
 	/// Sets the plot's maximum y-value.
 	pub fn with_y_max(mut self, y_max: impl AsPrimitive<f64>) -> Self {
-		self.y_max = Some(y_max.as_());
+		self.set_y_max(y_max);
 		self
 	}
 

@@ -26,7 +26,9 @@ where
 {
 	file: Reader<File>,
 	buf: RowData,
+
 	count: u64,
+	has_headers: bool,
 
 	_marker: PhantomData<T>,
 }
@@ -104,7 +106,9 @@ where
 		let reader = CsvReader {
 			file: reader,
 			buf: RowData::default(),
+
 			count: 0,
+			has_headers: false,
 
 			_marker: PhantomData,
 		};
@@ -127,6 +131,82 @@ impl<T> CsvReader<T>
 where
 	T: ReadRow,
 {
+	/// Sets whether to treat the first how as headers (i.e., skip the first row).
+	///
+	/// # Examples
+	/// ```no_run
+	/// use std::io;
+	///
+	/// use kwik::file::{
+	///     FileReader,
+	///     csv::{CsvReader, ReadRow, RowData},
+	/// };
+	///
+	/// let mut reader = CsvReader::<MyStruct>::from_path("/path/to/file").unwrap();
+	///
+	/// reader.set_has_headers(true);
+	///
+	/// for object in reader {
+	///     // do something with the object
+	/// }
+	///
+	/// struct MyStruct {
+	///     // data fields
+	///     data: u32,
+	/// }
+	///
+	/// impl ReadRow for MyStruct {
+	///     fn from_row(row: &RowData) -> io::Result<Self>
+	///     where
+	///         Self: Sized,
+	///     {
+	///         // parse the row and return an instance of `Self` on success
+	///         Ok(MyStruct { data: 0 })
+	///     }
+	/// }
+	/// ```
+	pub fn set_has_headers(&mut self, has_headers: bool) {
+		self.has_headers = has_headers;
+	}
+
+	/// Sets whether to treat the first how as headers (i.e., skip the first row).
+	///
+	/// # Examples
+	/// ```no_run
+	/// use std::io;
+	///
+	/// use kwik::file::{
+	///     FileReader,
+	///     csv::{CsvReader, ReadRow, RowData},
+	/// };
+	///
+	/// let reader = CsvReader::<MyStruct>::from_path("/path/to/file").unwrap()
+	///     .with_has_headers(true);
+	///
+	/// for object in reader {
+	///     // do something with the object
+	/// }
+	///
+	/// struct MyStruct {
+	///     // data fields
+	///     data: u32,
+	/// }
+	///
+	/// impl ReadRow for MyStruct {
+	///     fn from_row(row: &RowData) -> io::Result<Self>
+	///     where
+	///         Self: Sized,
+	///     {
+	///         // parse the row and return an instance of `Self` on success
+	///         Ok(MyStruct { data: 0 })
+	///     }
+	/// }
+	/// ```
+	pub fn with_has_headers(mut self, has_headers: bool) -> Self {
+		self.set_has_headers(has_headers);
+		self
+	}
+
 	/// Reads one row of the CSV file and returns an option containing
 	/// the parsed row. If the end of the file is reached, `None` is returned.
 	///
@@ -167,6 +247,25 @@ where
 	#[inline]
 	pub fn read_row(&mut self) -> io::Result<T> {
 		self.buf.data.clear();
+
+		// if the file has a header row, skip it
+		if self.has_headers && self.count == 0 {
+			let result = self.file
+				.read_record(&mut self.buf.data)
+				.map_err(|_| io::Error::new(
+					io::ErrorKind::InvalidData,
+					"An error occurred when reading CSV file header",
+				))?;
+
+			self.count += 1;
+
+			if !result {
+				return Err(io::Error::new(
+					io::ErrorKind::UnexpectedEof,
+					"The end of the file has been reached",
+				));
+			}
+		}
 
 		let result = self.file
 			.read_record(&mut self.buf.data)

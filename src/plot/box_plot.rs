@@ -221,7 +221,7 @@ impl BoxPlot {
 
 	/// Sets the plot's minimum y-value.
 	pub fn with_y_min(mut self, y_min: impl AsPrimitive<f64>) -> Self {
-		self.y_min = Some(y_min.as_());
+		self.set_y_min(y_min);
 		self
 	}
 
@@ -232,7 +232,7 @@ impl BoxPlot {
 
 	/// Sets the plot's maximum y-value.
 	pub fn with_y_max(mut self, y_max: impl AsPrimitive<f64>) -> Self {
-		self.y_max = Some(y_max.as_());
+		self.set_y_max(y_max);
 		self
 	}
 
@@ -243,7 +243,7 @@ impl BoxPlot {
 
 	/// Sets the plot's y-tick value.
 	pub fn with_y_tick(mut self, y_tick: impl AsPrimitive<f64>) -> Self {
-		self.y_tick = Some(y_tick.as_());
+		self.set_y_tick(y_tick);
 		self
 	}
 

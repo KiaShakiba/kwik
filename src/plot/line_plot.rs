@@ -327,7 +327,7 @@ impl LinePlot {
 
 	/// Sets the plot's minimum x-value.
 	pub fn with_x_min(mut self, x_min: impl AsPrimitive<f64>) -> Self {
-		self.x_min = Some(x_min.as_());
+		self.set_x_min(x_min);
 		self
 	}
 
@@ -338,7 +338,7 @@ impl LinePlot {
 
 	/// Sets the plot's maximum x-value.
 	pub fn with_x_max(mut self, x_max: impl AsPrimitive<f64>) -> Self {
-		self.x_max = Some(x_max.as_());
+		self.set_x_max(x_max);
 		self
 	}
 
@@ -349,7 +349,7 @@ impl LinePlot {
 
 	/// Sets the plot's minimum y-value.
 	pub fn with_y_min(mut self, y_min: impl AsPrimitive<f64>) -> Self {
-		self.y_min = Some(y_min.as_());
+		self.set_y_min(y_min);
 		self
 	}
 
@@ -360,7 +360,7 @@ impl LinePlot {
 
 	/// Sets the plot's maximum y-value.
 	pub fn with_y_max(mut self, y_max: impl AsPrimitive<f64>) -> Self {
-		self.y_max = Some(y_max.as_());
+		self.set_y_max(y_max);
 		self
 	}
 
@@ -371,7 +371,7 @@ impl LinePlot {
 
 	/// Sets the plot's x-tick value.
 	pub fn with_x_tick(mut self, x_tick: impl AsPrimitive<f64>) -> Self {
-		self.x_tick = Some(x_tick.as_());
+		self.set_x_tick(x_tick);
 		self
 	}
 
@@ -382,7 +382,7 @@ impl LinePlot {
 
 	/// Sets the plot's y-tick value.
 	pub fn with_y_tick(mut self, y_tick: impl AsPrimitive<f64>) -> Self {
-		self.y_tick = Some(y_tick.as_());
+		self.set_y_tick(y_tick);
 		self
 	}
 
