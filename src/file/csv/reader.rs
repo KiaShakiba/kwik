@@ -146,10 +146,6 @@ where
 	///
 	/// reader.set_has_headers(true);
 	///
-	/// for object in reader {
-	///     // do something with the object
-	/// }
-	///
 	/// struct MyStruct {
 	///     // data fields
 	///     data: u32,
@@ -182,10 +178,6 @@ where
 	///
 	/// let reader = CsvReader::<MyStruct>::from_path("/path/to/file").unwrap()
 	///     .with_has_headers(true);
-	///
-	/// for object in reader {
-	///     // do something with the object
-	/// }
 	///
 	/// struct MyStruct {
 	///     // data fields

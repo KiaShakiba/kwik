@@ -9,6 +9,7 @@ use std::{
 	io,
 	path::Path,
 	fs::File,
+	fmt::Display,
 	marker::PhantomData,
 };
 
@@ -100,6 +101,107 @@ impl<T> CsvWriter<T>
 where
 	T: WriteRow,
 {
+	/// Adds a header row to the CSV file.
+	///
+	/// # Examples
+	/// ```no_run
+	/// use std::io;
+	///
+	/// use kwik::file::{
+	///     FileWriter,
+	///     csv::{CsvWriter, WriteRow, RowData},
+	/// };
+	///
+	/// let mut reader = CsvWriter::<MyStruct>::from_path("/path/to/file").unwrap();
+	///
+	/// reader.set_headers(&["Row 1", "Row 2"]).unwrap();
+	///
+	/// struct MyStruct {
+	///     // data fields
+	///     data: u32,
+	/// }
+	///
+	/// impl WriteRow for MyStruct {
+	///     fn as_row(&self, row: &mut RowData) -> io::Result<()>
+	///     where
+	///         Self: Sized,
+	///     {
+	///         // modify `row`
+	///         Ok(())
+	///     }
+	/// }
+	/// ```
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the header row could not be written.
+	pub fn set_headers<H>(&mut self, headers: &[H]) -> io::Result<()>
+	where
+		H: Display,
+	{
+		if self.count > 0 {
+			return Err(io::Error::new(
+				io::ErrorKind::InvalidData,
+				"CSV header can only be set on the first row.",
+			));
+		}
+
+		self.buf.data.clear();
+		self.count += 1;
+
+		for header in headers {
+			self.buf.data.push_field(&header.to_string());
+		}
+
+		self.file
+			.write_record(&self.buf.data)
+			.map_err(|_| io::Error::new(
+				io::ErrorKind::InvalidData,
+				"An error occurred when writing CSV file header",
+			))
+	}
+
+	/// Adds a header row to the CSV file.
+	///
+	/// # Examples
+	/// ```no_run
+	/// use std::io;
+	///
+	/// use kwik::file::{
+	///     FileWriter,
+	///     csv::{CsvWriter, WriteRow, RowData},
+	/// };
+	///
+	/// let reader = CsvWriter::<MyStruct>::from_path("/path/to/file").unwrap()
+	///     .with_headers(&["Row 1", "Row 2"]).unwrap();
+	///
+	/// struct MyStruct {
+	///     // data fields
+	///     data: u32,
+	/// }
+	///
+	/// impl WriteRow for MyStruct {
+	///     fn as_row(&self, row: &mut RowData) -> io::Result<()>
+	///     where
+	///         Self: Sized,
+	///     {
+	///         // modify `row`
+	///         Ok(())
+	///     }
+	/// }
+	/// ```
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the header row could not be written.
+	pub fn with_headers<H>(mut self, headers: &[H]) -> io::Result<Self>
+	where
+		H: Display,
+	{
+		self.set_headers(headers)?;
+		Ok(self)
+	}
+
 	/// Writes one row to the CSV file.
 	///
 	/// # Examples
