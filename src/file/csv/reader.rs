@@ -26,9 +26,7 @@ where
 {
 	file: Reader<File>,
 	buf: RowData,
-
 	count: u64,
-	has_headers: bool,
 
 	_marker: PhantomData<T>,
 }
@@ -106,9 +104,7 @@ where
 		let reader = CsvReader {
 			file: reader,
 			buf: RowData::default(),
-
 			count: 0,
-			has_headers: false,
 
 			_marker: PhantomData,
 		};
@@ -131,7 +127,7 @@ impl<T> CsvReader<T>
 where
 	T: ReadRow,
 {
-	/// Sets whether to treat the first how as headers (i.e., skip the first row).
+	/// Reads the first how as headers (i.e., skip the first row).
 	///
 	/// # Examples
 	/// ```no_run
@@ -144,7 +140,7 @@ where
 	///
 	/// let mut reader = CsvReader::<MyStruct>::from_path("/path/to/file").unwrap();
 	///
-	/// reader.set_has_headers(true);
+	/// reader.set_has_headers();
 	///
 	/// struct MyStruct {
 	///     // data fields
@@ -161,11 +157,41 @@ where
 	///     }
 	/// }
 	/// ```
-	pub fn set_has_headers(&mut self, has_headers: bool) {
-		self.has_headers = has_headers;
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the header row could not be read.
+	#[inline]
+	pub fn set_has_headers(&mut self) -> io::Result<()> {
+		if self.count > 0 {
+			return Err(io::Error::new(
+				io::ErrorKind::InvalidData,
+				"CSV header can only be read on the first row",
+			));
+		}
+
+		self.buf.data.clear();
+
+		let result = self.file
+			.read_record(&mut self.buf.data)
+			.map_err(|_| io::Error::new(
+				io::ErrorKind::InvalidData,
+				"An error occurred when reading CSV file header",
+			))?;
+
+		if !result {
+			return Err(io::Error::new(
+				io::ErrorKind::UnexpectedEof,
+				"The end of the file has been reached",
+			));
+		}
+
+		self.count += 1;
+
+		Ok(())
 	}
 
-	/// Sets whether to treat the first how as headers (i.e., skip the first row).
+	/// Reads the first how as headers (i.e., skip the first row).
 	///
 	/// # Examples
 	/// ```no_run
@@ -177,7 +203,7 @@ where
 	/// };
 	///
 	/// let reader = CsvReader::<MyStruct>::from_path("/path/to/file").unwrap()
-	///     .with_has_headers(true);
+	///     .with_has_headers();
 	///
 	/// struct MyStruct {
 	///     // data fields
@@ -194,9 +220,14 @@ where
 	///     }
 	/// }
 	/// ```
-	pub fn with_has_headers(mut self, has_headers: bool) -> Self {
-		self.set_has_headers(has_headers);
-		self
+	///
+	/// # Errors
+	///
+	/// This function will return an error if the header row could not be read.
+	#[inline]
+	pub fn with_has_headers(mut self) -> io::Result<Self> {
+		self.set_has_headers()?;
+		Ok(self)
 	}
 
 	/// Reads one row of the CSV file and returns an option containing
@@ -239,25 +270,6 @@ where
 	#[inline]
 	pub fn read_row(&mut self) -> io::Result<T> {
 		self.buf.data.clear();
-
-		// if the file has a header row, skip it
-		if self.has_headers && self.count == 0 {
-			let result = self.file
-				.read_record(&mut self.buf.data)
-				.map_err(|_| io::Error::new(
-					io::ErrorKind::InvalidData,
-					"An error occurred when reading CSV file header",
-				))?;
-
-			self.count += 1;
-
-			if !result {
-				return Err(io::Error::new(
-					io::ErrorKind::UnexpectedEof,
-					"The end of the file has been reached",
-				));
-			}
-		}
 
 		let result = self.file
 			.read_record(&mut self.buf.data)

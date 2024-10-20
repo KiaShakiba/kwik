@@ -142,7 +142,7 @@ where
 		if self.count > 0 {
 			return Err(io::Error::new(
 				io::ErrorKind::InvalidData,
-				"CSV header can only be set on the first row.",
+				"CSV header can only be set on the first row",
 			));
 		}
 
