@@ -8,7 +8,13 @@
 use std::{
 	path::Path,
 	fs::File,
-	io::{self, BufWriter, Write},
+	io::{
+		self,
+		BufWriter,
+		Write,
+		Seek,
+		SeekFrom,
+	},
 	marker::PhantomData,
 };
 
@@ -155,6 +161,14 @@ where
 	}
 }
 
+impl<T> Seek for BinaryWriter<T>
+where
+	T: WriteChunk,
+{
+	fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+		self.file.seek(pos)
+	}
+}
 
 macro_rules! impl_write_chunk_primitive {
 	(char) => {

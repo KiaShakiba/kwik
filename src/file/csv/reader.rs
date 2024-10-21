@@ -6,9 +6,9 @@
  */
 
 use std::{
-	io,
 	path::Path,
 	fs::File,
+	io::{self, Seek, SeekFrom},
 	marker::PhantomData,
 };
 
@@ -334,6 +334,15 @@ where
 		Iter {
 			reader: self
 		}
+	}
+}
+
+impl<T> Seek for CsvReader<T>
+where
+	T: ReadRow,
+{
+	fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+		self.file.get_ref().seek(pos)
 	}
 }
 

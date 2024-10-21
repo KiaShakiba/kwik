@@ -6,9 +6,9 @@
  */
 
 use std::{
-	io,
 	path::Path,
 	fs::File,
+	io::{self, Seek, SeekFrom},
 	fmt::Display,
 	marker::PhantomData,
 };
@@ -253,5 +253,14 @@ where
 
 				io::Error::new(io::ErrorKind::InvalidData, message)
 			})
+	}
+}
+
+impl<T> Seek for CsvWriter<T>
+where
+	T: WriteRow,
+{
+	fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+		self.file.get_ref().seek(pos)
 	}
 }

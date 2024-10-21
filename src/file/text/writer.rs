@@ -8,7 +8,13 @@
 use std::{
 	path::Path,
 	fs::File,
-	io::{self, LineWriter, Write},
+	io::{
+		self,
+		LineWriter,
+		Write,
+		Seek,
+		SeekFrom,
+	},
 };
 
 use crate::file::FileWriter;
@@ -69,5 +75,11 @@ impl TextWriter {
 	pub fn write_line(&mut self, line: &[u8]) -> io::Result<()> {
 		self.count += 1;
 		self.file.write_all(&[line, b"\n"].concat())
+	}
+}
+
+impl Seek for TextWriter {
+	fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+		self.file.get_ref().seek(pos)
 	}
 }

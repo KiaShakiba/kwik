@@ -131,46 +131,6 @@ impl<T> BinaryReader<T>
 where
 	T: ReadChunk,
 {
-	/// Offsets the starting position of the reader by the specified
-	/// number of bytes.
-	///
-	/// # Examples
-	/// ```no_run
-	/// use std::io;
-	///
-	/// use kwik::file::{
-	///     FileReader,
-	///     binary::{BinaryReader, ReadChunk, SizedChunk},
-	/// };
-	///
-	/// let mut reader = BinaryReader::<MyStruct>::from_path("/path/to/file").unwrap();
-	///
-	/// reader.offset(5).unwrap(); // skip the first 5 bytes
-	///
-	/// struct MyStruct {
-	///     // data fields
-	///     data: u32,
-	/// }
-	///
-	/// impl ReadChunk for MyStruct {
-	///     fn from_chunk(chunk: &[u8]) -> io::Result<Self>
-	///     where
-	///         Self: Sized,
-	///     {
-	///         // parse the chunk and return an instance of `Self` on success
-	///         Ok(MyStruct { data: 0 })
-	///     }
-	/// }
-	///
-	/// impl SizedChunk for MyStruct {
-	///     fn size() -> usize { 4 }
-	/// }
-	/// ```
-	#[inline]
-	pub fn offset(&mut self, pos: u64) -> io::Result<()> {
-		self.file.seek(SeekFrom::Start(pos)).map(|_| ())
-	}
-
 	/// Reads one chunk of the binary file, as specified by the chunk size,
 	/// and returns a `Result` containing the parsed chunk. If the end of the
 	/// file is reached, an `io::Error` is returned.
@@ -268,6 +228,15 @@ where
 		Iter {
 			reader: self
 		}
+	}
+}
+
+impl<T> Seek for BinaryReader<T>
+where
+	T: ReadChunk,
+{
+	fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+		self.file.seek(pos)
 	}
 }
 

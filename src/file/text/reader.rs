@@ -8,7 +8,13 @@
 use std::{
 	path::Path,
 	fs::File,
-	io::{self, BufReader, BufRead},
+	io::{
+		self,
+		BufReader,
+		BufRead,
+		Seek,
+		SeekFrom,
+	},
 };
 
 use crate::file::FileReader;
@@ -137,6 +143,12 @@ impl TextReader {
 		Iter {
 			reader: self
 		}
+	}
+}
+
+impl Seek for TextReader {
+	fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
+		self.file.seek(pos)
 	}
 }
 
