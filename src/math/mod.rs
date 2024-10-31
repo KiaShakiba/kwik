@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+pub mod set;
+
 /// Returns a clone of the minimum value in the supplied splice.
 ///
 /// # Examples
