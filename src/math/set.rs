@@ -58,10 +58,10 @@ where
 	T: PartialEq,
 {
 	fn is_subset(&self, other: &Self) -> bool {
-		let self_slice: &[T] = &self;
-		let other_slice: &[T] = &other;
+		let self_slice: &[T] = self;
+		let other_slice: &[T] = other;
 
-		self_slice.is_subset(&other_slice)
+		self_slice.is_subset(other_slice)
 	}
 }
 
@@ -97,7 +97,7 @@ mod tests {
 	use crate::math::set::{Subset, Superset};
 
 	#[test]
-	fn it_identifies_subsets() {
+	fn it_identifies_slice_subsets() {
 		let a = &[1, 2, 3];
 		let b = &[1, 2, 3, 4];
 		let c = &[1, 2, 3];
@@ -109,7 +109,31 @@ mod tests {
 	}
 
 	#[test]
-	fn it_identifies_supersets() {
+	fn it_identifies_array_subsets() {
+		let a = [1, 2, 3];
+		let b = [1, 2, 3, 4];
+		let c = [1, 2, 3];
+		let d = [1, 3, 4, 5];
+
+		assert!(a.is_subset(&b));
+		assert!(a.is_subset(&c));
+		assert!(!a.is_subset(&d));
+	}
+
+	#[test]
+	fn it_identifies_vec_subsets() {
+		let a = vec![1, 2, 3];
+		let b = vec![1, 2, 3, 4];
+		let c = vec![1, 2, 3];
+		let d = vec![1, 3, 4, 5];
+
+		assert!(a.is_subset(&b));
+		assert!(a.is_subset(&c));
+		assert!(!a.is_subset(&d));
+	}
+
+	#[test]
+	fn it_identifies_slice_supersets() {
 		let a = &[1, 2, 3, 4];
 		let b = &[1, 2, 3];
 		let c = &[1, 2, 3, 4];
@@ -118,5 +142,29 @@ mod tests {
 		assert!(a.is_superset(b));
 		assert!(a.is_superset(c));
 		assert!(!a.is_superset(d));
+	}
+
+	#[test]
+	fn it_identifies_array_supersets() {
+		let a = [1, 2, 3, 4];
+		let b = [1, 2, 3];
+		let c = [1, 2, 3, 4];
+		let d = [1, 3, 5];
+
+		assert!(a.is_superset(&b));
+		assert!(a.is_superset(&c));
+		assert!(!a.is_superset(&d));
+	}
+
+	#[test]
+	fn it_identifies_vec_supersets() {
+		let a = vec![1, 2, 3, 4];
+		let b = vec![1, 2, 3];
+		let c = vec![1, 2, 3, 4];
+		let d = vec![1, 3, 5];
+
+		assert!(a.is_superset(&b));
+		assert!(a.is_superset(&c));
+		assert!(!a.is_superset(&d));
 	}
 }
