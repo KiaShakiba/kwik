@@ -5,7 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::collections::HashMap;
+use std::{
+	fmt::Display,
+	collections::HashMap,
+};
 
 use gnuplot::{
 	Axes2D,
@@ -64,29 +67,47 @@ impl Plot for BoxPlot {
 		self.map.is_empty()
 	}
 
-	fn set_title(&mut self, title: &str) {
-		self.title = Some(title.into());
+	fn set_title<T>(&mut self, title: T)
+	where
+		T: Display,
+	{
+		self.title = Some(title.to_string());
 	}
 
-	fn with_title(mut self, title: &str) -> Self {
+	fn with_title<T>(mut self, title: T) -> Self
+	where
+		T: Display,
+	{
 		self.set_title(title);
 		self
 	}
 
-	fn set_x_label(&mut self, label: &str) {
-		self.x_label = Some(label.into());
+	fn set_x_label<T>(&mut self, label: T)
+	where
+		T: Display,
+	{
+		self.x_label = Some(label.to_string());
 	}
 
-	fn with_x_label(mut self, label: &str) -> Self {
+	fn with_x_label<T>(mut self, label: T) -> Self
+	where
+		T: Display,
+	{
 		self.set_x_label(label);
 		self
 	}
 
-	fn set_y_label(&mut self, label: &str) {
-		self.y_label = Some(label.into());
+	fn set_y_label<T>(&mut self, label: T)
+	where
+		T: Display,
+	{
+		self.y_label = Some(label.to_string());
 	}
 
-	fn with_y_label(mut self, label: &str) -> Self {
+	fn with_y_label<T>(mut self, label: T) -> Self
+	where
+		T: Display,
+	{
 		self.set_y_label(label);
 		self
 	}
@@ -270,26 +291,34 @@ impl BoxPlot {
 	}
 
 	/// Sets an individual box's color.
-	pub fn set_color(&mut self, label: &str, color: &str) {
-		self.colors.insert(label.into(), color.into());
+	pub fn set_color<T1, T2>(&mut self, label: T1, color: T2)
+	where
+		T1: Display,
+		T2: Display,
+	{
+		self.colors.insert(label.to_string(), color.to_string());
 	}
 
 	/// Sets an individual box's color.
-	pub fn with_color(mut self, label: &str, color: &str) -> Self {
+	pub fn with_color<T1, T2>(mut self, label: T1, color: T1) -> Self
+	where
+		T1: Display,
+		T2: Display,
+	{
 		self.set_color(label, color);
 		self
 	}
 
 	/// Adds a data point to a box if it exists. Otherwise, creates a new
 	/// box with the supplied label.
-	pub fn add(&mut self, label: &str, value: impl AsPrimitive<f64>) {
-		match self.map.get_mut(label) {
-			Some(values) => values.push(value.as_()),
-
-			None => {
-				self.map.insert(label.into(), vec![value.as_()]);
-			}
-		}
+	pub fn add<T>(&mut self, label: T, value: impl AsPrimitive<f64>)
+	where
+		T: Display,
+	{
+		self.map
+			.entry(label.to_string())
+			.and_modify(|values| values.push(value.as_()))
+			.or_insert(vec![value.as_()]);
 	}
 
 	fn get_stats(&mut self, label: &str) -> Stats {

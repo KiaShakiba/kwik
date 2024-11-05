@@ -11,6 +11,7 @@ pub mod box_plot;
 pub mod scatter_plot;
 pub mod bar_plot;
 
+use std::fmt::Display;
 use gnuplot::{Axes2D, AutoOption, DashType};
 
 const COLORS: &[&str] = &[
@@ -38,22 +39,40 @@ pub trait Plot {
 	fn is_empty(&self) -> bool;
 
 	/// Sets the plot's title
-	fn set_title(&mut self, title: &str);
+	fn set_title<T>(&mut self, title: T)
+	where
+		T: Display,
+	;
 
 	/// Sets the plot's title
-	fn with_title(self, title: &str) -> Self;
+	fn with_title<T>(self, title: T) -> Self
+	where
+		T: Display,
+	;
 
 	/// Sets the plot's x-axis label
-	fn set_x_label(&mut self, label: &str);
+	fn set_x_label<T>(&mut self, label: T)
+	where
+		T: Display,
+	;
 
 	/// Sets the plot's x-axis label
-	fn with_x_label(self, label: &str) -> Self;
+	fn with_x_label<T>(self, label: T) -> Self
+	where
+		T: Display,
+	;
 
 	/// Sets the plot's y-axis label
-	fn set_y_label(&mut self, label: &str);
+	fn set_y_label<T>(&mut self, label: T)
+	where
+		T: Display,
+	;
 
 	/// Sets the plot's y-axis label
-	fn with_y_label(self, label: &str) -> Self;
+	fn with_y_label<T>(self, label: T) -> Self
+	where
+		T: Display,
+	;
 
 	/// Configures the supplied `Gnuplot` `Axes2D` with the
 	/// plot's data.

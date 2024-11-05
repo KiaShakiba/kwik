@@ -5,6 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+use std::fmt::Display;
+
 use gnuplot::{
 	Axes2D,
 	AxesCommon,
@@ -51,29 +53,47 @@ impl Plot for ScatterPlot {
 		self.points.is_empty()
 	}
 
-	fn set_title(&mut self, title: &str) {
-		self.title = Some(title.into());
+	fn set_title<T>(&mut self, title: T)
+	where
+		T: Display,
+	{
+		self.title = Some(title.to_string());
 	}
 
-	fn with_title(mut self, title: &str) -> Self {
+	fn with_title<T>(mut self, title: T) -> Self
+	where
+		T: Display,
+	{
 		self.set_title(title);
 		self
 	}
 
-	fn set_x_label(&mut self, label: &str) {
-		self.x_label = Some(label.into());
+	fn set_x_label<T>(&mut self, label: T)
+	where
+		T: Display,
+	{
+		self.x_label = Some(label.to_string());
 	}
 
-	fn with_x_label(mut self, label: &str) -> Self {
+	fn with_x_label<T>(mut self, label: T) -> Self
+	where
+		T: Display,
+	{
 		self.set_x_label(label);
 		self
 	}
 
-	fn set_y_label(&mut self, label: &str) {
-		self.y_label = Some(label.into());
+	fn set_y_label<T>(&mut self, label: T)
+	where
+		T: Display,
+	{
+		self.y_label = Some(label.to_string());
 	}
 
-	fn with_y_label(mut self, label: &str) -> Self {
+	fn with_y_label<T>(mut self, label: T) -> Self
+	where
+		T: Display,
+	{
 		self.set_y_label(label);
 		self
 	}
