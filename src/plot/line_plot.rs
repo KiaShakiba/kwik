@@ -56,9 +56,10 @@ pub struct LinePlot {
 }
 
 /// An individual line on a line plot.
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct Line {
 	label: Option<String>,
+	width: f64,
 
 	x_values: Vec<f64>,
 	y_values: Vec<f64>,
@@ -198,7 +199,7 @@ impl Plot for LinePlot {
 
 		for (index, line) in self.lines.iter().enumerate() {
 			let mut line_config = vec![
-				LineWidth(4.0),
+				LineWidth(line.width),
 				Color(COLORS[index % COLORS.len()]),
 				LineStyle(DASH_TYPES[index % DASH_TYPES.len()]),
 			];
@@ -477,7 +478,7 @@ impl Line {
 		self.x_values.is_empty()
 	}
 
-	/// Set the line's label.
+	/// Sets the line's label.
 	pub fn set_label<T>(&mut self, label: T)
 	where
 		T: Display,
@@ -485,7 +486,7 @@ impl Line {
 		self.label = Some(label.to_string());
 	}
 
-	/// Set the line's label.
+	/// Sets the line's label.
 	pub fn with_label<T>(mut self, label: T) -> Self
 	where
 		T: Display,
@@ -494,9 +495,31 @@ impl Line {
 		self
 	}
 
+	/// Sets the line's width.
+	pub fn set_width(&mut self, width: impl AsPrimitive<f64>) {
+		self.width = width.as_();
+	}
+
+	/// Sets the line's width.
+	pub fn with_width(mut self, width: impl AsPrimitive<f64>) {
+		self.set_width(width);
+	}
+
 	/// Adds a data point to the line.
 	pub fn push(&mut self, x: impl AsPrimitive<f64>, y: impl AsPrimitive<f64>) {
 		self.x_values.push(x.as_());
 		self.y_values.push(y.as_());
+	}
+}
+
+impl Default for Line {
+	fn default() -> Self {
+		Line {
+			label: None,
+			width: 4.0,
+
+			x_values: Vec::new(),
+			y_values: Vec::new(),
+		}
 	}
 }
