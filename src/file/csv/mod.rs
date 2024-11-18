@@ -41,7 +41,7 @@ impl RowData {
 	pub fn size(&self) -> usize {
 		let items_size = self.data
 			.iter()
-			.map(|item| item.as_bytes().len())
+			.map(|item| item.len())
 			.sum::<usize>();
 
 		items_size + self.data.len()
