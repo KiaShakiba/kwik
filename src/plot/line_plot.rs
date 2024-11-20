@@ -528,8 +528,9 @@ impl Line {
 	}
 
 	/// Sets the line's width.
-	pub fn with_width(mut self, width: impl AsPrimitive<f64>) {
+	pub fn with_width(mut self, width: impl AsPrimitive<f64>) -> Self {
 		self.set_width(width);
+		self
 	}
 
 	/// Adds a data point to the line.
