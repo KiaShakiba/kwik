@@ -17,6 +17,7 @@ use gnuplot::{
 	DashType,
 	BorderLocation2D,
 	TickOption,
+	LabelOption,
 };
 
 use num_traits::AsPrimitive;
@@ -25,6 +26,9 @@ use crate::plot::{Plot, auto_option};
 /// A scatter plot.
 #[derive(Default, Clone)]
 pub struct ScatterPlot {
+	font_type: Option<String>,
+	font_size: Option<f64>,
+
 	title: Option<String>,
 
 	x_label: Option<String>,
@@ -51,6 +55,24 @@ pub struct ScatterPlot {
 impl Plot for ScatterPlot {
 	fn is_empty(&self) -> bool {
 		self.points.is_empty()
+	}
+
+	fn set_font_type(&mut self, font_type: &str) {
+		self.font_type = Some(font_type.into());
+	}
+
+	fn with_font_type(mut self, font_type: &str) -> Self {
+		self.set_font_type(font_type);
+		self
+	}
+
+	fn set_font_size(&mut self, font_size: impl AsPrimitive<f64>) {
+		self.font_size = Some(font_size.as_());
+	}
+
+	fn with_font_size(mut self, font_size: impl AsPrimitive<f64>) -> Self {
+		self.set_font_size(font_size);
+		self
 	}
 
 	fn set_title<T>(&mut self, title: T)
@@ -99,6 +121,11 @@ impl Plot for ScatterPlot {
 	}
 
 	fn configure(&mut self, axes: &mut Axes2D) {
+		let font = LabelOption::Font(
+			self.font_type.as_deref().unwrap_or("Arial"),
+			self.font_size.unwrap_or(16.0),
+		);
+
 		let mut x_tick_options = vec![
 			TickOption::Mirror(false),
 			TickOption::Inward(false),
@@ -139,12 +166,12 @@ impl Plot for ScatterPlot {
 			.set_x_ticks(
 				Some((auto_option(self.x_tick), 0)),
 				&x_tick_options,
-				&[]
+				&[font],
 			)
 			.set_y_ticks(
 				Some((auto_option(self.y_tick), 0)),
 				&y_tick_options,
-				&[]
+				&[font],
 			)
 			.set_grid_options(false, &[
 				Color("#bbbbbb"),
@@ -155,15 +182,15 @@ impl Plot for ScatterPlot {
 			.set_y_grid(true);
 
 		if let Some(title) = &self.title {
-			axes.set_title(title, &[]);
+			axes.set_title(title, &[font]);
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(x_label, &[]);
+			axes.set_x_label(x_label, &[font]);
 		}
 
 		if let Some(y_label) = &self.y_label {
-			axes.set_y_label(y_label, &[]);
+			axes.set_y_label(y_label, &[font]);
 		}
 
 		if self.format_x_log {

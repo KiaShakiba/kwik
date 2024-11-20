@@ -13,6 +13,7 @@ pub mod bar_plot;
 
 use std::fmt::Display;
 use gnuplot::{Axes2D, AutoOption, DashType};
+use num_traits::AsPrimitive;
 
 const COLORS: &[&str] = &[
 	"#c4342b",
@@ -38,37 +39,49 @@ pub trait Plot {
 	/// Checks if the plot is empty (i.e., has no data).
 	fn is_empty(&self) -> bool;
 
-	/// Sets the plot's title
+	/// Sets the plot's font type.
+	fn set_font_type(&mut self, font_type: &str);
+
+	/// Sets the plot's font type.
+	fn with_font_type(self, font_type: &str) -> Self;
+
+	/// Sets the plot's font size.
+	fn set_font_size(&mut self, font_size: impl AsPrimitive<f64>);
+
+	/// Sets the plot's font size.
+	fn with_font_size(self, font_size: impl AsPrimitive<f64>) -> Self;
+
+	/// Sets the plot's title.
 	fn set_title<T>(&mut self, title: T)
 	where
 		T: Display,
 	;
 
-	/// Sets the plot's title
+	/// Sets the plot's title.
 	fn with_title<T>(self, title: T) -> Self
 	where
 		T: Display,
 	;
 
-	/// Sets the plot's x-axis label
+	/// Sets the plot's x-axis label.
 	fn set_x_label<T>(&mut self, label: T)
 	where
 		T: Display,
 	;
 
-	/// Sets the plot's x-axis label
+	/// Sets the plot's x-axis label.
 	fn with_x_label<T>(self, label: T) -> Self
 	where
 		T: Display,
 	;
 
-	/// Sets the plot's y-axis label
+	/// Sets the plot's y-axis label.
 	fn set_y_label<T>(&mut self, label: T)
 	where
 		T: Display,
 	;
 
-	/// Sets the plot's y-axis label
+	/// Sets the plot's y-axis label.
 	fn with_y_label<T>(self, label: T) -> Self
 	where
 		T: Display,

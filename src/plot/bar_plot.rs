@@ -36,6 +36,9 @@ use crate::{
 /// A bar plot.
 #[derive(Default, Clone)]
 pub struct BarPlot {
+	font_type: Option<String>,
+	font_size: Option<f64>,
+
 	title: Option<String>,
 
 	x_label: Option<String>,
@@ -66,6 +69,24 @@ pub struct Bar {
 impl Plot for BarPlot {
 	fn is_empty(&self) -> bool {
 		self.bar_groups.is_empty()
+	}
+
+	fn set_font_type(&mut self, font_type: &str) {
+		self.font_type = Some(font_type.into());
+	}
+
+	fn with_font_type(mut self, font_type: &str) -> Self {
+		self.set_font_type(font_type);
+		self
+	}
+
+	fn set_font_size(&mut self, font_size: impl AsPrimitive<f64>) {
+		self.font_size = Some(font_size.as_());
+	}
+
+	fn with_font_size(mut self, font_size: impl AsPrimitive<f64>) -> Self {
+		self.set_font_size(font_size);
+		self
 	}
 
 	fn set_title<T>(&mut self, title: T)
@@ -114,6 +135,11 @@ impl Plot for BarPlot {
 	}
 
 	fn configure(&mut self, axes: &mut Axes2D) {
+		let font = LabelOption::Font(
+			self.font_type.as_deref().unwrap_or("Arial"),
+			self.font_size.unwrap_or(16.0),
+		);
+
 		let labels = self.bar_groups
 			.iter()
 			.map(|bar_group| bar_group.label.as_deref().unwrap_or("").into())
@@ -149,13 +175,14 @@ impl Plot for BarPlot {
 					TickOption::Inward(false),
 				],
 				&[
+					font,
 					LabelOption::Rotate(-45.0),
 				]
 			)
 			.set_y_ticks(
 				Some((AutoOption::Auto, 0)),
 				&y_tick_options,
-				&[]
+				&[font],
 			)
 			.set_grid_options(false, &[
 				Color("#bbbbbb"),
@@ -165,15 +192,15 @@ impl Plot for BarPlot {
 			.set_y_grid(true);
 
 		if let Some(title) = &self.title {
-			axes.set_title(title, &[]);
+			axes.set_title(title, &[font]);
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(x_label, &[]);
+			axes.set_x_label(x_label, &[font]);
 		}
 
 		if let Some(y_label) = &self.y_label {
-			axes.set_y_label(y_label, &[]);
+			axes.set_y_label(y_label, &[font]);
 		}
 
 		if self.format_y_log {
