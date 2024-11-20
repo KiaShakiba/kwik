@@ -12,8 +12,8 @@ pub mod scatter_plot;
 pub mod bar_plot;
 
 use std::fmt::Display;
-use gnuplot::{Axes2D, AutoOption, DashType};
 use num_traits::AsPrimitive;
+use gnuplot::{Axes2D, AutoOption, DashType};
 
 const COLORS: &[&str] = &[
 	"#c4342b",

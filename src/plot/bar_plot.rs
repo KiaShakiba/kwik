@@ -6,6 +6,7 @@
  */
 
 use std::fmt::Display;
+use num_traits::AsPrimitive;
 
 use gnuplot::{
 	Axes2D,
@@ -21,8 +22,6 @@ use gnuplot::{
 	DashType,
 	Caption,
 };
-
-use num_traits::AsPrimitive;
 
 use crate::{
 	math,

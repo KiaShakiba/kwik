@@ -10,6 +10,8 @@ use std::{
 	collections::HashMap,
 };
 
+use num_traits::AsPrimitive;
+
 use gnuplot::{
 	Axes2D,
 	AxesCommon,
@@ -25,7 +27,6 @@ use gnuplot::{
 	DashType,
 };
 
-use num_traits::AsPrimitive;
 use indexmap::IndexMap;
 use statrs::statistics::{Data, Min, Max, Distribution, OrderStatistics};
 use crate::plot::{Plot, auto_option};

@@ -6,6 +6,7 @@
  */
 
 use std::fmt::Display;
+use num_traits::AsPrimitive;
 
 use gnuplot::{
 	Axes2D,
@@ -20,7 +21,6 @@ use gnuplot::{
 	LabelOption,
 };
 
-use num_traits::AsPrimitive;
 use crate::plot::{Plot, auto_option};
 
 /// A scatter plot.

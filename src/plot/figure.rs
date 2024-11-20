@@ -11,6 +11,7 @@ use std::{
 	path::Path,
 };
 
+use num_traits::AsPrimitive;
 use gnuplot::Figure as GnuplotFigure;
 use crate::plot::Plot;
 
@@ -65,9 +66,9 @@ impl Figure {
 	/// # Panics
 	///
 	/// Panics if the number of columns is zero.
-	pub fn set_columns(&mut self, columns: usize) {
-		assert!(columns > 0, "Invalid number of columns in figure");
-		self.columns = columns;
+	pub fn set_columns(&mut self, columns: impl AsPrimitive<usize>) {
+		assert!(columns.as_() > 0, "Invalid number of columns in figure");
+		self.columns = columns.as_();
 	}
 
 	/// Sets the maximum number of columns in the figure. The number of
@@ -85,7 +86,7 @@ impl Figure {
 	/// # Panics
 	///
 	/// Panics if the number of columns is zero.
-	pub fn with_columns(mut self, columns: usize) -> Self {
+	pub fn with_columns(mut self, columns: impl AsPrimitive<usize>) -> Self {
 		self.set_columns(columns);
 		self
 	}
@@ -100,8 +101,8 @@ impl Figure {
 	/// let mut figure = Figure::default();
 	/// figure.set_plot_width(200.0);
 	/// ```
-	pub fn set_plot_width(&mut self, plot_width_px: f32) {
-		self.plot_width_px = plot_width_px;
+	pub fn set_plot_width(&mut self, plot_width_px: impl AsPrimitive<f32>) {
+		self.plot_width_px = plot_width_px.as_();
 	}
 
 	/// Sets the width (in pixels) of an individual plot in the figure.
@@ -114,7 +115,7 @@ impl Figure {
 	/// let figure = Figure::default()
 	///     .with_plot_width(200.0);
 	/// ```
-	pub fn with_plot_width(mut self, plot_width_px: f32) -> Self {
+	pub fn with_plot_width(mut self, plot_width_px: impl AsPrimitive<f32>) -> Self {
 		self.set_plot_width(plot_width_px);
 		self
 	}
@@ -129,8 +130,8 @@ impl Figure {
 	/// let mut figure = Figure::default();
 	/// figure.set_plot_height(200.0);
 	/// ```
-	pub fn set_plot_height(&mut self, plot_height_px: f32) {
-		self.plot_height_px = plot_height_px;
+	pub fn set_plot_height(&mut self, plot_height_px: impl AsPrimitive<f32>) {
+		self.plot_height_px = plot_height_px.as_();
 	}
 
 	/// Sets the height (in pixels) of an individual plot in the figure.
@@ -143,7 +144,7 @@ impl Figure {
 	/// let figure = Figure::default()
 	///     .with_plot_height(200.0);
 	/// ```
-	pub fn with_plot_height(mut self, plot_height_px: f32) -> Self {
+	pub fn with_plot_height(mut self, plot_height_px: impl AsPrimitive<f32>) -> Self {
 		self.set_plot_height(plot_height_px);
 		self
 	}
