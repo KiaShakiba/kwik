@@ -28,7 +28,7 @@ pub struct Figure {
 
 pub const DPI: f32 = 72.0;
 pub const DEFAULT_WIDTH_PX: f32 = 323.0;
-pub const DEFAULT_HEIGHT_PX: f32 = 190.0;
+pub const DEFAULT_HEIGHT_PX: f32 = 150.0;
 
 impl Figure {
 	/// Constructs a new figure with one column.

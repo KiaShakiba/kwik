@@ -544,7 +544,7 @@ impl Default for Line {
 	fn default() -> Self {
 		Line {
 			label: None,
-			width: 4.0,
+			width: 5.0,
 
 			x_values: Vec::new(),
 			y_values: Vec::new(),
