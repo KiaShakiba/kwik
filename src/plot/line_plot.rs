@@ -21,6 +21,9 @@ use gnuplot::{
 	PointSymbol,
 	PointSize,
 	LabelOption,
+	PlotOption,
+	XAxis,
+	YAxis,
 };
 
 use crate::plot::{Plot, auto_option, COLORS, DASH_TYPES};
@@ -35,23 +38,30 @@ pub struct LinePlot {
 
 	x_label: Option<String>,
 	y_label: Option<String>,
+	y2_label: Option<String>,
 
 	x_min: Option<f64>,
 	x_max: Option<f64>,
 
 	y_min: Option<f64>,
 	y_max: Option<f64>,
+	y2_min: Option<f64>,
+	y2_max: Option<f64>,
 
 	x_tick: Option<f64>,
 	y_tick: Option<f64>,
+	y2_tick: Option<f64>,
 
 	format_x_log: bool,
 	format_y_log: bool,
+	format_y2_log: bool,
 
 	format_x_memory: bool,
 	format_y_memory: bool,
+	format_y2_memory: bool,
 
-	lines: Vec<Line>,
+	y1_lines: Vec<Line>,
+	y2_lines: Vec<Line>,
 
 	vlines: Vec<f64>,
 	hlines: Vec<f64>,
@@ -67,19 +77,27 @@ pub struct Line {
 
 	x_values: Vec<f64>,
 	y_values: Vec<f64>,
+
+	y2_axis: bool,
 }
 
 impl Plot for LinePlot {
 	fn is_empty(&self) -> bool {
-		if self.lines.is_empty() {
+		if self.y1_lines.is_empty() && self.y2_lines.is_empty() {
 			// there are no lines in the plot
 			return true;
 		}
 
 		// there are lines in the plot, though they all may be empty
-		self.lines
+		let y1_lines_empty = self.y1_lines
 			.iter()
-			.all(|line| line.is_empty())
+			.all(|line| line.is_empty());
+
+		let y2_lines_empty = self.y2_lines
+			.iter()
+			.all(|line| line.is_empty());
+
+		y1_lines_empty && y2_lines_empty
 	}
 
 	fn set_font_type(&mut self, font_type: &str) {
@@ -224,11 +242,58 @@ impl Plot for LinePlot {
 			axes.set_y_log(Some(10.0));
 		}
 
-		for (index, line) in self.lines.iter().enumerate() {
+		if !self.y2_lines.is_empty() {
+			let mut y2_tick_options = vec![
+				TickOption::Mirror(false),
+				TickOption::Inward(false),
+			];
+
+			if self.format_y2_memory {
+				y2_tick_options.push(TickOption::Format("%.1s %cB"));
+			}
+
+			axes.set_y2_range(
+				auto_option(self.y2_min),
+				auto_option(self.y2_max),
+			);
+
+			axes.set_y2_ticks(
+				Some((auto_option(self.y2_tick), 0)),
+				&y2_tick_options,
+				&[font],
+			);
+
+			if let Some(y2_label) = &self.y2_label {
+				axes.set_y2_label(y2_label, &[font]);
+			}
+
+			if self.format_y2_log {
+				axes.set_y2_log(Some(10.0));
+			}
+		}
+
+		for (index, line) in self.y1_lines.iter().enumerate() {
 			let mut line_config = vec![
 				LineWidth(line.width),
 				Color(COLORS[index % COLORS.len()]),
 				LineStyle(DASH_TYPES[index % DASH_TYPES.len()]),
+			];
+
+			if let Some(label) = &line.label {
+				line_config.push(Caption(label));
+			}
+
+			axes.lines(&line.x_values, &line.y_values, &line_config);
+		}
+
+		for (index, line) in self.y2_lines.iter().enumerate() {
+			let global_index = self.y1_lines.len() + index;
+
+			let mut line_config = vec![
+				LineWidth(line.width),
+				Color(COLORS[global_index % COLORS.len()]),
+				LineStyle(DASH_TYPES[global_index % DASH_TYPES.len()]),
+				PlotOption::Axes(XAxis::X1, YAxis::Y2),
 			];
 
 			if let Some(label) = &line.label {
@@ -272,100 +337,21 @@ impl Plot for LinePlot {
 }
 
 impl LinePlot {
-	fn min_x_value(&self) -> f64 {
-		let mut min = self.x_min;
-
-		for line in &self.lines {
-			let line_min = line.x_values
-				.iter()
-				.min_by(|a, b| a.total_cmp(b))
-				.copied()
-				.unwrap_or(0.0);
-
-			if min.is_none() || min.is_some_and(|value| value > line_min) {
-				min = Some(line_min);
-			}
-		}
-
-		for vline_x in &self.vlines {
-			if min.is_none() || min.is_some_and(|value| value > *vline_x) {
-				min = Some(*vline_x);
-			}
-		}
-
-		min.unwrap_or(0.0)
+	/// Sets the plot's y2-axis label.
+	pub fn set_y2_label<T>(&mut self, label: T)
+	where
+		T: Display,
+	{
+		self.y2_label = Some(label.to_string());
 	}
 
-	fn max_x_value(&self) -> f64 {
-		let mut max = self.x_max;
-
-		for line in &self.lines {
-			let line_max = line.x_values
-				.iter()
-				.max_by(|a, b| a.total_cmp(b))
-				.copied()
-				.unwrap_or(0.0);
-
-			if max.is_none() || max.is_some_and(|value| value < line_max) {
-				max = Some(line_max);
-			}
-		}
-
-		for vline_x in &self.vlines {
-			if max.is_none() || max.is_some_and(|value| value < *vline_x) {
-				max = Some(*vline_x);
-			}
-		}
-
-		max.unwrap_or(0.0)
-	}
-
-	fn min_y_value(&self) -> f64 {
-		let mut min = self.y_min;
-
-		for line in &self.lines {
-			let line_min = line.y_values
-				.iter()
-				.min_by(|a, b| a.total_cmp(b))
-				.copied()
-				.unwrap_or(0.0);
-
-			if min.is_none() || min.is_some_and(|value| value > line_min) {
-				min = Some(line_min);
-			}
-		}
-
-		for hline_y in &self.hlines {
-			if min.is_none() || min.is_some_and(|value| value > *hline_y) {
-				min = Some(*hline_y);
-			}
-		}
-
-		min.unwrap_or(0.0)
-	}
-
-	fn max_y_value(&self) -> f64 {
-		let mut max = self.y_max;
-
-		for line in &self.lines {
-			let line_max = line.y_values
-				.iter()
-				.max_by(|a, b| a.total_cmp(b))
-				.copied()
-				.unwrap_or(0.0);
-
-			if max.is_none() || max.is_some_and(|value| value < line_max) {
-				max = Some(line_max);
-			}
-		}
-
-		for hline_y in &self.hlines {
-			if max.is_none() || max.is_some_and(|value| value < *hline_y) {
-				max = Some(*hline_y);
-			}
-		}
-
-		max.unwrap_or(0.0)
+	/// Sets the plot's y2-axis label.
+	pub fn with_y2_label<T>(mut self, label: T) -> Self
+	where
+		T: Display,
+	{
+		self.set_y2_label(label);
+		self
 	}
 
 	/// Sets the plot's minimum x-value.
@@ -412,6 +398,28 @@ impl LinePlot {
 		self
 	}
 
+	/// Sets the plot's minimum y2-value.
+	pub fn set_y2_min(&mut self, y2_min: impl AsPrimitive<f64>) {
+		self.y2_min = Some(y2_min.as_());
+	}
+
+	/// Sets the plot's minimum y2-value.
+	pub fn with_y2_min(mut self, y2_min: impl AsPrimitive<f64>) -> Self {
+		self.set_y2_min(y2_min);
+		self
+	}
+
+	/// Sets the plot's maximum y2-value.
+	pub fn set_y2_max(&mut self, y2_max: impl AsPrimitive<f64>) {
+		self.y_max = Some(y2_max.as_());
+	}
+
+	/// Sets the plot's maximum y2-value.
+	pub fn with_y2_max(mut self, y2_max: impl AsPrimitive<f64>) -> Self {
+		self.set_y2_max(y2_max);
+		self
+	}
+
 	/// Sets the plot's x-tick value.
 	pub fn set_x_tick(&mut self, x_tick: impl AsPrimitive<f64>) {
 		self.x_tick = Some(x_tick.as_());
@@ -431,6 +439,17 @@ impl LinePlot {
 	/// Sets the plot's y-tick value.
 	pub fn with_y_tick(mut self, y_tick: impl AsPrimitive<f64>) -> Self {
 		self.set_y_tick(y_tick);
+		self
+	}
+
+	/// Sets the plot's y2-tick value.
+	pub fn set_y2_tick(&mut self, y2_tick: impl AsPrimitive<f64>) {
+		self.y2_tick = Some(y2_tick.as_());
+	}
+
+	/// Sets the plot's y2-tick value.
+	pub fn with_y2_tick(mut self, y2_tick: impl AsPrimitive<f64>) -> Self {
+		self.set_y2_tick(y2_tick);
 		self
 	}
 
@@ -456,6 +475,17 @@ impl LinePlot {
 		self
 	}
 
+	/// Enables or disables logarithmic formatting in the y2-axis.
+	pub fn set_format_y2_log(&mut self, value: bool) {
+		self.format_y2_log = value;
+	}
+
+	/// Enables or disables logarithmic formatting in the y2-axis.
+	pub fn with_format_y2_log(mut self, value: bool) -> Self {
+		self.set_format_y2_log(value);
+		self
+	}
+
 	/// Enables or disables memory formatting in the x-axis.
 	pub fn set_format_x_memory(&mut self, value: bool) {
 		self.format_x_memory = value;
@@ -478,9 +508,24 @@ impl LinePlot {
 		self
 	}
 
+	/// Enables or disables memory formatting in the y2-axis.
+	pub fn set_format_y2_memory(&mut self, value: bool) {
+		self.format_y2_memory = value;
+	}
+
+	/// Enables or disables memory formatting in the y2-axis.
+	pub fn with_format_y2_memory(mut self, value: bool) -> Self {
+		self.set_format_y2_memory(value);
+		self
+	}
+
 	/// Adds a line to the plot.
 	pub fn line(&mut self, line: Line) {
-		self.lines.push(line);
+		if !line.y2_axis {
+			self.y1_lines.push(line);
+		} else {
+			self.y2_lines.push(line);
+		}
 	}
 
 	/// Adds a vertical line to the plot at the supplied x-value.
@@ -496,6 +541,126 @@ impl LinePlot {
 	/// Adds a point to the plot at the supplied coordinates.
 	pub fn point(&mut self, x_value: impl AsPrimitive<f64>, y_value: impl AsPrimitive<f64>) {
 		self.points.push((x_value.as_(), y_value.as_()));
+	}
+
+	fn min_x_value(&self) -> f64 {
+		let mut min = self.x_min;
+
+		for line in &self.y1_lines {
+			let line_min = line.x_values
+				.iter()
+				.min_by(|a, b| a.total_cmp(b))
+				.copied()
+				.unwrap_or(0.0);
+
+			if min.is_none() || min.is_some_and(|value| value > line_min) {
+				min = Some(line_min);
+			}
+		}
+
+		for line in &self.y2_lines {
+			let line_min = line.x_values
+				.iter()
+				.min_by(|a, b| a.total_cmp(b))
+				.copied()
+				.unwrap_or(0.0);
+
+			if min.is_none() || min.is_some_and(|value| value > line_min) {
+				min = Some(line_min);
+			}
+		}
+
+		for vline_x in &self.vlines {
+			if min.is_none() || min.is_some_and(|value| value > *vline_x) {
+				min = Some(*vline_x);
+			}
+		}
+
+		min.unwrap_or(0.0)
+	}
+
+	fn max_x_value(&self) -> f64 {
+		let mut max = self.x_max;
+
+		for line in &self.y1_lines {
+			let line_max = line.x_values
+				.iter()
+				.max_by(|a, b| a.total_cmp(b))
+				.copied()
+				.unwrap_or(0.0);
+
+			if max.is_none() || max.is_some_and(|value| value < line_max) {
+				max = Some(line_max);
+			}
+		}
+
+		for line in &self.y2_lines {
+			let line_max = line.x_values
+				.iter()
+				.max_by(|a, b| a.total_cmp(b))
+				.copied()
+				.unwrap_or(0.0);
+
+			if max.is_none() || max.is_some_and(|value| value < line_max) {
+				max = Some(line_max);
+			}
+		}
+
+		for vline_x in &self.vlines {
+			if max.is_none() || max.is_some_and(|value| value < *vline_x) {
+				max = Some(*vline_x);
+			}
+		}
+
+		max.unwrap_or(0.0)
+	}
+
+	fn min_y_value(&self) -> f64 {
+		let mut min = self.y_min;
+
+		for line in &self.y1_lines {
+			let line_min = line.y_values
+				.iter()
+				.min_by(|a, b| a.total_cmp(b))
+				.copied()
+				.unwrap_or(0.0);
+
+			if min.is_none() || min.is_some_and(|value| value > line_min) {
+				min = Some(line_min);
+			}
+		}
+
+		for hline_y in &self.hlines {
+			if min.is_none() || min.is_some_and(|value| value > *hline_y) {
+				min = Some(*hline_y);
+			}
+		}
+
+		min.unwrap_or(0.0)
+	}
+
+	fn max_y_value(&self) -> f64 {
+		let mut max = self.y_max;
+
+		for line in &self.y1_lines {
+			let line_max = line.y_values
+				.iter()
+				.max_by(|a, b| a.total_cmp(b))
+				.copied()
+				.unwrap_or(0.0);
+
+			if max.is_none() || max.is_some_and(|value| value < line_max) {
+				max = Some(line_max);
+			}
+		}
+
+		for hline_y in &self.hlines {
+			if max.is_none() || max.is_some_and(|value| value < *hline_y) {
+				max = Some(*hline_y);
+			}
+		}
+
+		max.unwrap_or(0.0)
 	}
 }
 
@@ -533,6 +698,17 @@ impl Line {
 		self
 	}
 
+	/// Assigns the line to the y2-axis.
+	pub fn set_y2_axis(&mut self) {
+		self.y2_axis = true;
+	}
+
+	/// Assigns the line to the y2-axis.
+	pub fn with_y2_axis(mut self) -> Self {
+		self.set_y2_axis();
+		self
+	}
+
 	/// Adds a data point to the line.
 	pub fn push(&mut self, x: impl AsPrimitive<f64>, y: impl AsPrimitive<f64>) {
 		self.x_values.push(x.as_());
@@ -544,10 +720,12 @@ impl Default for Line {
 	fn default() -> Self {
 		Line {
 			label: None,
-			width: 5.0,
+			width: 2.0,
 
 			x_values: Vec::new(),
 			y_values: Vec::new(),
+
+			y2_axis: false,
 		}
 	}
 }
