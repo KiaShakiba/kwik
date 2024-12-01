@@ -41,7 +41,7 @@ impl<T> Zipf<T> {
 			.or_insert(1);
 	}
 
-	/// Calculate the Zipf alpha parameter of the distribution.
+	/// Calculates the Zipf alpha parameter of the distribution.
 	///
 	/// # Examples
 	/// ```
