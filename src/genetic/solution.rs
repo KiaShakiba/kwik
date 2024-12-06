@@ -48,7 +48,7 @@ where
 
 	/// Returns the total runtime of the run.
 	#[inline]
-	pub fn runtime(&self) -> &Duration {
-		&self.runtime
+	pub fn runtime(&self) -> Duration {
+		self.runtime
 	}
 }
