@@ -10,6 +10,7 @@ mod individual;
 mod gene;
 mod chromosome;
 mod fitness;
+mod offspring;
 mod solution;
 
 use std::time::{Duration, Instant};
@@ -26,12 +27,12 @@ pub use rand::{
 	rngs::SmallRng,
 };
 
-use crate::genetic::individual::Individual;
-
 pub use crate::genetic::{
 	error::GeneticError,
+	individual::Individual,
 	chromosome::{Chromosome, Gene},
 	fitness::{Fitness, FitnessOrd},
+	offspring::Offspring,
 	solution::GeneticSolution,
 };
 
@@ -295,7 +296,7 @@ where
 	pub fn run(&mut self) -> Result<GeneticSolution<C>, GeneticError> {
 		let time = Instant::now();
 
-		self.iterate()?;
+		let mut total_mutations = self.iterate()?;
 
 		let mut generation_count: u64 = 1;
 		let mut convergence_count: u64 = 0;
@@ -306,7 +307,7 @@ where
 				&& convergence_count < self.convergence_limit
 				&& time.elapsed().lt(&self.max_runtime)
 		{
-			self.iterate()?;
+			total_mutations += self.iterate()?;
 
 			let fittest = &self.population[0];
 
@@ -323,6 +324,7 @@ where
 		let solution = GeneticSolution::new(
 			self.population[0].chromosome().clone(),
 			generation_count,
+			total_mutations,
 			time.elapsed(),
 		);
 
@@ -330,11 +332,12 @@ where
 	}
 
 	/// Performs one iteration of the genetic algorithm, creating a new generation
-	/// and overwriting the current population.
-	fn iterate(&mut self) -> Result<(), GeneticError> {
+	/// and overwriting the current population. Returns the total number of
+	/// mutations that occurred during the creation of the new generation.
+	fn iterate(&mut self) -> Result<u64, GeneticError> {
 		let population_size = self.population.len();
 
-		let mut new_generation = (0..population_size)
+		let new_offpring = (0..population_size)
 			.into_par_iter()
 			.map(|_| {
 				let mut rng = SmallRng::from_rng(thread_rng())
@@ -349,13 +352,20 @@ where
 					&self.max_runtime,
 				)
 			})
-			.collect::<Result<Vec<Individual<C>>, GeneticError>>()?;
+			.collect::<Result<Vec<Offspring<C>>, GeneticError>>()?;
+
+		let mut new_generation = Vec::<Individual<C>>::new();
+		let mut total_mutations = 0u64;
+
+		for offspring in new_offpring {
+			total_mutations += offspring.mutations();
+			new_generation.push(offspring.into_individual());
+		}
 
 		new_generation.sort_unstable();
-
 		self.population = new_generation;
 
-		Ok(())
+		Ok(total_mutations)
 	}
 
 	/// Selects two individuals to mate
@@ -549,6 +559,7 @@ mod tests {
 		let result = genetic.run().unwrap();
 
 		assert_ne!(result.generations(), 0);
+		assert_ne!(result.mutations(), 0);
 		assert_eq!(result.chromosome().sum(), 100);
 	}
 }

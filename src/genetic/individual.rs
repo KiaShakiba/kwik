@@ -16,6 +16,7 @@ use crate::genetic::{
 	error::GeneticError,
 	chromosome::{Chromosome, Gene},
 	fitness::Fitness,
+	offspring::Offspring,
 };
 
 #[derive(Clone)]
@@ -52,9 +53,11 @@ where
 		partner: &Individual<C>,
 		mutation_probability: f64,
 		max_runtime: &Duration,
-	) -> Result<Individual<C>, GeneticError> {
+	) -> Result<Offspring<C>, GeneticError> {
 		let time = Instant::now();
+
 		let mut child_chromosome = self.chromosome.base();
+		let mut mutations = 0u64;
 
 		loop {
 			if time.elapsed().ge(max_runtime) {
@@ -67,6 +70,8 @@ where
 					MateResult::Parent2 => partner.chromosome.get(i).clone(),
 
 					MateResult::Mutation => {
+						mutations += 1;
+
 						let mut gene = self.chromosome.get(i).clone();
 						gene.mutate(rng);
 						gene
@@ -83,7 +88,12 @@ where
 			child_chromosome.clear();
 		}
 
-		Ok(child_chromosome.into())
+		let offspring = Offspring::new(
+			child_chromosome.into(),
+			mutations,
+		);
+
+		Ok(offspring)
 	}
 }
 

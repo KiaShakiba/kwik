@@ -18,6 +18,8 @@ where
 	chromosome: C,
 
 	generations: u64,
+	mutations: u64,
+
 	runtime: Duration,
 }
 
@@ -25,11 +27,18 @@ impl<C> GeneticSolution<C>
 where
 	C: Chromosome,
 {
-	pub fn new(chromosome: C, generations: u64, runtime: Duration) -> Self {
+	pub fn new(
+		chromosome: C,
+		generations: u64,
+		mutations: u64,
+		runtime: Duration,
+	) -> Self {
 		GeneticSolution {
 			chromosome,
 
 			generations,
+			mutations,
+
 			runtime,
 		}
 	}
@@ -44,6 +53,12 @@ where
 	#[inline]
 	pub fn generations(&self) -> u64 {
 		self.generations
+	}
+
+	/// Returns the total number of mutations that occurred during the run.
+	#[inline]
+	pub fn mutations(&self) -> u64 {
+		self.mutations
 	}
 
 	/// Returns the total runtime of the run.
