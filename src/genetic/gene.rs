@@ -6,6 +6,7 @@
  */
 
 use rand::Rng;
+use crate::genetic::Chromosome;
 
 /// A gene defines the unit of change in a genetic algorithm. Implement this trait
 /// for whichever struct contains the data for an individual member of the genetic
@@ -13,7 +14,7 @@ use rand::Rng;
 ///
 /// # Examples
 /// ```
-/// use kwik::genetic::{Gene, Rng};
+/// use kwik::genetic::{Gene, Chromosome, Rng};
 ///
 /// #[derive(Clone)]
 /// struct MyData {
@@ -21,7 +22,7 @@ use rand::Rng;
 /// }
 ///
 /// impl Gene for MyData {
-///     fn mutate(&mut self, rng: &mut impl Rng) {
+///     fn mutate(&mut self, rng: &mut impl Rng, _chromosome: &impl Chromosome) {
 ///         self.data = rng.gen_range(0..10);
 ///     }
 /// }
@@ -31,6 +32,7 @@ where
 	Self: Clone,
 {
 	/// Mutates the value of the gene. Ensure the value is mutated only within
-	/// the acceptable range of possible values.
-	fn mutate(&mut self, rng: &mut impl Rng);
+	/// the acceptable range of possible values. The current (potentially partially
+	/// filled) chromosome is provided.
+	fn mutate(&mut self, rng: &mut impl Rng, chromosome: &impl Chromosome);
 }

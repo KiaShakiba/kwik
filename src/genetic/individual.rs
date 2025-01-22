@@ -10,7 +10,10 @@ use std::{
 	time::{Duration, Instant},
 };
 
-use rand::Rng;
+use rand::{
+	Rng,
+	seq::SliceRandom,
+};
 
 use crate::genetic::{
 	error::GeneticError,
@@ -64,16 +67,19 @@ where
 				return Err(GeneticError::MateTimeout);
 			}
 
-			for i in 0..self.chromosome.len() {
+			let mut gene_indexes = (0..self.chromosome.len()).collect::<Vec<_>>();
+			gene_indexes.shuffle(rng);
+
+			for index in gene_indexes {
 				let gene = match get_mate_result(rng, mutation_probability) {
-					MateResult::Parent1 => self.chromosome.get(i).clone(),
-					MateResult::Parent2 => partner.chromosome.get(i).clone(),
+					MateResult::Parent1 => self.chromosome.get(index).clone(),
+					MateResult::Parent2 => partner.chromosome.get(index).clone(),
 
 					MateResult::Mutation => {
 						mutations += 1;
 
-						let mut gene = self.chromosome.get(i).clone();
-						gene.mutate(rng);
+						let mut gene = self.chromosome.get(index).clone();
+						gene.mutate(rng, &child_chromosome);
 						gene
 					},
 				};

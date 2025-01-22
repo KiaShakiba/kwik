@@ -97,7 +97,7 @@ pub use crate::genetic::gene::Gene;
 /// }
 ///
 /// impl Gene for MyData {
-///     fn mutate(&mut self, rng: &mut impl Rng) {
+///     fn mutate(&mut self, rng: &mut impl Rng, _chromosome: &impl Chromosome) {
 ///         self.data = rng.gen_range(0..10);
 ///     }
 /// }

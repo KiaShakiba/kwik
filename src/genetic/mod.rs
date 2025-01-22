@@ -18,6 +18,7 @@ use rayon::prelude::*;
 
 use rand::{
 	thread_rng,
+	seq::SliceRandom,
 	distributions::{Distribution, Uniform},
 };
 
@@ -140,7 +141,7 @@ const TOURNAMENT_SIZE: usize = 3;
 /// }
 ///
 /// impl Gene for MyData {
-///     fn mutate(&mut self, rng: &mut impl Rng) {
+///     fn mutate(&mut self, rng: &mut impl Rng, _chromosome: &impl Chromosome) {
 ///         self.data = rng.gen_range(0..50);
 ///     }
 /// }
@@ -433,10 +434,13 @@ where
 	while time.elapsed().lt(max_runtime) {
 		let mut mutated = chromosome.base();
 
-		for index in 0..chromosome.len() {
+		let mut gene_indexes = (0..chromosome.len()).collect::<Vec<_>>();
+		gene_indexes.shuffle(&mut rng);
+
+		for index in gene_indexes {
 			let mut gene = chromosome.get(index).clone();
 
-			gene.mutate(&mut rng);
+			gene.mutate(&mut rng, &mutated);
 			mutated.push(gene);
 		}
 
@@ -539,7 +543,7 @@ mod tests {
 	}
 
 	impl Gene for TestData {
-		fn mutate(&mut self, rng: &mut impl Rng) {
+		fn mutate(&mut self, rng: &mut impl Rng, _chromosome: &impl Chromosome) {
 			self.data = rng.gen_range(0..50);
 		}
 	}
