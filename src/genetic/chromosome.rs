@@ -49,7 +49,7 @@ pub use crate::genetic::gene::Gene;
 ///         self.config.len()
 ///     }
 ///
-///     fn push(&mut self, data: MyData) {
+///     fn insert(&mut self, _index: usize, data: MyData) {
 ///         self.config.push(data);
 ///     }
 ///
@@ -120,8 +120,10 @@ where
 	#[must_use]
 	fn len(&self) -> usize;
 
-	/// Adds a gene to the chromosome.
-	fn push(&mut self, gene: Self::Gene);
+	/// Inserts a gene into the chromosome at the specified index. If the index
+	/// does not matter, it can be ignored and the gene can be inserted at any
+	/// index.
+	fn insert(&mut self, index: usize, gene: Self::Gene);
 
 	/// Clears the chromosome.
 	fn clear(&mut self);
@@ -139,4 +141,9 @@ where
 	/// Returns true if the chromosome produces an optimal result.
 	/// This will stop the genetic algorithm.
 	fn is_optimal(&self) -> bool;
+
+	/// Inserts a gene at the end of the chromosome.
+	fn push(&mut self, gene: Self::Gene) {
+		self.insert(self.len(), gene);
+	}
 }

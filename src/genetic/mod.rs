@@ -93,7 +93,7 @@ const TOURNAMENT_SIZE: usize = 3;
 ///         self.config.len()
 ///     }
 ///
-///     fn push(&mut self, data: MyData) {
+///     fn insert(&mut self, _index: usize, data: MyData) {
 ///         self.config.push(data);
 ///     }
 ///
@@ -441,7 +441,7 @@ where
 			let mut gene = chromosome.get(index).clone();
 
 			gene.mutate(&mut rng, &mutated);
-			mutated.push(gene);
+			mutated.insert(index, gene);
 		}
 
 		if mutated.is_valid() {
@@ -494,7 +494,7 @@ mod tests {
 			self.config.len()
 		}
 
-		fn push(&mut self, data: TestData) {
+		fn insert(&mut self, _index: usize, data: TestData) {
 			self.config.push(data);
 		}
 

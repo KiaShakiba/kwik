@@ -84,7 +84,7 @@ where
 					},
 				};
 
-				child_chromosome.push(gene);
+				child_chromosome.insert(index, gene);
 			}
 
 			if child_chromosome.is_valid() {
