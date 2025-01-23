@@ -140,10 +140,18 @@ where
 
 	/// Returns true if the chromosome produces an optimal result.
 	/// This will stop the genetic algorithm.
+	#[must_use]
 	fn is_optimal(&self) -> bool;
 
 	/// Inserts a gene at the end of the chromosome.
 	fn push(&mut self, gene: Self::Gene) {
 		self.insert(self.len(), gene);
+	}
+
+	/// Returns the value of the partially filled chromosome to be used
+	/// while mutating genes, if one exists.
+	#[must_use]
+	fn partial_value<T>(&self) -> Option<T> {
+		None
 	}
 }
