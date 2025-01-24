@@ -151,18 +151,25 @@ where
 	/// Returns the value of the partially filled chromosome to be used
 	/// while mutating genes, if one exists.
 	#[must_use]
-	fn partial_sum(&self, current_gene: &impl Gene) -> GenePartialValue {
-		(0..self.len())
-			.map(|index| self.get(index))
-			.filter_map(|gene| {
-				if gene.partial_filter_key().is_none()
-					|| gene.partial_filter_key() == current_gene.partial_filter_key()
-				{
-					return gene.partial_value();
-				}
+	fn partial_sum(&self, current_gene: &impl Gene) -> Option<GenePartialValue> {
+		let current_key = current_gene.partial_filter_key()?;
 
-				None
+		let value = (0..self.len())
+			.filter_map(|index| {
+				let gene = self.get(index);
+				let key = gene.partial_filter_key()?;
+
+				if key == current_key {
+					gene.partial_value()
+				} else {
+					None
+				}
 			})
-			.sum()
+			.sum();
+
+		match value {
+			0 => None,
+			value => Some(value),
+		}
 	}
 }

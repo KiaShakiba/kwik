@@ -42,11 +42,13 @@ where
 	/// Returns the partial filter key used when calculating the partial sum.
 	/// Genes with the same partial filter key (or `None`) will be included in
 	/// each other's partial sum.
+	#[must_use]
 	fn partial_filter_key(&self) -> Option<GenePartialFilterKey> {
 		None
 	}
 
 	/// Returns the partial value used when calculating the partial sum.
+	#[must_use]
 	fn partial_value(&self) -> Option<GenePartialValue> {
 		None
 	}
