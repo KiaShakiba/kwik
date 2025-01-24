@@ -58,9 +58,10 @@ where
 		max_runtime: &Duration,
 	) -> Result<Offspring<C>, GeneticError> {
 		let time = Instant::now();
+		let mut mutations = 0u64;
 
 		let mut child_chromosome = self.chromosome.base();
-		let mut mutations = 0u64;
+		let mut child_genes = vec![None; self.chromosome.len()];
 
 		loop {
 			if time.elapsed().ge(max_runtime) {
@@ -79,12 +80,25 @@ where
 						mutations += 1;
 
 						let mut gene = self.chromosome.get(index).clone();
-						gene.mutate(rng, &child_chromosome);
+
+						gene.mutate(rng, &child_genes);
 						gene
 					},
 				};
 
-				child_chromosome.insert(index, gene);
+				child_genes[index] = Some(gene);
+			}
+
+			for gene in child_genes.iter_mut() {
+				let gene = gene
+					.take()
+					.ok_or(GeneticError::Internal)?;
+
+				child_chromosome.push(gene);
+			}
+
+			if child_chromosome.len() != self.chromosome.len() {
+				return Err(GeneticError::Internal);
 			}
 
 			if child_chromosome.is_valid() {

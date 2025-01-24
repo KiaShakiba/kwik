@@ -6,7 +6,7 @@
  */
 
 use crate::genetic::FitnessOrd;
-pub use crate::genetic::gene::{Gene, GenePartialValue};
+pub use crate::genetic::gene::Gene;
 
 /// This defines a chromosome (i.e., a set of genes). With this,
 /// genes can be added and retrieved. The overall fitness of the
@@ -49,7 +49,7 @@ pub use crate::genetic::gene::{Gene, GenePartialValue};
 ///         self.config.len()
 ///     }
 ///
-///     fn insert(&mut self, _index: usize, data: MyData) {
+///     fn push(&mut self, data: MyData) {
 ///         self.config.push(data);
 ///     }
 ///
@@ -97,7 +97,7 @@ pub use crate::genetic::gene::{Gene, GenePartialValue};
 /// }
 ///
 /// impl Gene for MyData {
-///     fn mutate(&mut self, rng: &mut impl Rng, _chromosome: &impl Chromosome) {
+///     fn mutate(&mut self, rng: &mut impl Rng, _genes: &[Option<Self>]) {
 ///         self.data = rng.gen_range(0..10);
 ///     }
 /// }
@@ -120,10 +120,8 @@ where
 	#[must_use]
 	fn len(&self) -> usize;
 
-	/// Inserts a gene into the chromosome at the specified index. If the index
-	/// does not matter, it can be ignored and the gene can be inserted at any
-	/// index.
-	fn insert(&mut self, index: usize, gene: Self::Gene);
+	/// Inserts a gene into the chromosome.
+	fn push(&mut self, gene: Self::Gene);
 
 	/// Clears the chromosome.
 	fn clear(&mut self);
@@ -142,34 +140,4 @@ where
 	/// This will stop the genetic algorithm.
 	#[must_use]
 	fn is_optimal(&self) -> bool;
-
-	/// Inserts a gene at the end of the chromosome.
-	fn push(&mut self, gene: Self::Gene) {
-		self.insert(self.len(), gene);
-	}
-
-	/// Returns the value of the partially filled chromosome to be used
-	/// while mutating genes, if one exists.
-	#[must_use]
-	fn partial_sum(&self, current_gene: &impl Gene) -> Option<GenePartialValue> {
-		let current_key = current_gene.partial_filter_key()?;
-
-		let value = (0..self.len())
-			.filter_map(|index| {
-				let gene = self.get(index);
-				let key = gene.partial_filter_key()?;
-
-				if key == current_key {
-					gene.partial_value()
-				} else {
-					None
-				}
-			})
-			.sum();
-
-		match value {
-			0 => None,
-			value => Some(value),
-		}
-	}
 }

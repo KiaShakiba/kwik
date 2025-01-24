@@ -32,7 +32,7 @@ pub use crate::genetic::{
 	error::GeneticError,
 	individual::Individual,
 	chromosome::Chromosome,
-	gene::{Gene, GenePartialFilterKey, GenePartialValue},
+	gene::Gene,
 	fitness::{Fitness, FitnessOrd},
 	offspring::Offspring,
 	solution::GeneticSolution,
@@ -94,7 +94,7 @@ const TOURNAMENT_SIZE: usize = 3;
 ///         self.config.len()
 ///     }
 ///
-///     fn insert(&mut self, _index: usize, data: MyData) {
+///     fn push(&mut self, data: MyData) {
 ///         self.config.push(data);
 ///     }
 ///
@@ -142,7 +142,7 @@ const TOURNAMENT_SIZE: usize = 3;
 /// }
 ///
 /// impl Gene for MyData {
-///     fn mutate(&mut self, rng: &mut impl Rng, _chromosome: &impl Chromosome) {
+///     fn mutate(&mut self, rng: &mut impl Rng, _genes: &[Option<Self>]) {
 ///         self.data = rng.gen_range(0..50);
 ///     }
 /// }
@@ -432,21 +432,35 @@ where
 	let mut rng = SmallRng::from_rng(thread_rng())
 		.map_err(|_| GeneticError::Internal)?;
 
-	while time.elapsed().lt(max_runtime) {
-		let mut mutated = chromosome.base();
+	let mut mutated_genes = vec![None; chromosome.len()];
 
+	while time.elapsed().lt(max_runtime) {
 		let mut gene_indexes = (0..chromosome.len()).collect::<Vec<_>>();
 		gene_indexes.shuffle(&mut rng);
 
 		for index in gene_indexes {
 			let mut gene = chromosome.get(index).clone();
 
-			gene.mutate(&mut rng, &mutated);
-			mutated.insert(index, gene);
+			gene.mutate(&mut rng, &mutated_genes);
+			mutated_genes[index] = Some(gene);
 		}
 
-		if mutated.is_valid() {
-			return Ok(mutated);
+		let mut mutated_chromosome = chromosome.base();
+
+		for gene in mutated_genes.iter_mut() {
+			let gene = gene
+				.take()
+				.ok_or(GeneticError::Internal)?;
+
+			mutated_chromosome.push(gene);
+		}
+
+		if mutated_chromosome.len() != chromosome.len() {
+			return Err(GeneticError::Internal);
+		}
+
+		if mutated_chromosome.is_valid() {
+			return Ok(mutated_chromosome);
 		}
 	}
 
@@ -495,7 +509,7 @@ mod tests {
 			self.config.len()
 		}
 
-		fn insert(&mut self, _index: usize, data: TestData) {
+		fn push(&mut self, data: TestData) {
 			self.config.push(data);
 		}
 
@@ -544,7 +558,7 @@ mod tests {
 	}
 
 	impl Gene for TestData {
-		fn mutate(&mut self, rng: &mut impl Rng, _chromosome: &impl Chromosome) {
+		fn mutate(&mut self, rng: &mut impl Rng, _genes: &[Option<Self>]) {
 			self.data = rng.gen_range(0..50);
 		}
 	}
