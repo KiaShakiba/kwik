@@ -462,6 +462,9 @@ where
 		if mutated_chromosome.is_valid() {
 			return Ok(mutated_chromosome);
 		}
+
+		mutated_genes.clear();
+		mutated_genes.resize(chromosome.len(), None);
 	}
 
 	Err(GeneticError::InitialPopulationTimeout)

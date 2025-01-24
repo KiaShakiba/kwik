@@ -106,6 +106,9 @@ where
 			}
 
 			child_chromosome.clear();
+
+			child_genes.clear();
+			child_genes.resize(self.chromosome.len(), None);
 		}
 
 		let offspring = Offspring::new(
