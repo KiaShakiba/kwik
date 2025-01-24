@@ -8,6 +8,9 @@
 use rand::Rng;
 use crate::genetic::Chromosome;
 
+pub type GenePartialFilterKey = u64;
+pub type GenePartialValue = u64;
+
 /// A gene defines the unit of change in a genetic algorithm. Implement this trait
 /// for whichever struct contains the data for an individual member of the genetic
 /// system.
@@ -35,4 +38,16 @@ where
 	/// the acceptable range of possible values. The current (potentially partially
 	/// filled) chromosome is provided.
 	fn mutate(&mut self, rng: &mut impl Rng, chromosome: &impl Chromosome);
+
+	/// Returns the partial filter key used when calculating the partial sum.
+	/// Genes with the same partial filter key (or `None`) will be included in
+	/// each other's partial sum.
+	fn partial_filter_key(&self) -> Option<GenePartialFilterKey> {
+		None
+	}
+
+	/// Returns the partial value used when calculating the partial sum.
+	fn partial_value(&self) -> Option<GenePartialValue> {
+		None
+	}
 }

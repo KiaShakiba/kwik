@@ -31,7 +31,8 @@ pub use rand::{
 pub use crate::genetic::{
 	error::GeneticError,
 	individual::Individual,
-	chromosome::{Chromosome, Gene},
+	chromosome::Chromosome,
+	gene::{Gene, GenePartialFilterKey, GenePartialValue},
 	fitness::{Fitness, FitnessOrd},
 	offspring::Offspring,
 	solution::GeneticSolution,

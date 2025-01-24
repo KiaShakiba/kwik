@@ -6,7 +6,7 @@
  */
 
 use crate::genetic::FitnessOrd;
-pub use crate::genetic::gene::Gene;
+pub use crate::genetic::gene::{Gene, GenePartialValue};
 
 /// This defines a chromosome (i.e., a set of genes). With this,
 /// genes can be added and retrieved. The overall fitness of the
@@ -151,7 +151,18 @@ where
 	/// Returns the value of the partially filled chromosome to be used
 	/// while mutating genes, if one exists.
 	#[must_use]
-	fn partial_value<T>(&self) -> Option<T> {
-		None
+	fn partial_sum(&self, current_gene: &impl Gene) -> GenePartialValue {
+		(0..self.len())
+			.map(|index| self.get(index))
+			.filter_map(|gene| {
+				if gene.partial_filter_key().is_none()
+					|| gene.partial_filter_key() == current_gene.partial_filter_key()
+				{
+					return gene.partial_value();
+				}
+
+				None
+			})
+			.sum()
 	}
 }
