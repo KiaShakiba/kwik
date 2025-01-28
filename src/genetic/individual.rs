@@ -168,7 +168,7 @@ where
 {}
 
 fn get_mate_result(rng: &mut impl Rng, mutation_probability: f64) -> MateResult {
-	let random: f64 = rng.gen();
+	let random: f64 = rng.random();
 
 	if random < (1.0 - mutation_probability) / 2.0 {
 		return MateResult::Parent1;

@@ -17,9 +17,8 @@ use std::time::{Duration, Instant};
 use rayon::prelude::*;
 
 use rand::{
-	thread_rng,
 	seq::SliceRandom,
-	distributions::{Distribution, Uniform},
+	distr::{Distribution, Uniform},
 };
 
 pub use rand::{
@@ -197,7 +196,7 @@ where
 			mutation_probability,
 			tournament_size: TOURNAMENT_SIZE,
 
-			mating_dist: init_mating_dist(POPULATION_SIZE),
+			mating_dist: init_mating_dist(POPULATION_SIZE)?,
 		};
 
 		Ok(genetic)
@@ -221,7 +220,7 @@ where
 			&self.max_runtime,
 		)?;
 
-		self.mating_dist = init_mating_dist(population_size);
+		self.mating_dist = init_mating_dist(population_size)?;
 
 		Ok(())
 	}
@@ -342,9 +341,7 @@ where
 		let new_offpring = (0..population_size)
 			.into_par_iter()
 			.map(|_| {
-				let mut rng = SmallRng::from_rng(thread_rng())
-					.map_err(|_| GeneticError::Internal)?;
-
+				let mut rng = SmallRng::from_rng(&mut rand::rng());
 				let (parent1, parent2) = self.gen_mating_pair(&mut rng);
 
 				parent1.mate(
@@ -429,9 +426,7 @@ where
 {
 	let time = Instant::now();
 
-	let mut rng = SmallRng::from_rng(thread_rng())
-		.map_err(|_| GeneticError::Internal)?;
-
+	let mut rng = SmallRng::from_rng(&mut rand::rng());
 	let mut mutated_genes = vec![None; chromosome.len()];
 
 	while time.elapsed().lt(max_runtime) {
@@ -470,8 +465,9 @@ where
 	Err(GeneticError::InitialPopulationTimeout)
 }
 
-fn init_mating_dist(population_size: usize) -> Uniform<usize> {
-	Uniform::from(0..population_size)
+fn init_mating_dist(population_size: usize) -> Result<Uniform<usize>, GeneticError> {
+	Uniform::try_from(0..population_size)
+		.map_err(|_| GeneticError::Internal)
 }
 
 #[cfg(test)]
@@ -562,7 +558,7 @@ mod tests {
 
 	impl Gene for TestData {
 		fn mutate(&mut self, rng: &mut impl Rng, _genes: &[Option<Self>]) {
-			self.data = rng.gen_range(0..50);
+			self.data = rng.random_range(0..50);
 		}
 	}
 
