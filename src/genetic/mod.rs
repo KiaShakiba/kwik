@@ -15,16 +15,13 @@ mod solution;
 
 use std::time::{Duration, Instant};
 use rayon::prelude::*;
+pub use rand::Rng;
 
 use rand::{
-	seq::SliceRandom,
-	distr::{Distribution, Uniform},
-};
-
-pub use rand::{
-	Rng,
 	SeedableRng,
 	rngs::SmallRng,
+	seq::SliceRandom,
+	distr::{Distribution, Uniform},
 };
 
 pub use crate::genetic::{
