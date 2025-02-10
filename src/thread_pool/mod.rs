@@ -7,7 +7,8 @@
 
 mod worker;
 
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{mpsc, Arc};
+use parking_lot::Mutex;
 use crate::thread_pool::worker::{Worker, Job};
 
 pub struct ThreadPool {
