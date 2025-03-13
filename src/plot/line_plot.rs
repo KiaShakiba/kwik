@@ -310,8 +310,15 @@ impl Plot for LinePlot {
 		}
 
 		for vline_x in &self.vlines {
-			let x = vec![vline_x, vline_x];
-			let y = vec![self.min_y_value(), self.max_y_value()];
+			let x = vec![
+				x_scaler.scale(*vline_x),
+				x_scaler.scale(*vline_x),
+			];
+
+			let y = vec![
+				y_scaler.scale(self.min_y_value()),
+				y_scaler.scale(self.max_y_value()),
+			];
 
 			axes.lines(x, y, &[
 				LineWidth(2.0),
@@ -320,8 +327,15 @@ impl Plot for LinePlot {
 		}
 
 		for hline_y in &self.hlines {
-			let x = vec![self.min_x_value(), self.max_x_value()];
-			let y = vec![hline_y, hline_y];
+			let x = vec![
+				x_scaler.scale(self.min_x_value()),
+				x_scaler.scale(self.max_x_value()),
+			];
+
+			let y = vec![
+				y_scaler.scale(*hline_y),
+				y_scaler.scale(*hline_y),
+			];
 
 			axes.lines(x, y, &[
 				LineWidth(2.0),
@@ -330,8 +344,8 @@ impl Plot for LinePlot {
 		}
 
 		for (x_value, y_value) in &self.points {
-			let x = vec![x_value];
-			let y = vec![y_value];
+			let x = vec![x_scaler.scale(*x_value)];
+			let y = vec![y_scaler.scale(*y_value)];
 
 			axes.points(x, y, &[
 				PointSymbol('o'),
