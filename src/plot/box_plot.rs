@@ -29,7 +29,7 @@ use gnuplot::{
 
 use indexmap::IndexMap;
 use statrs::statistics::{Data, Min, Max, Distribution, OrderStatistics};
-use crate::plot::{Plot, auto_option};
+use crate::plot::{Plot, SizeScaler, auto_option};
 
 /// A box plot.
 #[derive(Default, Clone)]
@@ -145,14 +145,11 @@ impl Plot for BoxPlot {
 			.map(|label| label.into())
 			.collect::<Vec<String>>();
 
-		let mut y_tick_options = vec![
-			TickOption::Mirror(false),
-			TickOption::Inward(false),
-		];
-
-		if self.format_y_memory {
-			y_tick_options.push(TickOption::Format("%.1s %cB"));
-		}
+		let maybe_y_scaler = if self.format_y_memory {
+			Some(self.y_size_scaler())
+		} else {
+			None
+		};
 
 		axes
 			.set_x_range(
@@ -181,7 +178,7 @@ impl Plot for BoxPlot {
 			)
 			.set_y_ticks(
 				Some((auto_option(self.y_tick), 0)),
-				&y_tick_options,
+				&[TickOption::Mirror(false), TickOption::Inward(false)],
 				&[font]
 			)
 			.set_grid_options(false, &[
@@ -195,12 +192,19 @@ impl Plot for BoxPlot {
 			axes.set_title(title, &[font]);
 		}
 
-		if let Some(y_label) = &self.y_label {
-			axes.set_y_label(y_label, &[font]);
-		}
-
 		if let Some(x_label) = &self.x_label {
 			axes.set_x_label(x_label, &[font]);
+		}
+
+		if let Some(y_label) = &self.y_label {
+			match &maybe_y_scaler {
+				Some(scaler) => axes.set_y_label(
+					&format!("{y_label} ({})", scaler.label()),
+					&[font],
+				),
+
+				None => axes.set_y_label(y_label, &[font]),
+			};
 		}
 
 		if self.format_y_log {
@@ -216,13 +220,43 @@ impl Plot for BoxPlot {
 					.map(|color| color.as_str())
 					.unwrap_or("red");
 
+			let q1 = match &maybe_y_scaler {
+				Some(scaler) => scaler.scale(stats.q1()),
+				None => stats.q1(),
+			};
+
+			let min = match &maybe_y_scaler {
+				Some(scaler) => scaler.scale(stats.min()),
+				None => stats.min(),
+			};
+
+			let max = match &maybe_y_scaler {
+				Some(scaler) => scaler.scale(stats.max()),
+				None => stats.max(),
+			};
+
+			let q3 = match &maybe_y_scaler {
+				Some(scaler) => scaler.scale(stats.q3()),
+				None => stats.q3(),
+			};
+
+			let mean = match &maybe_y_scaler {
+				Some(scaler) => scaler.scale(stats.mean()),
+				None => stats.mean(),
+			};
+
+			let median = match &maybe_y_scaler {
+				Some(scaler) => scaler.scale(stats.median()),
+				None => stats.median(),
+			};
+
 			axes
 				.box_and_whisker_set_width(
 					[x_value],
-					[stats.q1()],
-					[stats.min()],
-					[stats.max()],
-					[stats.q3()],
+					[q1],
+					[min],
+					[max],
+					[q3],
 					[0.25],
 					&[
 						PlotOption::Color("white"),
@@ -233,7 +267,7 @@ impl Plot for BoxPlot {
 				)
 				.points(
 					[x_value],
-					[stats.mean()],
+					[mean],
 					&[
 						PlotOption::Color("blue"),
 						PlotOption::PointSymbol('x'),
@@ -242,7 +276,7 @@ impl Plot for BoxPlot {
 				)
 				.points(
 					[x_value],
-					[stats.median()],
+					[median],
 					&[
 						PlotOption::Color("blue"),
 						PlotOption::PointSymbol('+'),
@@ -345,6 +379,24 @@ impl BoxPlot {
 			.expect("Could not get stats");
 
 		Stats::new(values)
+	}
+
+	fn max_y_value(&self) -> f64 {
+		let mut max = self.y_max;
+
+		for (_, values) in &self.map {
+			for y_value in values {
+				if max.is_none_or(|value| value < *y_value) {
+					max = Some(*y_value);
+				}
+			}
+		}
+
+		max.unwrap_or(0.0)
+	}
+
+	fn y_size_scaler(&self) -> SizeScaler {
+		SizeScaler::new(self.max_y_value())
 	}
 }
 

@@ -21,7 +21,7 @@ use gnuplot::{
 	LabelOption,
 };
 
-use crate::plot::{Plot, auto_option};
+use crate::plot::{Plot, SizeScaler, auto_option};
 
 /// A scatter plot.
 #[derive(Default, Clone)]
@@ -126,23 +126,17 @@ impl Plot for ScatterPlot {
 			self.font_size.unwrap_or(16.0),
 		);
 
-		let mut x_tick_options = vec![
-			TickOption::Mirror(false),
-			TickOption::Inward(false),
-		];
+		let maybe_x_scaler = if self.format_x_memory {
+			Some(self.x_size_scaler())
+		} else {
+			None
+		};
 
-		let mut y_tick_options = vec![
-			TickOption::Mirror(false),
-			TickOption::Inward(false),
-		];
-
-		if self.format_x_memory {
-			x_tick_options.push(TickOption::Format("%.1s %cB"));
-		}
-
-		if self.format_y_memory {
-			y_tick_options.push(TickOption::Format("%.1s %cB"));
-		}
+		let maybe_y_scaler = if self.format_y_memory {
+			Some(self.y_size_scaler())
+		} else {
+			None
+		};
 
 		axes
 			.set_border(
@@ -165,12 +159,12 @@ impl Plot for ScatterPlot {
 			)
 			.set_x_ticks(
 				Some((auto_option(self.x_tick), 0)),
-				&x_tick_options,
+				&[TickOption::Mirror(false), TickOption::Inward(false)],
 				&[font],
 			)
 			.set_y_ticks(
 				Some((auto_option(self.y_tick), 0)),
-				&y_tick_options,
+				&[TickOption::Mirror(false), TickOption::Inward(false)],
 				&[font],
 			)
 			.set_grid_options(false, &[
@@ -186,11 +180,25 @@ impl Plot for ScatterPlot {
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(x_label, &[font]);
+			match &maybe_x_scaler {
+				Some(scaler) => axes.set_x_label(
+					&format!("{x_label} ({})", scaler.label()),
+					&[font],
+				),
+
+				None => axes.set_x_label(x_label, &[font]),
+			};
 		}
 
 		if let Some(y_label) = &self.y_label {
-			axes.set_y_label(y_label, &[font]);
+			match &maybe_y_scaler {
+				Some(scaler) => axes.set_y_label(
+					&format!("{y_label} ({})", scaler.label()),
+					&[font],
+				),
+
+				None => axes.set_y_label(y_label, &[font]),
+			};
 		}
 
 		if self.format_x_log {
@@ -205,8 +213,18 @@ impl Plot for ScatterPlot {
 		let mut y_values = Vec::<f64>::new();
 
 		for (x_value, y_value) in &self.points {
-			x_values.push(*x_value);
-			y_values.push(*y_value);
+			let x_value = match &maybe_x_scaler {
+				Some(scaler) => scaler.scale(*x_value),
+				None => *x_value,
+			};
+
+			let y_value = match &maybe_y_scaler {
+				Some(scaler) => scaler.scale(*y_value),
+				None => *y_value,
+			};
+
+			x_values.push(x_value);
+			y_values.push(y_value);
 		}
 
 		axes.points(
@@ -335,5 +353,37 @@ impl ScatterPlot {
 	/// Adds a point to the plot at the supplied coordinates.
 	pub fn point(&mut self, x_value: impl AsPrimitive<f64>, y_value: impl AsPrimitive<f64>) {
 		self.points.push((x_value.as_(), y_value.as_()));
+	}
+
+	fn max_x_value(&self) -> f64 {
+		let mut max = self.x_max;
+
+		for (x, _) in &self.points {
+			if max.is_none_or(|value| value < *x) {
+				max = Some(*x);
+			}
+		}
+
+		max.unwrap_or(0.0)
+	}
+
+	fn max_y_value(&self) -> f64 {
+		let mut max = self.y_max;
+
+		for (_, y) in &self.points {
+			if max.is_none_or(|value| value < *y) {
+				max = Some(*y);
+			}
+		}
+
+		max.unwrap_or(0.0)
+	}
+
+	fn x_size_scaler(&self) -> SizeScaler {
+		SizeScaler::new(self.max_x_value())
+	}
+
+	fn y_size_scaler(&self) -> SizeScaler {
+		SizeScaler::new(self.max_y_value())
 	}
 }

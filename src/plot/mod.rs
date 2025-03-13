@@ -14,6 +14,7 @@ pub mod bar_plot;
 use std::fmt::Display;
 use num_traits::AsPrimitive;
 use gnuplot::{Axes2D, AutoOption, DashType};
+use crate::fmt::MEMORY_UNITS;
 
 const COLORS: &[&str] = &[
 	"#c4342b",
@@ -90,6 +91,44 @@ pub trait Plot {
 	/// Configures the supplied `Gnuplot` `Axes2D` with the
 	/// plot's data.
 	fn configure(&mut self, axes: &mut Axes2D);
+}
+
+struct SizeScaler {
+	unit: &'static str,
+	denominator: f64,
+}
+
+impl SizeScaler {
+	fn new(max_size: impl AsPrimitive<u64>) -> Self {
+		let (count, denominator) = SizeScaler::get_scalers(max_size);
+
+		SizeScaler {
+			unit: MEMORY_UNITS[count],
+			denominator,
+		}
+	}
+
+	pub fn scale(&self, size: impl AsPrimitive<f64>) -> f64 {
+		size.as_() / self.denominator
+	}
+
+	pub fn label(&self) -> &str {
+		self.unit
+	}
+
+	fn get_scalers(max_size: impl AsPrimitive<u64>) -> (usize, f64) {
+		let mut max_size = max_size.as_();
+		let mut count: usize = 0;
+		let mut denominator: f64 = 1.0;
+
+		while max_size / 1024 > 0 {
+			denominator *= 1024.0;
+			max_size /= 1024;
+			count += 1;
+		}
+
+		(count, denominator)
+	}
 }
 
 fn auto_option(value: Option<f64>) -> AutoOption<f64> {

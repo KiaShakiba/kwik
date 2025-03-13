@@ -27,6 +27,7 @@ use crate::{
 	math,
 	plot::{
 		Plot,
+		SizeScaler,
 		auto_option,
 		COLORS,
 	},
@@ -144,14 +145,11 @@ impl Plot for BarPlot {
 			.map(|bar_group| bar_group.label.as_deref().unwrap_or("").into())
 			.collect::<Vec<String>>();
 
-		let mut y_tick_options = vec![
-			TickOption::Mirror(false),
-			TickOption::Inward(false),
-		];
-
-		if self.format_y_memory {
-			y_tick_options.push(TickOption::Format("%.1s %cB"));
-		}
+		let maybe_y_scaler = if self.format_y_memory {
+			Some(self.y_size_scaler())
+		} else {
+			None
+		};
 
 		axes
 			.set_x_range(
@@ -180,7 +178,7 @@ impl Plot for BarPlot {
 			)
 			.set_y_ticks(
 				Some((AutoOption::Auto, 0)),
-				&y_tick_options,
+				&[TickOption::Mirror(false), TickOption::Inward(false)],
 				&[font],
 			)
 			.set_grid_options(false, &[
@@ -199,7 +197,14 @@ impl Plot for BarPlot {
 		}
 
 		if let Some(y_label) = &self.y_label {
-			axes.set_y_label(y_label, &[font]);
+			match &maybe_y_scaler {
+				Some(scaler) => axes.set_y_label(
+					&format!("{y_label} ({})", scaler.label()),
+					&[font],
+				),
+
+				None => axes.set_y_label(y_label, &[font]),
+			};
 		}
 
 		if self.format_y_log {
@@ -224,7 +229,10 @@ impl Plot for BarPlot {
 
 			let y_values = self.bar_groups
 				.iter()
-				.map(|bar_group| bar_group.bars[bar_index].value);
+				.map(|bar_group| match &maybe_y_scaler {
+					Some(scaler) => scaler.scale(bar_group.bars[bar_index].value),
+					None => bar_group.bars[bar_index].value,
+				});
 
 			let widths = self.bar_groups
 				.iter()
@@ -286,6 +294,24 @@ impl BarPlot {
 	/// Adds a bar group to the plot.
 	pub fn add(&mut self, bar_group: BarGroup) {
 		self.bar_groups.push(bar_group);
+	}
+
+	fn max_y_value(&self) -> f64 {
+		let mut max = self.y_max;
+
+		for bar_group in &self.bar_groups {
+			for bar in &bar_group.bars {
+				if max.is_none_or(|value| value < bar.value) {
+					max = Some(bar.value);
+				}
+			}
+		}
+
+		max.unwrap_or(0.0)
+	}
+
+	fn y_size_scaler(&self) -> SizeScaler {
+		SizeScaler::new(self.max_y_value())
 	}
 }
 

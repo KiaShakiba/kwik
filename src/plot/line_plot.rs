@@ -26,7 +26,13 @@ use gnuplot::{
 	YAxis,
 };
 
-use crate::plot::{Plot, auto_option, COLORS, DASH_TYPES};
+use crate::plot::{
+	Plot,
+	SizeScaler,
+	auto_option,
+	COLORS,
+	DASH_TYPES,
+};
 
 /// A line plot.
 #[derive(Default, Clone)]
@@ -169,23 +175,23 @@ impl Plot for LinePlot {
 			self.font_size.unwrap_or(16.0),
 		);
 
-		let mut x_tick_options = vec![
-			TickOption::Mirror(false),
-			TickOption::Inward(false),
-		];
+		let maybe_x_scaler = if self.format_x_memory {
+			Some(self.x_size_scaler())
+		} else {
+			None
+		};
 
-		let mut y_tick_options = vec![
-			TickOption::Mirror(false),
-			TickOption::Inward(false),
-		];
+		let maybe_y_scaler = if self.format_y_memory {
+			Some(self.y_size_scaler())
+		} else {
+			None
+		};
 
-		if self.format_x_memory {
-			x_tick_options.push(TickOption::Format("%.1s %cB"));
-		}
-
-		if self.format_y_memory {
-			y_tick_options.push(TickOption::Format("%.1s %cB"));
-		}
+		let maybe_y2_scaler = if self.format_y2_memory {
+			Some(self.y2_size_scaler())
+		} else {
+			None
+		};
 
 		axes
 			.set_border(
@@ -206,12 +212,12 @@ impl Plot for LinePlot {
 			)
 			.set_x_ticks(
 				Some((auto_option(self.x_tick), 0)),
-				&x_tick_options,
+				&[TickOption::Mirror(false), TickOption::Inward(false)],
 				&[font],
 			)
 			.set_y_ticks(
 				Some((auto_option(self.y_tick), 0)),
-				&y_tick_options,
+				&[TickOption::Mirror(false), TickOption::Inward(false)],
 				&[font],
 			)
 			.set_grid_options(false, &[
@@ -227,11 +233,25 @@ impl Plot for LinePlot {
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(x_label, &[font]);
+			match &maybe_x_scaler {
+				Some(scaler) => axes.set_x_label(
+					&format!("{x_label} ({})", scaler.label()),
+					&[font],
+				),
+
+				None => axes.set_x_label(x_label, &[font]),
+			};
 		}
 
 		if let Some(y_label) = &self.y_label {
-			axes.set_y_label(y_label, &[font]);
+			match &maybe_y_scaler {
+				Some(scaler) => axes.set_y_label(
+					&format!("{y_label} ({})", scaler.label()),
+					&[font],
+				),
+
+				None => axes.set_y_label(y_label, &[font]),
+			};
 		}
 
 		if self.format_x_log {
@@ -243,15 +263,6 @@ impl Plot for LinePlot {
 		}
 
 		if !self.y2_lines.is_empty() {
-			let mut y2_tick_options = vec![
-				TickOption::Mirror(false),
-				TickOption::Inward(false),
-			];
-
-			if self.format_y2_memory {
-				y2_tick_options.push(TickOption::Format("%.1s %cB"));
-			}
-
 			axes.set_y2_range(
 				auto_option(self.y2_min),
 				auto_option(self.y2_max),
@@ -259,12 +270,19 @@ impl Plot for LinePlot {
 
 			axes.set_y2_ticks(
 				Some((auto_option(self.y2_tick), 0)),
-				&y2_tick_options,
+				&[TickOption::Mirror(false), TickOption::Inward(false)],
 				&[font],
 			);
 
 			if let Some(y2_label) = &self.y2_label {
-				axes.set_y2_label(y2_label, &[font]);
+				match &maybe_y2_scaler {
+					Some(scaler) => axes.set_y2_label(
+						&format!("{y2_label} ({})", scaler.label()),
+						&[font],
+					),
+
+					None => axes.set_y2_label(y2_label, &[font]),
+				};
 			}
 
 			if self.format_y2_log {
@@ -283,7 +301,21 @@ impl Plot for LinePlot {
 				line_config.push(Caption(label));
 			}
 
-			axes.lines(&line.x_values, &line.y_values, &line_config);
+			let x_values = line.x_values
+				.iter()
+				.map(|value| match &maybe_x_scaler {
+					Some(scaler) => scaler.scale(*value),
+					None => *value,
+				});
+
+			let y_values = line.y_values
+				.iter()
+				.map(|value| match &maybe_y_scaler {
+					Some(scaler) => scaler.scale(*value),
+					None => *value,
+				});
+
+			axes.lines(x_values, y_values, &line_config);
 		}
 
 		for (index, line) in self.y2_lines.iter().enumerate() {
@@ -300,7 +332,21 @@ impl Plot for LinePlot {
 				line_config.push(Caption(label));
 			}
 
-			axes.lines(&line.x_values, &line.y_values, &line_config);
+			let x_values = line.x_values
+				.iter()
+				.map(|value| match &maybe_x_scaler {
+					Some(scaler) => scaler.scale(*value),
+					None => *value,
+				});
+
+			let y_values = line.y_values
+				.iter()
+				.map(|value| match &maybe_y2_scaler {
+					Some(scaler) => scaler.scale(*value),
+					None => *value,
+				});
+
+			axes.lines(x_values, y_values, &line_config);
 		}
 
 		for vline_x in &self.vlines {
@@ -649,6 +695,30 @@ impl LinePlot {
 				.copied()
 				.unwrap_or(0.0);
 
+			if max.is_none_or(|value| value < line_max) {
+				max = Some(line_max);
+			}
+		}
+
+		for hline_y in &self.hlines {
+			if max.is_none_or(|value| value < *hline_y) {
+				max = Some(*hline_y);
+			}
+		}
+
+		max.unwrap_or(0.0)
+	}
+
+	fn max_y2_value(&self) -> f64 {
+		let mut max = self.y2_max;
+
+		for line in &self.y2_lines {
+			let line_max = line.y_values
+				.iter()
+				.max_by(|a, b| a.total_cmp(b))
+				.copied()
+				.unwrap_or(0.0);
+
 			if max.is_none() || max.is_some_and(|value| value < line_max) {
 				max = Some(line_max);
 			}
@@ -661,6 +731,18 @@ impl LinePlot {
 		}
 
 		max.unwrap_or(0.0)
+	}
+
+	fn x_size_scaler(&self) -> SizeScaler {
+		SizeScaler::new(self.max_x_value())
+	}
+
+	fn y_size_scaler(&self) -> SizeScaler {
+		SizeScaler::new(self.max_y_value())
+	}
+
+	fn y2_size_scaler(&self) -> SizeScaler {
+		SizeScaler::new(self.max_y2_value())
 	}
 }
 
