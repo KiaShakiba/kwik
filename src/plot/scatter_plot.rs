@@ -21,7 +21,14 @@ use gnuplot::{
 	LabelOption,
 };
 
-use crate::plot::{Plot, SizeScaler, auto_option};
+use crate::plot::{
+	Plot,
+	Scaler,
+	NoScaler,
+	SizeScaler,
+	TimeScaler,
+	auto_option,
+};
 
 /// A scatter plot.
 #[derive(Default, Clone)]
@@ -48,6 +55,9 @@ pub struct ScatterPlot {
 
 	format_x_memory: bool,
 	format_y_memory: bool,
+
+	format_x_time: bool,
+	format_y_time: bool,
 
 	points: Vec<(f64, f64)>,
 }
@@ -126,17 +136,8 @@ impl Plot for ScatterPlot {
 			self.font_size.unwrap_or(16.0),
 		);
 
-		let maybe_x_scaler = if self.format_x_memory {
-			Some(self.x_size_scaler())
-		} else {
-			None
-		};
-
-		let maybe_y_scaler = if self.format_y_memory {
-			Some(self.y_size_scaler())
-		} else {
-			None
-		};
+		let x_scaler = self.x_scaler();
+		let y_scaler = self.y_scaler();
 
 		axes
 			.set_border(
@@ -150,20 +151,20 @@ impl Plot for ScatterPlot {
 				&[]
 			)
 			.set_x_range(
-				auto_option(self.x_min),
-				auto_option(self.x_max),
+				auto_option(self.x_min, x_scaler.as_ref()),
+				auto_option(self.x_max, x_scaler.as_ref()),
 			)
 			.set_y_range(
-				auto_option(self.y_min),
-				auto_option(self.y_max),
+				auto_option(self.y_min, y_scaler.as_ref()),
+				auto_option(self.y_max, y_scaler.as_ref()),
 			)
 			.set_x_ticks(
-				Some((auto_option(self.x_tick), 0)),
+				Some((auto_option(self.x_tick, x_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
 				&[font],
 			)
 			.set_y_ticks(
-				Some((auto_option(self.y_tick), 0)),
+				Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
 				&[font],
 			)
@@ -180,25 +181,11 @@ impl Plot for ScatterPlot {
 		}
 
 		if let Some(x_label) = &self.x_label {
-			match &maybe_x_scaler {
-				Some(scaler) => axes.set_x_label(
-					&format!("{x_label} ({})", scaler.label()),
-					&[font],
-				),
-
-				None => axes.set_x_label(x_label, &[font]),
-			};
+			axes.set_x_label(&x_scaler.apply_unit(x_label), &[font]);
 		}
 
 		if let Some(y_label) = &self.y_label {
-			match &maybe_y_scaler {
-				Some(scaler) => axes.set_y_label(
-					&format!("{y_label} ({})", scaler.label()),
-					&[font],
-				),
-
-				None => axes.set_y_label(y_label, &[font]),
-			};
+			axes.set_y_label(&y_scaler.apply_unit(y_label), &[font]);
 		}
 
 		if self.format_x_log {
@@ -213,18 +200,8 @@ impl Plot for ScatterPlot {
 		let mut y_values = Vec::<f64>::new();
 
 		for (x_value, y_value) in &self.points {
-			let x_value = match &maybe_x_scaler {
-				Some(scaler) => scaler.scale(*x_value),
-				None => *x_value,
-			};
-
-			let y_value = match &maybe_y_scaler {
-				Some(scaler) => scaler.scale(*y_value),
-				None => *y_value,
-			};
-
-			x_values.push(x_value);
-			y_values.push(y_value);
+			x_values.push(x_scaler.scale(*x_value));
+			y_values.push(y_scaler.scale(*y_value));
 		}
 
 		axes.points(
@@ -350,6 +327,28 @@ impl ScatterPlot {
 		self
 	}
 
+	/// Enables or disables time formatting in the x-axis.
+	pub fn set_format_x_time(&mut self, value: bool) {
+		self.format_x_time = value;
+	}
+
+	/// Enables or disables time formatting in the x-axis.
+	pub fn with_format_x_time(mut self, value: bool) -> Self {
+		self.set_format_x_time(value);
+		self
+	}
+
+	/// Enables or disables time formatting in the y-axis.
+	pub fn set_format_y_time(&mut self, value: bool) {
+		self.format_y_time = value;
+	}
+
+	/// Enables or disables time formatting in the y-axis.
+	pub fn with_format_y_time(mut self, value: bool) -> Self {
+		self.set_format_y_time(value);
+		self
+	}
+
 	/// Adds a point to the plot at the supplied coordinates.
 	pub fn point(&mut self, x_value: impl AsPrimitive<f64>, y_value: impl AsPrimitive<f64>) {
 		self.points.push((x_value.as_(), y_value.as_()));
@@ -379,11 +378,31 @@ impl ScatterPlot {
 		max.unwrap_or(0.0)
 	}
 
-	fn x_size_scaler(&self) -> SizeScaler {
-		SizeScaler::new(self.max_x_value())
+	fn x_scaler(&self) -> Box<dyn Scaler> {
+		let max_x_value = self.max_x_value();
+
+		if self.format_x_memory {
+			return Box::new(SizeScaler::new(max_x_value));
+		}
+
+		if self.format_x_time {
+			return Box::new(TimeScaler::new(max_x_value));
+		}
+
+		Box::new(NoScaler::new(max_x_value))
 	}
 
-	fn y_size_scaler(&self) -> SizeScaler {
-		SizeScaler::new(self.max_y_value())
+	fn y_scaler(&self) -> Box<dyn Scaler> {
+		let max_y_value = self.max_y_value();
+
+		if self.format_y_memory {
+			return Box::new(SizeScaler::new(max_y_value));
+		}
+
+		if self.format_y_time {
+			return Box::new(TimeScaler::new(max_y_value));
+		}
+
+		Box::new(NoScaler::new(max_y_value))
 	}
 }

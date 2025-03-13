@@ -34,6 +34,8 @@ const DASH_TYPES: &[DashType] = &[
 	DashType::Dot,
 ];
 
+const TIME_UNITS: &[&str] = &["ms", "s", "mins", "hrs", "days"];
+
 /// Implementing this trait allows the struct to be added to a
 /// plot figure.
 pub trait Plot {
@@ -93,30 +95,44 @@ pub trait Plot {
 	fn configure(&mut self, axes: &mut Axes2D);
 }
 
+trait Scaler {
+	fn new(max: impl AsPrimitive<u64>) -> Self
+	where
+		Self: Sized,
+	;
+
+	fn scale(&self, size: f64) -> f64;
+	fn apply_unit(&self, label: &str) -> String;
+}
+
+struct NoScaler;
+
 struct SizeScaler {
-	unit: &'static str,
+	unit: Option<&'static str>,
 	denominator: f64,
 }
 
-impl SizeScaler {
+struct TimeScaler {
+	unit: Option<&'static str>,
+	denominator: f64,
+}
+
+impl Scaler for NoScaler {
+	fn new(_: impl AsPrimitive<u64>) -> Self {
+		NoScaler
+	}
+
+	fn scale(&self, size: f64) -> f64 {
+		size
+	}
+
+	fn apply_unit(&self, label: &str) -> String {
+		label.to_owned()
+	}
+}
+
+impl Scaler for SizeScaler {
 	fn new(max_size: impl AsPrimitive<u64>) -> Self {
-		let (count, denominator) = SizeScaler::get_scalers(max_size);
-
-		SizeScaler {
-			unit: MEMORY_UNITS[count],
-			denominator,
-		}
-	}
-
-	pub fn scale(&self, size: impl AsPrimitive<f64>) -> f64 {
-		size.as_() / self.denominator
-	}
-
-	pub fn label(&self) -> &str {
-		self.unit
-	}
-
-	fn get_scalers(max_size: impl AsPrimitive<u64>) -> (usize, f64) {
 		let mut max_size = max_size.as_();
 		let mut count: usize = 0;
 		let mut denominator: f64 = 1.0;
@@ -127,13 +143,63 @@ impl SizeScaler {
 			count += 1;
 		}
 
-		(count, denominator)
+		SizeScaler {
+			unit: Some(MEMORY_UNITS[count]),
+			denominator,
+		}
+	}
+
+	fn scale(&self, size: f64) -> f64 {
+		size / self.denominator
+	}
+
+	fn apply_unit(&self, label: &str) -> String {
+		match self.unit {
+			Some(unit) => format!("{label} ({unit})"),
+			None => label.to_string(),
+		}
 	}
 }
 
-fn auto_option(value: Option<f64>) -> AutoOption<f64> {
+impl Scaler for TimeScaler {
+	fn new(max_time: impl AsPrimitive<u64>) -> Self {
+		let mut max_time = max_time.as_();
+		let mut count: usize = 0;
+
+		let divisors: &[u64] = &[1000, 60, 60, 24];
+		let mut denominator: f64 = 1.0;
+
+		for divisor in divisors {
+			if max_time / divisor == 0 {
+				break;
+			}
+
+			denominator *= *divisor as f64;
+			max_time /= divisor;
+			count += 1;
+		}
+
+		TimeScaler {
+			unit: Some(TIME_UNITS[count]),
+			denominator,
+		}
+	}
+
+	fn scale(&self, time: f64) -> f64 {
+		time / self.denominator
+	}
+
+	fn apply_unit(&self, label: &str) -> String {
+		match self.unit {
+			Some(unit) => format!("{label} ({unit})"),
+			None => label.to_string(),
+		}
+	}
+}
+
+fn auto_option(value: Option<f64>, scaler: &dyn Scaler) -> AutoOption<f64> {
 	match value {
-		Some(value) => AutoOption::Fix(value),
+		Some(value) => AutoOption::Fix(scaler.scale(value)),
 		None => AutoOption::Auto,
 	}
 }

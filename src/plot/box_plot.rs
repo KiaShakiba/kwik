@@ -29,7 +29,15 @@ use gnuplot::{
 
 use indexmap::IndexMap;
 use statrs::statistics::{Data, Min, Max, Distribution, OrderStatistics};
-use crate::plot::{Plot, SizeScaler, auto_option};
+
+use crate::plot::{
+	Plot,
+	Scaler,
+	NoScaler,
+	SizeScaler,
+	TimeScaler,
+	auto_option,
+};
 
 /// A box plot.
 #[derive(Default, Clone)]
@@ -49,6 +57,7 @@ pub struct BoxPlot {
 
 	format_y_log: bool,
 	format_y_memory: bool,
+	format_y_time: bool,
 
 	map: IndexMap<String, Vec<f64>>,
 
@@ -145,11 +154,7 @@ impl Plot for BoxPlot {
 			.map(|label| label.into())
 			.collect::<Vec<String>>();
 
-		let maybe_y_scaler = if self.format_y_memory {
-			Some(self.y_size_scaler())
-		} else {
-			None
-		};
+		let y_scaler = self.y_scaler();
 
 		axes
 			.set_x_range(
@@ -157,8 +162,8 @@ impl Plot for BoxPlot {
 				AutoOption::Fix(self.map.len() as f64 + 1.0)
 			)
 			.set_y_range(
-				auto_option(self.y_min),
-				auto_option(self.y_max),
+				auto_option(self.y_min, y_scaler.as_ref()),
+				auto_option(self.y_max, y_scaler.as_ref()),
 			)
 			.set_x_ticks_custom(
 				labels
@@ -177,7 +182,7 @@ impl Plot for BoxPlot {
 				]
 			)
 			.set_y_ticks(
-				Some((auto_option(self.y_tick), 0)),
+				Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
 				&[font]
 			)
@@ -197,14 +202,7 @@ impl Plot for BoxPlot {
 		}
 
 		if let Some(y_label) = &self.y_label {
-			match &maybe_y_scaler {
-				Some(scaler) => axes.set_y_label(
-					&format!("{y_label} ({})", scaler.label()),
-					&[font],
-				),
-
-				None => axes.set_y_label(y_label, &[font]),
-			};
+			axes.set_y_label(&y_scaler.apply_unit(y_label), &[font]);
 		}
 
 		if self.format_y_log {
@@ -220,43 +218,13 @@ impl Plot for BoxPlot {
 					.map(|color| color.as_str())
 					.unwrap_or("red");
 
-			let q1 = match &maybe_y_scaler {
-				Some(scaler) => scaler.scale(stats.q1()),
-				None => stats.q1(),
-			};
-
-			let min = match &maybe_y_scaler {
-				Some(scaler) => scaler.scale(stats.min()),
-				None => stats.min(),
-			};
-
-			let max = match &maybe_y_scaler {
-				Some(scaler) => scaler.scale(stats.max()),
-				None => stats.max(),
-			};
-
-			let q3 = match &maybe_y_scaler {
-				Some(scaler) => scaler.scale(stats.q3()),
-				None => stats.q3(),
-			};
-
-			let mean = match &maybe_y_scaler {
-				Some(scaler) => scaler.scale(stats.mean()),
-				None => stats.mean(),
-			};
-
-			let median = match &maybe_y_scaler {
-				Some(scaler) => scaler.scale(stats.median()),
-				None => stats.median(),
-			};
-
 			axes
 				.box_and_whisker_set_width(
 					[x_value],
-					[q1],
-					[min],
-					[max],
-					[q3],
+					[y_scaler.scale(stats.q1())],
+					[y_scaler.scale(stats.min())],
+					[y_scaler.scale(stats.max())],
+					[y_scaler.scale(stats.q3())],
 					[0.25],
 					&[
 						PlotOption::Color("white"),
@@ -267,7 +235,7 @@ impl Plot for BoxPlot {
 				)
 				.points(
 					[x_value],
-					[mean],
+					[y_scaler.scale(stats.mean())],
 					&[
 						PlotOption::Color("blue"),
 						PlotOption::PointSymbol('x'),
@@ -276,7 +244,7 @@ impl Plot for BoxPlot {
 				)
 				.points(
 					[x_value],
-					[median],
+					[y_scaler.scale(stats.median())],
 					&[
 						PlotOption::Color("blue"),
 						PlotOption::PointSymbol('+'),
@@ -343,6 +311,17 @@ impl BoxPlot {
 		self
 	}
 
+	/// Enables or disables time formatting in the y-axis.
+	pub fn set_format_y_time(&mut self, value: bool) {
+		self.format_y_time = value;
+	}
+
+	/// Enables or disables time formatting in the y-axis.
+	pub fn with_format_y_time(mut self, value: bool) -> Self {
+		self.set_format_y_time(value);
+		self
+	}
+
 	/// Sets an individual box's color.
 	pub fn set_color<T1, T2>(&mut self, label: T1, color: T2)
 	where
@@ -395,8 +374,18 @@ impl BoxPlot {
 		max.unwrap_or(0.0)
 	}
 
-	fn y_size_scaler(&self) -> SizeScaler {
-		SizeScaler::new(self.max_y_value())
+	fn y_scaler(&self) -> Box<dyn Scaler> {
+		let max_y_value = self.max_y_value();
+
+		if self.format_y_memory {
+			return Box::new(SizeScaler::new(max_y_value));
+		}
+
+		if self.format_y_time {
+			return Box::new(TimeScaler::new(max_y_value));
+		}
+
+		Box::new(NoScaler::new(max_y_value))
 	}
 }
 

@@ -27,7 +27,10 @@ use crate::{
 	math,
 	plot::{
 		Plot,
+		Scaler,
+		NoScaler,
 		SizeScaler,
+		TimeScaler,
 		auto_option,
 		COLORS,
 	},
@@ -48,6 +51,7 @@ pub struct BarPlot {
 
 	format_y_log: bool,
 	format_y_memory: bool,
+	format_y_time: bool,
 
 	bar_groups: Vec<BarGroup>,
 }
@@ -145,11 +149,7 @@ impl Plot for BarPlot {
 			.map(|bar_group| bar_group.label.as_deref().unwrap_or("").into())
 			.collect::<Vec<String>>();
 
-		let maybe_y_scaler = if self.format_y_memory {
-			Some(self.y_size_scaler())
-		} else {
-			None
-		};
+		let y_scaler = self.y_scaler();
 
 		axes
 			.set_x_range(
@@ -158,7 +158,7 @@ impl Plot for BarPlot {
 			)
 			.set_y_range(
 				AutoOption::Fix(0.0),
-				auto_option(self.y_max),
+				auto_option(self.y_max, y_scaler.as_ref()),
 			)
 			.set_x_ticks_custom(
 				labels
@@ -197,14 +197,7 @@ impl Plot for BarPlot {
 		}
 
 		if let Some(y_label) = &self.y_label {
-			match &maybe_y_scaler {
-				Some(scaler) => axes.set_y_label(
-					&format!("{y_label} ({})", scaler.label()),
-					&[font],
-				),
-
-				None => axes.set_y_label(y_label, &[font]),
-			};
+			axes.set_y_label(&y_scaler.apply_unit(y_label), &[font]);
 		}
 
 		if self.format_y_log {
@@ -229,10 +222,7 @@ impl Plot for BarPlot {
 
 			let y_values = self.bar_groups
 				.iter()
-				.map(|bar_group| match &maybe_y_scaler {
-					Some(scaler) => scaler.scale(bar_group.bars[bar_index].value),
-					None => bar_group.bars[bar_index].value,
-				});
+				.map(|bar_group| y_scaler.scale(bar_group.bars[bar_index].value));
 
 			let widths = self.bar_groups
 				.iter()
@@ -291,6 +281,17 @@ impl BarPlot {
 		self
 	}
 
+	/// Enables or disables time formatting in the y-axis.
+	pub fn set_format_y_time(&mut self, value: bool) {
+		self.format_y_time = value;
+	}
+
+	/// Enables or disables time formatting in the y-axis.
+	pub fn with_format_y_time(mut self, value: bool) -> Self {
+		self.set_format_y_time(value);
+		self
+	}
+
 	/// Adds a bar group to the plot.
 	pub fn add(&mut self, bar_group: BarGroup) {
 		self.bar_groups.push(bar_group);
@@ -310,8 +311,18 @@ impl BarPlot {
 		max.unwrap_or(0.0)
 	}
 
-	fn y_size_scaler(&self) -> SizeScaler {
-		SizeScaler::new(self.max_y_value())
+	fn y_scaler(&self) -> Box<dyn Scaler> {
+		let max_y_value = self.max_y_value();
+
+		if self.format_y_memory {
+			return Box::new(SizeScaler::new(max_y_value));
+		}
+
+		if self.format_y_time {
+			return Box::new(TimeScaler::new(max_y_value));
+		}
+
+		Box::new(NoScaler::new(max_y_value))
 	}
 }
 
