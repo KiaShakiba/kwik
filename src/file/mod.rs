@@ -25,7 +25,6 @@ pub trait FileReader {
 		P: AsRef<Path>,
 	;
 
-
 	/// Opens the reader with the supplied file.
 	fn from_file(file: File) -> io::Result<Self>
 	where
@@ -45,7 +44,6 @@ pub trait FileWriter {
 		Self: Sized,
 		P: AsRef<Path>,
 	;
-
 
 	/// Opens the writer with the supplied file.
 	fn from_file(file: File) -> io::Result<Self>
