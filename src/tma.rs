@@ -34,7 +34,7 @@ pub struct IntoWindowIter {
 }
 
 impl TimeMovingAverage {
-	/// Returns true if there are no points in the dataset.
+	/// Returns `true` if there are no points in the dataset.
 	///
 	/// # Examples
 	/// ```

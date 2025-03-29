@@ -39,7 +39,7 @@ const TIME_UNITS: &[&str] = &["ms", "s", "mins", "hrs", "days"];
 /// Implementing this trait allows the struct to be added to a
 /// plot figure.
 pub trait Plot {
-	/// Checks if the plot is empty (i.e., has no data).
+	/// Returns `true` if the plot is empty (i.e., has no data).
 	fn is_empty(&self) -> bool;
 
 	/// Sets the plot's font type.

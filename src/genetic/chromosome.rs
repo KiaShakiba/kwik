@@ -112,7 +112,7 @@ where
 	#[must_use]
 	fn base(&self) -> Self;
 
-	/// Returns true if there are no genes.
+	/// Returns `true` if there are no genes.
 	#[must_use]
 	fn is_empty(&self) -> bool;
 
@@ -130,13 +130,13 @@ where
 	#[must_use]
 	fn get(&self, index: usize) -> &Self::Gene;
 
-	/// Returns true if the chromosome is valid.
+	/// Returns `true` if the chromosome is valid.
 	#[must_use]
 	fn is_valid(&self) -> bool {
 		true
 	}
 
-	/// Returns true if the chromosome produces an optimal result.
+	/// Returns `true` if the chromosome produces an optimal result.
 	/// This will stop the genetic algorithm.
 	#[must_use]
 	fn is_optimal(&self) -> bool;

@@ -23,7 +23,7 @@ pub struct RowData {
 }
 
 impl RowData {
-	/// Checks if the row is empty (i.e., has no columns).
+	/// Returns `true` if the row is empty (i.e., has no columns).
 	#[inline]
 	pub fn is_empty(&self) -> bool {
 		self.data.is_empty()

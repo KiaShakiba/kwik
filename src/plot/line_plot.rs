@@ -785,7 +785,7 @@ impl LinePlot {
 }
 
 impl Line {
-	/// Checks if the line is empty.
+	/// Returns `true` if the line is empty.
 	pub fn is_empty(&self) -> bool {
 		self.x_values.is_empty()
 	}

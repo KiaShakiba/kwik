@@ -33,7 +33,7 @@ pub enum ColumnJoinType {
 }
 
 impl Row {
-	/// Returns true if there are no columns in the row.
+	/// Returns `true` if there are no columns in the row.
 	///
 	/// # Examples
 	/// ```

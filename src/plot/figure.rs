@@ -149,7 +149,7 @@ impl Figure {
 		self
 	}
 
-	/// Checks if the figure is empty (i.e., contains no plots).
+	/// Returns `true` if the figure is empty (i.e., contains no plots).
 	///
 	/// # Examples
 	/// ```
