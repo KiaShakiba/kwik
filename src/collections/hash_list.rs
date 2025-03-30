@@ -5,7 +5,7 @@ use std::{
 	collections::HashMap,
 };
 
-/// A hash list where each element is stored in a doubly-linked list.
+/// A hash list where each entry is stored in a doubly-linked list.
 pub struct HashList<T, S = RandomState> {
 	map: HashMap<DataRef<T>, NonNull<Entry<T>>, S>,
 
@@ -29,9 +29,13 @@ struct KeyWrapper<K>(K);
 
 pub struct Iter<'a, T, S> {
 	// we don't actually need to hold a reference to the list here, but we
-	// do to ensure the entries have correct lifetimes
+	// do so to ensure the entries have correct lifetimes
 	_list: &'a HashList<T, S>,
 	current: *mut Entry<T>,
+}
+
+pub struct IntoIter<T, S> {
+	list: HashList<T, S>,
 }
 
 impl<T, S> HashList<T, S>
@@ -39,8 +43,8 @@ where
 	T: Eq + Hash,
 	S: BuildHasher,
 {
-	/// Prepends an element to the hash list. If the hash list already
-	/// contained the element, it is moved to the front of the hash list.
+	/// Returns a references to the front entry of the list, or `None` if
+	/// the list is empty.
 	///
 	/// # Examples
 	/// ```
@@ -48,48 +52,26 @@ where
 	///
 	/// let mut list = HashList::<u64>::default();
 	///
-	/// list.push_or_move_front(1);
-	/// list.push_or_move_front(2);
-	/// list.push_or_move_front(3);
+	/// list.push_back(1);
+	/// list.push_back(2);
+	/// list.push_back(3);
 	///
-	/// assert_eq!(list.len(), 3);
+	/// assert_eq!(list.front(), Some(&1));
 	/// ```
-	pub fn push_or_move_front(&mut self, data: T) {
-		match self.map.get(&DataRef { data: &data }) {
-			Some(entry_ref) => {
-				let entry_ptr = entry_ref.as_ptr();
-
-				if self.head == entry_ptr {
-					// the entry is already at the head of the list, so don't
-					// do unnecessary operations on it
-					return;
-				}
-
-				self.detach(entry_ptr);
-				self.attach_front(entry_ptr);
-			},
-
-			None => {
-				let entry = Entry::<T>::new(data);
-				let entry_ptr = entry.as_ptr();
-
-				self.attach_front(entry_ptr);
-
-				let data_ref = unsafe {
-					(*entry_ptr).data.as_ptr()
-				};
-
-				let data_ref = DataRef {
-					data: data_ref,
-				};
-
-				self.map.insert(data_ref, entry);
-			},
+	pub fn front(&self) -> Option<&T> {
+		if self.head.is_null() {
+			return None;
 		}
+
+		let data = unsafe {
+			&*(*self.head).data.as_ptr()
+		};
+
+		Some(data)
 	}
 
-	/// Appends an element to the hash list. If the hash list already
-	/// contained the element, it is moved to the back of the hash list.
+	/// Returns a references to the back entry of the list, or `None` if
+	/// the list is empty.
 	///
 	/// # Examples
 	/// ```
@@ -97,40 +79,30 @@ where
 	///
 	/// let mut list = HashList::<u64>::default();
 	///
-	/// list.push_or_move_back(1);
-	/// list.push_or_move_back(2);
-	/// list.push_or_move_back(3);
+	/// list.push_back(1);
+	/// list.push_back(2);
+	/// list.push_back(3);
 	///
-	/// assert_eq!(list.len(), 3);
+	/// assert_eq!(list.back(), Some(&3));
 	/// ```
-	pub fn push_or_move_back(&mut self, data: T) {
-		match self.map.get(&DataRef { data: &data }) {
-			Some(entry_ref) => {
-				let entry_ptr = entry_ref.as_ptr();
-
-				if self.tail == entry_ptr {
-					// the entry is already at the tail of the list, so don't
-					// do unnecessary operations on it
-					return;
-				}
-
-				self.detach(entry_ptr);
-				self.attach_back(entry_ptr);
-			},
-
-			None => {
-				let entry = Entry::<T>::new(data);
-				let entry_ptr = entry.as_ptr();
-
-				self.attach_back(entry_ptr);
-
-				let data_ref = DataRef::new(entry_ptr);
-				self.map.insert(data_ref, entry);
-			},
+	pub fn back(&self) -> Option<&T> {
+		if self.tail.is_null() {
+			return None;
 		}
+
+		let data = unsafe {
+			&*(*self.tail).data.as_ptr()
+		};
+
+		Some(data)
 	}
 
-	/// Removes the first enntry and returns it, or `None` if the hash list is empty.
+	/// Prepends an entry to the hash list.
+	///
+	/// If the hash list did not have this entry, `None` is returned.
+	///
+	/// If the hash list did have this entry, the new entry is inserted
+	/// at the front of the hash list and the old entry is returned.
 	///
 	/// # Examples
 	/// ```
@@ -138,8 +110,175 @@ where
 	///
 	/// let mut list = HashList::<u64>::default();
 	///
-	/// list.push_or_move_back(1);
-	/// list.push_or_move_back(2);
+	/// assert_eq!(list.push_front(1), None);
+	/// assert_eq!(list.push_front(2), None);
+	/// assert_eq!(list.push_front(3), None);
+	/// assert_eq!(list.push_front(2), Some(2));
+	/// ```
+	pub fn push_front(&mut self, data: T) -> Option<T> {
+		let maybe_old_entry = self.map
+			.remove(&DataRef { data: &data })
+			.map(|old_entry| {
+				let old_entry_ptr = old_entry.as_ptr();
+				self.detach(old_entry_ptr);
+
+				unsafe {
+					(*old_entry_ptr).data.read()
+				}
+			});
+
+		let entry = Entry::<T>::new(data);
+		let entry_ptr = entry.as_ptr();
+
+		self.attach_front(entry_ptr);
+
+		let data_ref = unsafe {
+			(*entry_ptr).data.as_ptr()
+		};
+
+		let data_ref = DataRef {
+			data: data_ref,
+		};
+
+		self.map.insert(data_ref, entry);
+
+		maybe_old_entry
+	}
+
+	/// Appends an entry to the hash list.
+	///
+	/// If the hash list did not have this entry, `None` is returned.
+	///
+	/// If the hash list did have this entry, the new entry is inserted
+	/// at the back of the hash list and the old entry is returned.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashList;
+	///
+	/// let mut list = HashList::<u64>::default();
+	///
+	/// assert_eq!(list.push_back(1), None);
+	/// assert_eq!(list.push_back(2), None);
+	/// assert_eq!(list.push_back(3), None);
+	/// assert_eq!(list.push_back(2), Some(2));
+	/// ```
+	pub fn push_back(&mut self, data: T) -> Option<T> {
+		let maybe_old_entry = self.map
+			.remove(&DataRef { data: &data })
+			.map(|old_entry| {
+				let old_entry_ptr = old_entry.as_ptr();
+				self.detach(old_entry_ptr);
+
+				unsafe {
+					(*old_entry_ptr).data.read()
+				}
+			});
+
+		let entry = Entry::<T>::new(data);
+		let entry_ptr = entry.as_ptr();
+
+		self.attach_back(entry_ptr);
+
+		let data_ref = unsafe {
+			(*entry_ptr).data.as_ptr()
+		};
+
+		let data_ref = DataRef {
+			data: data_ref,
+		};
+
+		self.map.insert(data_ref, entry);
+
+		maybe_old_entry
+	}
+
+	/// Moves and the entry which has the same hash of that of
+	/// the supplied key to the front of the hash list if one exists.
+	///
+	/// If such an entry does not exist, nothing happens.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashList;
+	///
+	/// let mut list = HashList::<u64>::default();
+	///
+	/// list.push_back(1);
+	/// list.push_back(2);
+	/// list.push_back(3);
+	///
+	/// list.move_front(&2);
+	/// ```
+	pub fn move_front<K>(&mut self, key: &K)
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		let Some(entry_ref) = self.map.get(KeyWrapper::from_ref(key)) else {
+			return;
+		};
+
+		let entry_ptr = entry_ref.as_ptr();
+
+		if self.head == entry_ptr {
+			// the entry is already at the head of the list, so don't do
+			// unnecessary operations on it
+			return;
+		}
+
+		self.detach(entry_ptr);
+		self.attach_front(entry_ptr);
+	}
+
+	/// Moves and the entry which has the same hash of that of
+	/// the supplied key to the back of the hash list if one exists.
+	///
+	/// If such an entry does not exist, nothing happens.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashList;
+	///
+	/// let mut list = HashList::<u64>::default();
+	///
+	/// list.push_back(1);
+	/// list.push_back(2);
+	/// list.push_back(3);
+	///
+	/// list.move_back(&2);
+	/// ```
+	pub fn move_back<K>(&mut self, key: &K)
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		let Some(entry_ref) = self.map.get(KeyWrapper::from_ref(key)) else {
+			return;
+		};
+
+		let entry_ptr = entry_ref.as_ptr();
+
+		if self.tail == entry_ptr {
+			// the entry is already at the tail of the list, so don't do
+			// unnecessary operations on it
+			return;
+		}
+
+		self.detach(entry_ptr);
+		self.attach_back(entry_ptr);
+	}
+
+	/// Removes the first entry and returns it, or `None` if the hash list is empty.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashList;
+	///
+	/// let mut list = HashList::<u64>::default();
+	///
+	/// list.push_back(1);
+	/// list.push_back(2);
 	///
 	/// assert_eq!(list.pop_front(), Some(1));
 	/// assert_eq!(list.pop_front(), Some(2));
@@ -163,7 +302,7 @@ where
 		Some(data)
 	}
 
-	/// Removes the first enntry and returns it, or `None` if the hash list is empty.
+	/// Removes the first entry and returns it, or `None` if the hash list is empty.
 	///
 	/// # Examples
 	/// ```
@@ -171,8 +310,8 @@ where
 	///
 	/// let mut list = HashList::<u64>::default();
 	///
-	/// list.push_or_move_back(1);
-	/// list.push_or_move_back(2);
+	/// list.push_back(1);
+	/// list.push_back(2);
 	///
 	/// assert_eq!(list.pop_back(), Some(2));
 	/// assert_eq!(list.pop_back(), Some(1));
@@ -206,8 +345,8 @@ where
 	///
 	/// let mut list = HashList::<u64>::default();
 	///
-	/// list.push_or_move_back(1);
-	/// list.push_or_move_back(2);
+	/// list.push_back(1);
+	/// list.push_back(2);
 	///
 	/// assert_eq!(list.get(&1), Some(&1));
 	/// assert_eq!(list.get(&3), None);
@@ -237,8 +376,8 @@ where
 	///
 	/// let mut list = HashList::<u64>::default();
 	///
-	/// list.push_or_move_back(1);
-	/// list.push_or_move_back(2);
+	/// list.push_back(1);
+	/// list.push_back(2);
 	///
 	/// assert_eq!(list.remove(&1), Some(1));
 	/// assert_eq!(list.remove(&3), None);
@@ -258,6 +397,26 @@ where
 		};
 
 		Some(data)
+	}
+
+	/// Clears the hash list, removing all entries.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashList;
+	///
+	/// let mut list = HashList::<u64>::default();
+	///
+	/// list.push_back(1);
+	/// list.push_back(2);
+	/// list.push_back(3);
+	///
+	/// list.clear();
+	///
+	/// assert_eq!(list.len(), 0);
+	/// ```
+	pub fn clear(&mut self) {
+		while self.pop_front().is_some() {}
 	}
 
 	fn attach_front(&mut self, entry_ptr: *mut Entry<T>) {
@@ -352,7 +511,7 @@ impl<T, S> HashList<T, S> {
 		}
 	}
 
-	/// Returns `true` if the hash list contains no elements.
+	/// Returns `true` if the hash list contains no entries.
 	///
 	/// # Examples
 	/// ```
@@ -365,7 +524,7 @@ impl<T, S> HashList<T, S> {
 		self.map.is_empty()
 	}
 
-	/// Returns the number of elements in the hash list.
+	/// Returns the number of entries in the hash list.
 	///
 	/// # Examples
 	/// ```
@@ -549,6 +708,55 @@ impl<'a, T, S> Iterator for Iter<'a, T, S> {
 	}
 }
 
+impl<'a, T, S> IntoIterator for &'a HashList<T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{
+	type Item = &'a T;
+	type IntoIter = Iter<'a, T, S>;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl<T, S> Iterator for IntoIter<T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{
+	type Item = T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.list.pop_front()
+	}
+}
+
+impl<T, S> IntoIterator for HashList<T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{
+	type Item = T;
+	type IntoIter = IntoIter<T, S>;
+
+	fn into_iter(self) -> Self::IntoIter {
+		IntoIter {
+			list: self,
+		}
+	}
+}
+
+impl<T, S> Drop for HashList<T, S> {
+	fn drop(&mut self) {
+		self.map.drain().for_each(|(_, entry)| unsafe {
+			let entry = *Box::from_raw(entry.as_ptr());
+			ptr::drop_in_place(entry.data.as_ptr());
+		});
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use crate::collections::HashList;
@@ -559,7 +767,7 @@ mod tests {
 		let values = vec![1, 2, 3, 4];
 
 		for value in &values {
-			list.push_or_move_front(*value);
+			list.push_front(*value);
 		}
 
 		for (index, value) in list.iter().enumerate() {
@@ -573,7 +781,7 @@ mod tests {
 		let values = vec![1, 2, 3, 4];
 
 		for value in &values {
-			list.push_or_move_back(*value);
+			list.push_back(*value);
 		}
 
 		for (index, value) in list.iter().enumerate() {
@@ -587,10 +795,11 @@ mod tests {
 		let values = vec![1, 2, 3, 4];
 
 		for value in &values {
-			list.push_or_move_back(*value);
+			list.push_back(*value);
 		}
 
-		list.push_or_move_front(2);
+		list.move_front(&2);
+
 		let expected = [2, 1, 3, 4];
 
 		for (index, value) in list.iter().enumerate() {
@@ -604,10 +813,11 @@ mod tests {
 		let values = vec![1, 2, 3, 4];
 
 		for value in &values {
-			list.push_or_move_back(*value);
+			list.push_back(*value);
 		}
 
-		list.push_or_move_back(2);
+		list.move_back(&2);
+
 		let expected = [1, 3, 4, 2];
 
 		for (index, value) in list.iter().enumerate() {
@@ -621,7 +831,7 @@ mod tests {
 		let mut values = vec![1, 2, 3, 4];
 
 		for value in &values {
-			list.push_or_move_back(*value);
+			list.push_back(*value);
 		}
 
 		assert_eq!(list.pop_front(), Some(1));
@@ -638,7 +848,7 @@ mod tests {
 		let mut values = vec![1, 2, 3, 4];
 
 		for value in &values {
-			list.push_or_move_back(*value);
+			list.push_back(*value);
 		}
 
 		assert_eq!(list.pop_back(), Some(4));
