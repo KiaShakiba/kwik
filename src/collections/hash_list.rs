@@ -104,6 +104,30 @@ where
 		Some(data)
 	}
 
+	/// Returns `true` if the hash list contains an entry with the corresponding
+	/// hash of that of the supplied key.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashList;
+	///
+	/// let mut list = HashList::<u64>::default();
+	///
+	/// list.push_back(1);
+	/// list.push_back(2);
+	/// list.push_back(3);
+	///
+	/// assert!(list.contains(&2));
+	/// assert!(!list.contains(&4));
+	/// ```
+	pub fn contains<K>(&self, key: &K) -> bool
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		self.map.contains_key(KeyWrapper::from_ref(key))
+	}
+
 	/// Prepends an entry to the hash list.
 	///
 	/// If the hash list did not have this entry, `None` is returned.
@@ -200,7 +224,7 @@ where
 		maybe_old_entry
 	}
 
-	/// Moves and the entry which has the same hash of that of
+	/// Moves and the entry which has the corresponding hash of that of
 	/// the supplied key to the front of the hash list if one exists.
 	///
 	/// If such an entry does not exist, nothing happens.
@@ -238,7 +262,7 @@ where
 		self.attach_front(entry_ptr);
 	}
 
-	/// Moves and the entry which has the same hash of that of
+	/// Moves and the entry which has the corresponding hash of that of
 	/// the supplied key to the back of the hash list if one exists.
 	///
 	/// If such an entry does not exist, nothing happens.
@@ -342,9 +366,9 @@ where
 		Some(data)
 	}
 
-	/// Returns a reference to the entry which has the same hash of
-	/// that of the supplied key or `None` if such an entry does
-	/// not exist.
+	/// Returns a reference to the entry which has the corresponding
+	/// hash of that of the supplied key or `None` if such an entry
+	/// does not exist.
 	///
 	/// # Examples
 	/// ```
@@ -373,8 +397,8 @@ where
 		Some(data)
 	}
 
-	/// Removes and returns the entry which has the same hash of
-	/// that of the supplied key or `None` if such an entry
+	/// Removes and returns the entry which has the corresponding
+	/// hash of that of the supplied key or `None` if such an entry
 	/// does not exist.
 	///
 	/// # Examples
@@ -573,16 +597,19 @@ impl<T> HashList<T, RandomState> {
 	/// ```
 	/// use kwik::collections::HashList;
 	///
-	/// let list = HashList::<u64>::new();
+	/// let list = HashList::<u64>::default();
 	/// ```
 	pub fn new() -> Self {
 		HashList::with_hasher(RandomState::new())
 	}
 }
 
-impl<T> Default for HashList<T, RandomState> {
+impl<T, S> Default for HashList<T, S>
+where
+	S: Default,
+{
 	fn default() -> Self {
-		HashList::<T>::new()
+		HashList::<T, S>::with_hasher(S::default())
 	}
 }
 
@@ -763,6 +790,9 @@ impl<T, S> Drop for HashList<T, S> {
 		});
 	}
 }
+
+unsafe impl<T, S> Send for HashList<T, S> {}
+unsafe impl<T, S> Sync for HashList<T, S> {}
 
 #[cfg(test)]
 mod tests {
