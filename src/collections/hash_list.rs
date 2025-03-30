@@ -1,10 +1,11 @@
 use std::{
 	ptr::{self, NonNull},
+	borrow::Borrow,
 	hash::{Hash, Hasher, BuildHasher, RandomState},
 	collections::HashMap,
 };
 
-/// A hash list where each element is ordered in a doubly-linked list.
+/// A hash list where each element is stored in a doubly-linked list.
 pub struct HashList<T, S = RandomState> {
 	map: HashMap<DataRef<T>, NonNull<Entry<T>>, S>,
 
@@ -22,6 +23,9 @@ struct Entry<T> {
 struct DataRef<T> {
 	data: *const T,
 }
+
+#[repr(transparent)]
+struct KeyWrapper<K>(K);
 
 pub struct Iter<'a, T, S> {
 	// we don't actually need to hold a reference to the list here, but we
@@ -184,6 +188,70 @@ where
 
 		let data_ref = DataRef::new(entry_ptr);
 		self.map.remove(&data_ref).unwrap();
+
+		let data = unsafe {
+			(*entry_ptr).data.read()
+		};
+
+		Some(data)
+	}
+
+	/// Returns a reference to the entry which has the same hash of
+	/// that of the supplied key or `None` if such an entry does
+	/// not exist.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashList;
+	///
+	/// let mut list = HashList::<u64>::default();
+	///
+	/// list.push_or_move_back(1);
+	/// list.push_or_move_back(2);
+	///
+	/// assert_eq!(list.get(&1), Some(&1));
+	/// assert_eq!(list.get(&3), None);
+	/// ```
+	pub fn get<K>(&self, key: &K) -> Option<&T>
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		let entry = self.map.get(KeyWrapper::from_ref(key))?;
+		let entry_ptr = entry.as_ptr();
+
+		let data = unsafe {
+			&*(*entry_ptr).data.as_ptr()
+		};
+
+		Some(data)
+	}
+
+	/// Removes and returns the entry which has the same hash of
+	/// that of the supplied key or `None` if such an entry
+	/// does not exist.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashList;
+	///
+	/// let mut list = HashList::<u64>::default();
+	///
+	/// list.push_or_move_back(1);
+	/// list.push_or_move_back(2);
+	///
+	/// assert_eq!(list.remove(&1), Some(1));
+	/// assert_eq!(list.remove(&3), None);
+	/// ```
+	pub fn remove<K>(&mut self, key: &K) -> Option<T>
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		let entry = self.map.remove(KeyWrapper::from_ref(key))?;
+		let entry_ptr = entry.as_ptr();
+
+		self.detach(entry_ptr);
 
 		let data = unsafe {
 			(*entry_ptr).data.read()
@@ -416,6 +484,50 @@ impl<T> Eq for DataRef<T>
 where
 	T: Eq,
 {}
+
+impl<K> KeyWrapper<K> {
+	fn from_ref(key: &K) -> &Self {
+		unsafe {
+			&*(key as *const K as *const KeyWrapper<K>)
+		}
+	}
+}
+
+impl<K> Hash for KeyWrapper<K>
+where
+	K: Hash,
+{
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		self.0.hash(state)
+	}
+}
+
+impl<K> PartialEq for KeyWrapper<K>
+where
+	K: PartialEq,
+{
+	fn eq(&self, other: &Self) -> bool {
+		self.0.eq(&other.0)
+	}
+}
+
+impl<K> Eq for KeyWrapper<K>
+where
+	K: Eq,
+{}
+
+impl<K, T> Borrow<KeyWrapper<K>> for DataRef<T>
+where
+	T: Borrow<K>,
+{
+	fn borrow(&self) -> &KeyWrapper<K> {
+		let data_ref = unsafe {
+			&*self.data
+		}.borrow();
+
+		KeyWrapper::from_ref(data_ref)
+	}
+}
 
 impl<'a, T, S> Iterator for Iter<'a, T, S> {
 	type Item = &'a T;
