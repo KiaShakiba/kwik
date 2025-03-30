@@ -8,6 +8,8 @@
 use std::{
 	ptr::{self, NonNull},
 	borrow::Borrow,
+	iter::FromIterator,
+	fmt::{self, Formatter, Debug},
 	hash::{Hash, Hasher, BuildHasher, RandomState},
 	collections::HashMap,
 };
@@ -38,7 +40,9 @@ pub struct Iter<'a, T, S> {
 	// we don't actually need to hold a reference to the list here, but we
 	// do so to ensure the entries have correct lifetimes
 	_list: &'a HashList<T, S>,
-	current: *mut Entry<T>,
+
+	head: *mut Entry<T>,
+	tail: *mut Entry<T>,
 }
 
 pub struct IntoIter<T, S> {
@@ -585,7 +589,9 @@ impl<T, S> HashList<T, S> {
 	pub fn iter(&self) -> Iter<'_, T, S> {
 		Iter {
 			_list: self,
-			current: self.head,
+
+			head: self.head,
+			tail: self.tail,
 		}
 	}
 }
@@ -597,7 +603,7 @@ impl<T> HashList<T, RandomState> {
 	/// ```
 	/// use kwik::collections::HashList;
 	///
-	/// let list = HashList::<u64>::default();
+	/// let list = HashList::<u64>::new();
 	/// ```
 	pub fn new() -> Self {
 		HashList::with_hasher(RandomState::new())
@@ -648,7 +654,7 @@ impl<T> DataRef<T> {
 	}
 }
 
-impl<T: Hash> Hash for DataRef<T>
+impl<T> Hash for DataRef<T>
 where
 	T: Hash,
 {
@@ -690,7 +696,10 @@ impl<K> Hash for KeyWrapper<K>
 where
 	K: Hash,
 {
-	fn hash<H: Hasher>(&self, state: &mut H) {
+	fn hash<H>(&self, state: &mut H)
+	where
+		H: Hasher,
+	{
 		self.0.hash(state)
 	}
 }
@@ -726,16 +735,54 @@ impl<'a, T, S> Iterator for Iter<'a, T, S> {
 	type Item = &'a T;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		if self.current.is_null() {
+		if self.head.is_null() {
+			return None;
+		}
+
+		let prev = unsafe {
+			(*self.head).prev
+		};
+
+		// the head pointer may have passed the tail pointer
+		// if using a double ended iterator
+		if prev == self.tail {
 			return None;
 		}
 
 		let data = unsafe {
-			&*(*self.current).data.as_ptr()
+			&*(*self.head).data.as_ptr()
 		};
 
 		unsafe {
-			self.current = (*self.current).next;
+			self.head = (*self.head).next;
+		}
+
+		Some(data)
+	}
+}
+
+impl<T, S> DoubleEndedIterator for Iter<'_, T, S> {
+	fn next_back(&mut self) -> Option<Self::Item> {
+		if self.tail.is_null() {
+			return None;
+		}
+
+		let next = unsafe {
+			(*self.tail).next
+		};
+
+		// the tail pointer may have passed the head pointer
+		// if using a double ended iterator
+		if next == self.head {
+			return None;
+		}
+
+		let data = unsafe {
+			&*(*self.tail).data.as_ptr()
+		};
+
+		unsafe {
+			self.tail = (*self.tail).prev;
 		}
 
 		Some(data)
@@ -767,6 +814,16 @@ where
 	}
 }
 
+impl<T, S> DoubleEndedIterator for IntoIter<T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{
+	fn next_back(&mut self) -> Option<Self::Item> {
+		self.list.pop_back()
+	}
+}
+
 impl<T, S> IntoIterator for HashList<T, S>
 where
 	T: Eq + Hash,
@@ -779,6 +836,71 @@ where
 		IntoIter {
 			list: self,
 		}
+	}
+}
+
+impl<T, S> FromIterator<T> for HashList<T, S>
+where
+	T: Eq + Hash,
+	S: Default + BuildHasher,
+{
+	fn from_iter<I>(iter: I) -> Self
+	where
+		I: IntoIterator<Item = T>,
+	{
+		let mut list = HashList::<T, S>::default();
+
+		for value in iter {
+			list.push_back(value);
+		}
+
+		list
+	}
+}
+
+impl<T, S> Extend<T> for HashList<T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{
+	fn extend<I>(&mut self, iter: I)
+	where
+		I: IntoIterator<Item = T>,
+	{
+		for value in iter {
+			self.push_back(value);
+		}
+	}
+}
+
+impl<T, S> Hash for HashList<T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{
+	fn hash<H>(&self, state: &mut H)
+	where
+		H: Hasher,
+	{
+		self.len().hash(state);
+
+		for value in self {
+			value.hash(state);
+		}
+	}
+}
+
+impl<T, S> Debug for HashList<T, S>
+where
+	T: Eq + Hash + Debug,
+	S: BuildHasher,
+{
+	fn fmt(&self, fmt: &mut Formatter<'_>) -> fmt::Result {
+		fmt.write_str("HashList(")?;
+		fmt.debug_list().entries(self).finish()?;
+		fmt.write_str(")")?;
+
+		Ok(())
 	}
 }
 
@@ -894,5 +1016,47 @@ mod tests {
 		for (index, value) in list.iter().enumerate() {
 			assert_eq!(*value, values[index]);
 		}
+	}
+
+	#[test]
+	fn it_iterates_correctly() {
+		let list: HashList<u32> = [1, 2, 3].into_iter().collect();
+
+		let mut iter = list.iter();
+		assert_eq!(iter.next(), Some(&1));
+		assert_eq!(iter.next(), Some(&2));
+		assert_eq!(iter.next(), Some(&3));
+		assert_eq!(iter.next(), None);
+
+		let mut iter = list.into_iter();
+		assert_eq!(iter.next(), Some(1));
+		assert_eq!(iter.next(), Some(2));
+		assert_eq!(iter.next(), Some(3));
+		assert_eq!(iter.next(), None);
+	}
+
+	#[test]
+	fn it_reverse_iterates_correctly() {
+		let list: HashList<u32> = [1, 2, 3, 4, 5, 6].into_iter().collect();
+
+		let mut iter = list.iter();
+		assert_eq!(iter.next(), Some(&1));
+		assert_eq!(iter.next_back(), Some(&6));
+		assert_eq!(iter.next_back(), Some(&5));
+		assert_eq!(iter.next(), Some(&2));
+		assert_eq!(iter.next(), Some(&3));
+		assert_eq!(iter.next(), Some(&4));
+		assert_eq!(iter.next(), None);
+		assert_eq!(iter.next_back(), None);
+
+		let mut iter = list.into_iter();
+		assert_eq!(iter.next(), Some(1));
+		assert_eq!(iter.next_back(), Some(6));
+		assert_eq!(iter.next_back(), Some(5));
+		assert_eq!(iter.next(), Some(2));
+		assert_eq!(iter.next(), Some(3));
+		assert_eq!(iter.next(), Some(4));
+		assert_eq!(iter.next(), None);
+		assert_eq!(iter.next_back(), None);
 	}
 }
