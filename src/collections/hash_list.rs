@@ -8,7 +8,7 @@
 use std::{
 	ptr::{self, NonNull},
 	borrow::Borrow,
-	iter::FromIterator,
+	iter::{FromIterator, FusedIterator},
 	fmt::{self, Formatter, Debug},
 	hash::{Hash, Hasher, BuildHasher, RandomState},
 	collections::HashMap,
@@ -823,6 +823,30 @@ where
 		self.list.pop_back()
 	}
 }
+
+impl<T, S> ExactSizeIterator for Iter<'_, T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{}
+
+impl<T, S> ExactSizeIterator for IntoIter<T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{}
+
+impl<T, S> FusedIterator for Iter<'_, T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{}
+
+impl<T, S> FusedIterator for IntoIter<T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{}
 
 impl<T, S> IntoIterator for HashList<T, S>
 where
