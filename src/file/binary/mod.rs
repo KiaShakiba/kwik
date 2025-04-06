@@ -23,7 +23,7 @@ use std::mem;
 /// }
 ///
 /// impl SizedChunk for MyStruct {
-///     fn size() -> usize { 10 }
+///     fn chunk_size() -> usize { 10 }
 /// }
 /// ```
 pub trait SizedChunk {

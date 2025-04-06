@@ -76,7 +76,7 @@ pub trait ReadChunk: SizedChunk {
 	/// }
 	///
 	/// impl SizedChunk for MyStruct {
-	///     fn size() -> usize { 0 }
+	///     fn chunk_size() -> usize { 0 }
 	/// }
 	/// ```
 	///
@@ -166,7 +166,7 @@ where
 	/// }
 	///
 	/// impl SizedChunk for MyStruct {
-	///     fn size() -> usize { 4 }
+	///     fn chunk_size() -> usize { 4 }
 	/// }
 	/// ```
 	///
@@ -220,7 +220,7 @@ where
 	/// }
 	///
 	/// impl SizedChunk for MyStruct {
-	///     fn size() -> usize { 4 }
+	///     fn chunk_size() -> usize { 4 }
 	/// }
 	/// ```
 	#[inline]
