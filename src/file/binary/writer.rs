@@ -89,7 +89,7 @@ where
 	{
 		let writer = BinaryWriter {
 			file: BufWriter::new(file),
-			buf: Vec::<u8>::with_capacity(T::size()),
+			buf: Vec::<u8>::with_capacity(T::chunk_size()),
 			count: 0,
 
 			_marker: PhantomData,
@@ -152,7 +152,7 @@ where
 
 		object.as_chunk(&mut self.buf)?;
 
-		if self.buf.len() != T::size() {
+		if self.buf.len() != T::chunk_size() {
 			let message = format!("Invalid chunk size at chunk {}", self.count);
 			return Err(io::Error::new(io::ErrorKind::InvalidData, message));
 		}
@@ -167,6 +167,28 @@ where
 {
 	fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
 		self.file.seek(pos)
+	}
+}
+
+impl<T> WriteChunk for Option<T>
+where
+	T: WriteChunk,
+{
+	fn as_chunk(&self, buf: &mut Vec<u8>) -> io::Result<()> {
+		self.is_some().as_chunk(buf)?;
+
+		match self {
+			Some(value) => value.as_chunk(buf)?,
+
+			None => {
+				let size = T::chunk_size();
+				let zeros = std::iter::repeat_n(0, size);
+
+				buf.extend(zeros);
+			},
+		};
+
+		Ok(())
 	}
 }
 

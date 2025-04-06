@@ -27,7 +27,7 @@ use std::mem;
 /// }
 /// ```
 pub trait SizedChunk {
-	fn size() -> usize;
+	fn chunk_size() -> usize;
 }
 
 pub use crate::file::binary::{
@@ -35,11 +35,20 @@ pub use crate::file::binary::{
 	writer::{BinaryWriter, WriteChunk},
 };
 
+impl<T> SizedChunk for Option<T>
+where
+	T: SizedChunk,
+{
+	fn chunk_size() -> usize {
+		T::chunk_size() + 1
+	}
+}
+
 macro_rules! impl_sized_chunk_primitive {
 	($T:ty) => {
 		impl SizedChunk for $T {
 			#[inline]
-			fn size() -> usize {
+			fn chunk_size() -> usize {
 				mem::size_of::<$T>()
 			}
 		}

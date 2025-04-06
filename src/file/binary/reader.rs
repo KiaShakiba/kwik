@@ -107,7 +107,7 @@ where
 	{
 		let reader = BinaryReader {
 			file: BufReader::new(file),
-			buf: vec![0; T::size()].into_boxed_slice(),
+			buf: vec![0; T::chunk_size()].into_boxed_slice(),
 			count: 0,
 
 			_marker: PhantomData,
@@ -292,6 +292,23 @@ where
 	}
 }
 
+impl<T> ReadChunk for Option<T>
+where
+	T: ReadChunk,
+{
+	fn from_chunk(buf: &[u8]) -> io::Result<Self>
+	where
+		Self: Sized,
+	{
+		if buf[0] != 0 {
+			let value = T::from_chunk(&buf[1..])?;
+			Ok(Some(value))
+		} else {
+			Ok(None)
+		}
+	}
+}
+
 macro_rules! impl_read_chunk_primitive {
 	(char) => {
 		impl ReadChunk for char {
@@ -324,7 +341,7 @@ macro_rules! impl_read_chunk_primitive {
 			where
 				Self: Sized,
 			{
-				let (buf, _) = buf.split_at(<$T>::size());
+				let (buf, _) = buf.split_at(<$T>::chunk_size());
 				let value = <$T>::from_le_bytes(buf.try_into().unwrap());
 
 				Ok(value)
