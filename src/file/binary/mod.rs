@@ -8,7 +8,12 @@
 mod reader;
 mod writer;
 
-use std::mem;
+use std::{cmp, mem};
+
+pub use crate::file::binary::{
+	reader::{BinaryReader, ReadChunk, Iter, IntoIter},
+	writer::{BinaryWriter, WriteChunk},
+};
 
 /// Implementing this trait specifies the number of bytes each
 /// chunk occupies in the binary file. The file will be read in chunks
@@ -30,17 +35,22 @@ pub trait SizedChunk {
 	fn chunk_size() -> usize;
 }
 
-pub use crate::file::binary::{
-	reader::{BinaryReader, ReadChunk, Iter, IntoIter},
-	writer::{BinaryWriter, WriteChunk},
-};
-
 impl<T> SizedChunk for Option<T>
 where
 	T: SizedChunk,
 {
 	fn chunk_size() -> usize {
 		T::chunk_size() + 1
+	}
+}
+
+impl<T, E> SizedChunk for Result<T, E>
+where
+	T: SizedChunk,
+	E: SizedChunk,
+{
+	fn chunk_size() -> usize {
+		cmp::max(T::chunk_size(), E::chunk_size()) + 1
 	}
 }
 

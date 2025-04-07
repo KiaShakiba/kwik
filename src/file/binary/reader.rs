@@ -309,6 +309,25 @@ where
 	}
 }
 
+impl<T, E> ReadChunk for Result<T, E>
+where
+	T: ReadChunk,
+	E: ReadChunk,
+{
+	fn from_chunk(buf: &[u8]) -> io::Result<Self>
+	where
+		Self: Sized,
+	{
+		if buf[0] != 0 {
+			let value = T::from_chunk(&buf[1..T::chunk_size() + 1])?;
+			Ok(Ok(value))
+		} else {
+			let err = E::from_chunk(&buf[1..E::chunk_size() + 1])?;
+			Ok(Err(err))
+		}
+	}
+}
+
 macro_rules! impl_read_chunk_primitive {
 	(char) => {
 		impl ReadChunk for char {

@@ -192,6 +192,38 @@ where
 	}
 }
 
+impl<T, E> WriteChunk for Result<T, E>
+where
+	T: WriteChunk,
+	E: WriteChunk,
+{
+	fn as_chunk(&self, buf: &mut Vec<u8>) -> io::Result<()> {
+		self.is_ok().as_chunk(buf)?;
+
+		match self {
+			Ok(value) => {
+				value.as_chunk(buf)?;
+
+				if T::chunk_size() > E::chunk_size() {
+					let zeros = std::iter::repeat_n(0, T::chunk_size() - E::chunk_size());
+					buf.extend(zeros);
+				}
+			},
+
+			Err(err) => {
+				err.as_chunk(buf)?;
+
+				if E::chunk_size() > T::chunk_size() {
+					let zeros = std::iter::repeat_n(0, E::chunk_size() - T::chunk_size());
+					buf.extend(zeros);
+				}
+			},
+		}
+
+		Ok(())
+	}
+}
+
 macro_rules! impl_write_chunk_primitive {
 	(char) => {
 		impl WriteChunk for char {
