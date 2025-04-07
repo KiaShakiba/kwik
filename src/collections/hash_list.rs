@@ -256,7 +256,7 @@ where
 
 		let entry_ptr = entry_ref.as_ptr();
 
-		if self.head == entry_ptr {
+		if ptr::eq(self.head, entry_ptr) {
 			// the entry is already at the head of the list, so don't do
 			// unnecessary operations on it
 			return;
@@ -294,7 +294,7 @@ where
 
 		let entry_ptr = entry_ref.as_ptr();
 
-		if self.tail == entry_ptr {
+		if ptr::eq(self.tail, entry_ptr) {
 			// the entry is already at the tail of the list, so don't do
 			// unnecessary operations on it
 			return;
@@ -556,11 +556,11 @@ where
 			}
 		}
 
-		if self.head == entry_ptr {
+		if ptr::eq(self.head, entry_ptr) {
 			self.head = next;
 		}
 
-		if self.tail == entry_ptr {
+		if ptr::eq(self.tail, entry_ptr) {
 			self.tail = prev;
 		}
 
@@ -790,7 +790,7 @@ impl<'a, T, S> Iterator for Iter<'a, T, S> {
 
 		// the head pointer may have passed the tail pointer
 		// if using a double ended iterator
-		if prev == self.tail {
+		if ptr::eq(prev, self.tail) {
 			return None;
 		}
 
@@ -818,7 +818,7 @@ impl<T, S> DoubleEndedIterator for Iter<'_, T, S> {
 
 		// the tail pointer may have passed the head pointer
 		// if using a double ended iterator
-		if next == self.head {
+		if ptr::eq(next, self.head) {
 			return None;
 		}
 
