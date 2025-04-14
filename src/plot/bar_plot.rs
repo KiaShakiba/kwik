@@ -75,11 +75,17 @@ impl Plot for BarPlot {
 		self.bar_groups.is_empty()
 	}
 
-	fn set_font_type(&mut self, font_type: &str) {
-		self.font_type = Some(font_type.into());
+	fn set_font_type<T>(&mut self, font_type: T)
+	where
+		T: Display,
+	{
+		self.font_type = Some(font_type.to_string());
 	}
 
-	fn with_font_type(mut self, font_type: &str) -> Self {
+	fn with_font_type<T>(mut self, font_type: T) -> Self
+	where
+		T: Display,
+	{
 		self.set_font_type(font_type);
 		self
 	}

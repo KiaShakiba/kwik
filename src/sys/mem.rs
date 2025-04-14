@@ -126,7 +126,7 @@ pub fn hwm(pid: Option<Pid>) -> Result<u64, MemError> {
 /// // returns the resident set size of the current process
 /// match mem::rss(None) {
 ///     Ok(value) => {
-///         // process high water mark
+///         // process resident set size
 ///     },
 ///
 ///     Err(err) => {
