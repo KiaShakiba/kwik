@@ -401,6 +401,84 @@ where
 		Some(data)
 	}
 
+	/// Returns a reference to the entry before that which has the
+	/// corresponding hash of the supplied key or `None` if such
+	/// an entry does not exist.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashList;
+	///
+	/// let mut list = HashList::<u64>::default();
+	///
+	/// list.push_back(1);
+	/// list.push_back(2);
+	///
+	/// assert_eq!(list.before(&2), Some(&1));
+	/// assert_eq!(list.before(&1), None);
+	/// ```
+	pub fn before<K>(&self, key: &K) -> Option<&T>
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		let entry = self.map.get(KeyWrapper::from_ref(key))?;
+		let entry_ptr = entry.as_ptr();
+
+		let prev_ptr = unsafe {
+			(*entry_ptr).prev
+		};
+
+		if prev_ptr.is_null() {
+			return None;
+		}
+
+		let data = unsafe {
+			&*(*prev_ptr).data.as_ptr()
+		};
+
+		Some(data)
+	}
+
+	/// Returns a reference to the entry after that which has the
+	/// corresponding hash of the supplied key or `None` if such
+	/// an entry does not exist.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashList;
+	///
+	/// let mut list = HashList::<u64>::default();
+	///
+	/// list.push_back(1);
+	/// list.push_back(2);
+	///
+	/// assert_eq!(list.after(&1), Some(&2));
+	/// assert_eq!(list.after(&2), None);
+	/// ```
+	pub fn after<K>(&self, key: &K) -> Option<&T>
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		let entry = self.map.get(KeyWrapper::from_ref(key))?;
+		let entry_ptr = entry.as_ptr();
+
+		let next_ptr = unsafe {
+			(*entry_ptr).next
+		};
+
+		if next_ptr.is_null() {
+			return None;
+		}
+
+		let data = unsafe {
+			&*(*next_ptr).data.as_ptr()
+		};
+
+		Some(data)
+	}
+
 	/// Updates the entry which has the corresponding hash of that
 	/// of the supplied key. Does nothing if such an entry does
 	/// not exist.
