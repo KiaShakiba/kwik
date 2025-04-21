@@ -12,12 +12,12 @@ pub trait Subset {
 	/// ```
 	/// use kwik::math::set::Subset;
 	///
-	/// let a = &[1, 2, 3];
-	/// let b = &[1, 2, 3, 4];
+	/// let a = [1, 2, 3];
+	/// let b = [1, 2, 3, 4];
 	///
-	/// assert!(a.is_subset(b));
+	/// assert!(a.iter().is_subset(b.iter()));
 	/// ```
-	fn is_subset(&self, other: &Self) -> bool;
+	fn is_subset(&mut self, other: Self) -> bool;
 }
 
 pub trait Superset {
@@ -27,144 +27,113 @@ pub trait Superset {
 	/// ```
 	/// use kwik::math::set::Superset;
 	///
-	/// let a = &[1, 2, 3, 4];
-	/// let b = &[1, 2, 3];
+	/// let a = [1, 2, 3, 4];
+	/// let b = [1, 2, 3];
 	///
-	/// assert!(a.is_superset(b));
+	/// assert!(a.iter().is_superset(b.iter()));
 	/// ```
-	fn is_superset(&self, other: &Self) -> bool;
+	fn is_superset(&mut self, other: Self) -> bool;
 }
 
-impl<T> Subset for &[T]
+pub trait Multiset {
+	/// Returns true if `self` is a multiset (i.e. it contains duplicate values).
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::math::set::Multiset;
+	///
+	/// let a = [1, 2, 3, 2];
+	/// let b = [1, 2, 3, 4];
+	///
+	/// assert!(a.iter().is_multiset());
+	/// assert!(!b.iter().is_multiset());
+	/// ```
+	fn is_multiset(&mut self) -> bool;
+}
+
+impl<I, T> Subset for I
 where
+	I: Iterator<Item = T> + Clone,
 	T: PartialEq,
 {
-	fn is_subset(&self, other: &Self) -> bool {
-		!self.iter().any(|e| !other.contains(e))
+	fn is_subset(&mut self, other: Self) -> bool {
+		let other_clone = other.clone();
+
+		!self.any(|value|
+			!other_clone
+				.clone()
+				.any(|other| value.eq(&other))
+		)
 	}
 }
 
-impl<T> Subset for [T]
+impl<I, T> Superset for I
 where
+	I: Iterator<Item = T> + Clone,
 	T: PartialEq,
 {
-	fn is_subset(&self, other: &Self) -> bool {
-		(&self).is_subset(&other)
+	fn is_superset(&mut self, mut other: Self) -> bool {
+		let self_clone = self.clone();
+
+		!other.any(|value|
+			!self_clone
+				.clone()
+				.any(|other| value.eq(&other))
+		)
 	}
 }
 
-impl<T> Subset for Vec<T>
+impl<I, T> Multiset for I
 where
+	I: Iterator<Item = T> + Clone,
 	T: PartialEq,
 {
-	fn is_subset(&self, other: &Self) -> bool {
-		let self_slice: &[T] = self;
-		let other_slice: &[T] = other;
+	fn is_multiset(&mut self) -> bool {
+		let iter_clone = self.clone();
 
-		self_slice.is_subset(other_slice)
-	}
-}
-
-impl<T> Superset for &[T]
-where
-	T: PartialEq,
-{
-	fn is_superset(&self, other: &Self) -> bool {
-		other.is_subset(self)
-	}
-}
-
-impl<T> Superset for [T]
-where
-	T: PartialEq,
-{
-	fn is_superset(&self, other: &Self) -> bool {
-		other.is_subset(self)
-	}
-}
-
-impl<T> Superset for Vec<T>
-where
-	T: PartialEq,
-{
-	fn is_superset(&self, other: &Self) -> bool {
-		other.is_subset(self)
+		self.enumerate().any(|(index, value)|
+			iter_clone
+				.clone()
+				.skip(index + 1)
+				.any(|other| value.eq(&other))
+		)
 	}
 }
 
 #[cfg(test)]
 mod tests {
-	use crate::math::set::{Subset, Superset};
+	use crate::math::set::{Subset, Superset, Multiset};
 
 	#[test]
-	fn it_identifies_slice_subsets() {
-		let a = &[1, 2, 3];
-		let b = &[1, 2, 3, 4];
-		let c = &[1, 2, 3];
-		let d = &[1, 3, 4, 5];
-
-		assert!(a.is_subset(b));
-		assert!(a.is_subset(c));
-		assert!(!a.is_subset(d));
-	}
-
-	#[test]
-	fn it_identifies_array_subsets() {
+	fn it_identifies_subsets() {
 		let a = [1, 2, 3];
 		let b = [1, 2, 3, 4];
 		let c = [1, 2, 3];
 		let d = [1, 3, 4, 5];
 
-		assert!(a.is_subset(&b));
-		assert!(a.is_subset(&c));
-		assert!(!a.is_subset(&d));
+		assert!(a.iter().is_subset(b.iter()));
+		assert!(a.iter().is_subset(c.iter()));
+		assert!(!a.iter().is_subset(d.iter()));
 	}
 
 	#[test]
-	fn it_identifies_vec_subsets() {
-		let a = vec![1, 2, 3];
-		let b = vec![1, 2, 3, 4];
-		let c = vec![1, 2, 3];
-		let d = vec![1, 3, 4, 5];
-
-		assert!(a.is_subset(&b));
-		assert!(a.is_subset(&c));
-		assert!(!a.is_subset(&d));
-	}
-
-	#[test]
-	fn it_identifies_slice_supersets() {
-		let a = &[1, 2, 3, 4];
-		let b = &[1, 2, 3];
-		let c = &[1, 2, 3, 4];
-		let d = &[1, 3, 5];
-
-		assert!(a.is_superset(b));
-		assert!(a.is_superset(c));
-		assert!(!a.is_superset(d));
-	}
-
-	#[test]
-	fn it_identifies_array_supersets() {
+	fn it_identifies_supersets() {
 		let a = [1, 2, 3, 4];
 		let b = [1, 2, 3];
 		let c = [1, 2, 3, 4];
 		let d = [1, 3, 5];
 
-		assert!(a.is_superset(&b));
-		assert!(a.is_superset(&c));
-		assert!(!a.is_superset(&d));
+		assert!(a.iter().is_superset(b.iter()));
+		assert!(a.iter().is_superset(c.iter()));
+		assert!(!a.iter().is_superset(d.iter()));
 	}
 
 	#[test]
-	fn it_identifies_vec_supersets() {
-		let a = vec![1, 2, 3, 4];
-		let b = vec![1, 2, 3];
-		let c = vec![1, 2, 3, 4];
-		let d = vec![1, 3, 5];
+	fn it_identifies_multisets() {
+		let a = [1, 2, 3, 2];
+		let b = [1, 2, 3, 4];
 
-		assert!(a.is_superset(&b));
-		assert!(a.is_superset(&c));
-		assert!(!a.is_superset(&d));
+		assert!(a.iter().is_multiset());
+		assert!(!b.iter().is_multiset());
 	}
 }
