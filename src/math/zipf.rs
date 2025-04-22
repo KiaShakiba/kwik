@@ -33,7 +33,7 @@ impl<T> Zipf<T> {
 	/// ```
 	pub fn insert(&mut self, value: T)
 	where
-		T: Copy + Eq + Hash + IsEnabled,
+		T: Eq + Hash + IsEnabled,
 	{
 		self.frequencies
 			.entry(value)
@@ -51,26 +51,32 @@ impl<T> Zipf<T> {
 	///
 	/// zipf.insert(1);
 	/// zipf.insert(1);
-	/// zipf.insert(1);
-	/// zipf.insert(1);
 	/// zipf.insert(2);
+	/// zipf.insert(1);
 	/// zipf.insert(2);
 	/// zipf.insert(3);
+	/// zipf.insert(1);
 	///
-	/// let alpha = zipf.alpha().unwrap();
-	/// assert!(alpha >= 1.0);
+	/// let alpha = zipf.into_alpha().unwrap();
+	/// assert!(alpha > 1.0);
 	/// ```
-	pub fn alpha(&self) -> Option<f64> {
+	pub fn into_alpha(self) -> Option<f64> {
 		if self.frequencies.is_empty() {
 			return None;
 		}
 
+		let mut frequencies = self.frequencies
+			.into_iter()
+			.collect::<Vec<_>>();
+
+		frequencies.sort_unstable_by(|(_, a), (_, b)| b.cmp(a));
+
 		let mut log_x = Vec::<f64>::new();
 		let mut log_y = Vec::<f64>::new();
 
-		for (index, (_, frequency)) in self.frequencies.iter().enumerate() {
+		for (index, (_, frequency)) in frequencies.into_iter().enumerate() {
 			log_x.push((index as f64 + 1.0).log10());
-			log_y.push((*frequency as f64).log10());
+			log_y.push((frequency as f64).log10());
 		}
 
 		linear_regression::<f64, f64, f64>(&log_x, &log_y)

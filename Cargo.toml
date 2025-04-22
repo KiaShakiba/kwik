@@ -1,7 +1,7 @@
 [package]
 name = "kwik"
-version = "1.16.0"
-edition = "2021"
+version = "1.16.1"
+edition = "2024"
 
 [dependencies]
 csv = "1.3.1"
