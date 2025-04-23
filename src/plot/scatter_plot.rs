@@ -28,6 +28,7 @@ use crate::plot::{
 	SizeScaler,
 	TimeScaler,
 	auto_option,
+	COLORS,
 };
 
 /// A scatter plot.
@@ -59,7 +60,18 @@ pub struct ScatterPlot {
 	format_x_time: bool,
 	format_y_time: bool,
 
-	points: Vec<(f64, f64)>,
+	points: Vec<Point>,
+}
+
+/// An individual point on a scatter plot.
+#[derive(Clone)]
+pub struct Point {
+	x: f64,
+	y: f64,
+
+	symbol: char,
+	size: f64,
+	color: String,
 }
 
 impl Plot for ScatterPlot {
@@ -202,23 +214,17 @@ impl Plot for ScatterPlot {
 			axes.set_y_log(Some(10.0));
 		}
 
-		let mut x_values = Vec::<f64>::new();
-		let mut y_values = Vec::<f64>::new();
-
-		for (x_value, y_value) in &self.points {
-			x_values.push(x_scaler.scale(*x_value));
-			y_values.push(y_scaler.scale(*y_value));
+		for point in &self.points {
+			axes.points(
+				[x_scaler.scale(point.x)],
+				[y_scaler.scale(point.y)],
+				&[
+					PlotOption::PointSymbol(point.symbol),
+					PlotOption::PointSize(point.size),
+					PlotOption::Color(&point.color),
+				],
+			);
 		}
-
-		axes.points(
-			x_values,
-			y_values,
-			&[
-				PlotOption::Color("red"),
-				PlotOption::PointSymbol('o'),
-				PlotOption::PointSize(1.0),
-			]
-		);
 	}
 }
 
@@ -355,17 +361,17 @@ impl ScatterPlot {
 		self
 	}
 
-	/// Adds a point to the plot at the supplied coordinates.
-	pub fn point(&mut self, x_value: impl AsPrimitive<f64>, y_value: impl AsPrimitive<f64>) {
-		self.points.push((x_value.as_(), y_value.as_()));
+	/// Adds a point to the plot.
+	pub fn point(&mut self, point: Point) {
+		self.points.push(point);
 	}
 
 	fn max_x_value(&self) -> f64 {
 		let mut max = self.x_max;
 
-		for (x, _) in &self.points {
-			if max.is_none_or(|value| value < *x) {
-				max = Some(*x);
+		for point in &self.points {
+			if max.is_none_or(|value| value < point.x) {
+				max = Some(point.x);
 			}
 		}
 
@@ -375,9 +381,9 @@ impl ScatterPlot {
 	fn max_y_value(&self) -> f64 {
 		let mut max = self.y_max;
 
-		for (_, y) in &self.points {
-			if max.is_none_or(|value| value < *y) {
-				max = Some(*y);
+		for point in &self.points {
+			if max.is_none_or(|value| value < point.y) {
+				max = Some(point.y);
 			}
 		}
 
@@ -410,5 +416,58 @@ impl ScatterPlot {
 		}
 
 		Box::new(NoScaler::new(max_y_value))
+	}
+}
+
+impl Point {
+	/// Creates a new point with the supplied x and y values.
+	pub fn new(x: impl AsPrimitive<f64>, y: impl AsPrimitive<f64>) -> Self {
+		Point {
+			x: x.as_(),
+			y: y.as_(),
+
+			symbol: 'o',
+			size: 1.0,
+			color: COLORS[0].into(),
+		}
+	}
+
+	/// Sets the point's symbol.
+	pub fn set_symbol(&mut self, symbol: char) {
+		self.symbol = symbol;
+	}
+
+	/// Sets the point's symbol.
+	pub fn with_symbol(mut self, symbol: char) -> Self {
+		self.set_symbol(symbol);
+		self
+	}
+
+	/// Sets the point's size.
+	pub fn set_size(&mut self, size: impl AsPrimitive<f64>) {
+		self.size = size.as_();
+	}
+
+	/// Sets the point's size.
+	pub fn with_size(mut self, size: impl AsPrimitive<f64>) -> Self {
+		self.set_size(size);
+		self
+	}
+
+	/// Sets the point's color.
+	pub fn set_color<T>(&mut self, color: T)
+	where
+		T: Display,
+	{
+		self.color = color.to_string();
+	}
+
+	/// Sets the point's color.
+	pub fn with_color<T>(mut self, color: T) -> Self
+	where
+		T: Display,
+	{
+		self.set_color(color);
+		self
 	}
 }

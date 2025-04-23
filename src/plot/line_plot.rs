@@ -12,14 +12,9 @@ use gnuplot::{
 	Axes2D,
 	AxesCommon,
 	Caption,
-	Color,
-	LineWidth,
-	LineStyle,
 	DashType,
 	BorderLocation2D,
 	TickOption,
-	PointSymbol,
-	PointSize,
 	LabelOption,
 	PlotOption,
 	XAxis,
@@ -79,7 +74,7 @@ pub struct LinePlot {
 	vlines: Vec<f64>,
 	hlines: Vec<f64>,
 
-	points: Vec<(f64, f64)>,
+	points: Vec<Point>,
 }
 
 /// An individual line on a line plot.
@@ -92,6 +87,16 @@ pub struct Line {
 	y_values: Vec<f64>,
 
 	y2_axis: bool,
+}
+
+/// An individual point on a line plot.
+#[derive(Clone)]
+pub struct Point {
+	x: f64,
+	y: f64,
+
+	symbol: char,
+	size: f64,
 }
 
 impl Plot for LinePlot {
@@ -220,9 +225,9 @@ impl Plot for LinePlot {
 				&[font],
 			)
 			.set_grid_options(false, &[
-				Color("#bbbbbb"),
-				LineWidth(2.0),
-				LineStyle(DashType::Dot),
+				PlotOption::Color("#bbbbbb"),
+				PlotOption::LineWidth(2.0),
+				PlotOption::LineStyle(DashType::Dot),
 			])
 			.set_x_grid(true)
 			.set_y_grid(true);
@@ -270,9 +275,9 @@ impl Plot for LinePlot {
 
 		for (index, line) in self.y1_lines.iter().enumerate() {
 			let mut line_config = vec![
-				LineWidth(line.width),
-				Color(COLORS[index % COLORS.len()]),
-				LineStyle(DASH_TYPES[index % DASH_TYPES.len()]),
+				PlotOption::LineWidth(line.width),
+				PlotOption::Color(COLORS[index % COLORS.len()]),
+				PlotOption::LineStyle(DASH_TYPES[index % DASH_TYPES.len()]),
 			];
 
 			if let Some(label) = &line.label {
@@ -294,9 +299,9 @@ impl Plot for LinePlot {
 			let global_index = self.y1_lines.len() + index;
 
 			let mut line_config = vec![
-				LineWidth(line.width),
-				Color(COLORS[global_index % COLORS.len()]),
-				LineStyle(DASH_TYPES[global_index % DASH_TYPES.len()]),
+				PlotOption::LineWidth(line.width),
+				PlotOption::Color(COLORS[global_index % COLORS.len()]),
+				PlotOption::LineStyle(DASH_TYPES[global_index % DASH_TYPES.len()]),
 				PlotOption::Axes(XAxis::X1, YAxis::Y2),
 			];
 
@@ -327,8 +332,8 @@ impl Plot for LinePlot {
 			];
 
 			axes.lines(x, y, &[
-				LineWidth(2.0),
-				Color("blue"),
+				PlotOption::LineWidth(2.0),
+				PlotOption::Color("blue"),
 			]);
 		}
 
@@ -344,20 +349,21 @@ impl Plot for LinePlot {
 			];
 
 			axes.lines(x, y, &[
-				LineWidth(2.0),
-				Color("blue"),
+				PlotOption::LineWidth(2.0),
+				PlotOption::Color("blue"),
 			]);
 		}
 
-		for (x_value, y_value) in &self.points {
-			let x = vec![x_scaler.scale(*x_value)];
-			let y = vec![y_scaler.scale(*y_value)];
-
-			axes.points(x, y, &[
-				PointSymbol('o'),
-				PointSize(1.0),
-				Color("#009600"),
-			]);
+		for point in &self.points {
+			axes.points(
+				[x_scaler.scale(point.x)],
+				[y_scaler.scale(point.y)],
+				&[
+					PlotOption::Color("blue"),
+					PlotOption::PointSymbol(point.symbol),
+					PlotOption::PointSize(point.size),
+				],
+			);
 		}
 	}
 }
@@ -597,9 +603,9 @@ impl LinePlot {
 		self.hlines.push(y_value.as_());
 	}
 
-	/// Adds a point to the plot at the supplied coordinates.
-	pub fn point(&mut self, x_value: impl AsPrimitive<f64>, y_value: impl AsPrimitive<f64>) {
-		self.points.push((x_value.as_(), y_value.as_()));
+	/// Adds a point to the plot.
+	pub fn point(&mut self, point: Point) {
+		self.points.push(point);
 	}
 
 	fn min_x_value(&self) -> f64 {
@@ -853,5 +859,40 @@ impl Default for Line {
 
 			y2_axis: false,
 		}
+	}
+}
+
+impl Point {
+	/// Creates a new point with the supplied x and y values.
+	pub fn new(x: impl AsPrimitive<f64>, y: impl AsPrimitive<f64>) -> Self {
+		Point {
+			x: x.as_(),
+			y: y.as_(),
+
+			symbol: 'o',
+			size: 1.0,
+		}
+	}
+
+	/// Sets the point's symbol.
+	pub fn set_symbol(&mut self, symbol: char) {
+		self.symbol = symbol;
+	}
+
+	/// Sets the point's symbol.
+	pub fn with_symbol(mut self, symbol: char) -> Self {
+		self.set_symbol(symbol);
+		self
+	}
+
+	/// Sets the point's size.
+	pub fn set_size(&mut self, size: impl AsPrimitive<f64>) {
+		self.size = size.as_();
+	}
+
+	/// Sets the point's size.
+	pub fn with_size(mut self, size: impl AsPrimitive<f64>) -> Self {
+		self.set_size(size);
+		self
 	}
 }
