@@ -32,10 +32,8 @@ use statrs::statistics::{Data, Min, Max, Distribution, OrderStatistics};
 
 use crate::plot::{
 	Plot,
-	Scaler,
-	NoScaler,
-	SizeScaler,
-	TimeScaler,
+	AxisFormat,
+	init_scaler,
 	auto_option,
 };
 
@@ -55,9 +53,8 @@ pub struct BoxPlot {
 
 	y_tick: Option<f64>,
 
-	format_y_log: bool,
-	format_y_memory: bool,
-	format_y_time: bool,
+	y_format: Option<AxisFormat>,
+	y_log_base: Option<f64>,
 
 	map: IndexMap<String, Vec<f64>>,
 
@@ -160,7 +157,7 @@ impl Plot for BoxPlot {
 			.map(|label| label.into())
 			.collect::<Vec<String>>();
 
-		let y_scaler = self.y_scaler();
+		let y_scaler = init_scaler(self.y_format, self.max_y_value());
 
 		axes
 			.set_x_range(
@@ -211,8 +208,8 @@ impl Plot for BoxPlot {
 			axes.set_y_label(&y_scaler.apply_unit(y_label), &[font]);
 		}
 
-		if self.format_y_log {
-			axes.set_y_log(Some(10.0));
+		if let Some(base) = self.y_log_base {
+			axes.set_y_log(Some(base));
 		}
 
 		for (index, label) in labels.iter().enumerate() {
@@ -295,36 +292,19 @@ impl BoxPlot {
 		self
 	}
 
-	/// Enables or disables logarithmic formatting in the y-axis.
-	pub fn set_format_y_log(&mut self, value: bool) {
-		self.format_y_log = value;
+	/// Sets the plot's y-format type.
+	pub fn set_y_format(&mut self, format_type: AxisFormat) {
+		if let AxisFormat::Log(base) = format_type {
+			self.y_log_base = Some(base);
+			return;
+		}
+
+		self.y_format = Some(format_type);
 	}
 
-	/// Enables or disables logarithmic formatting in the y-axis.
-	pub fn with_format_y_log(mut self, value: bool) -> Self {
-		self.set_format_y_log(value);
-		self
-	}
-
-	/// Enables or disables memory formatting in the y-axis.
-	pub fn set_format_y_memory(&mut self, value: bool) {
-		self.format_y_memory = value;
-	}
-
-	/// Enables or disables memory formatting in the y-axis.
-	pub fn with_format_y_memory(mut self, value: bool) -> Self {
-		self.set_format_y_memory(value);
-		self
-	}
-
-	/// Enables or disables time formatting in the y-axis.
-	pub fn set_format_y_time(&mut self, value: bool) {
-		self.format_y_time = value;
-	}
-
-	/// Enables or disables time formatting in the y-axis.
-	pub fn with_format_y_time(mut self, value: bool) -> Self {
-		self.set_format_y_time(value);
+	/// Sets the plot's y-format type.
+	pub fn with_y_format(mut self, format_type: AxisFormat) -> Self {
+		self.set_y_format(format_type);
 		self
 	}
 
@@ -378,20 +358,6 @@ impl BoxPlot {
 		}
 
 		max.unwrap_or(0.0)
-	}
-
-	fn y_scaler(&self) -> Box<dyn Scaler> {
-		let max_y_value = self.max_y_value();
-
-		if self.format_y_memory {
-			return Box::new(SizeScaler::new(max_y_value));
-		}
-
-		if self.format_y_time {
-			return Box::new(TimeScaler::new(max_y_value));
-		}
-
-		Box::new(NoScaler::new(max_y_value))
 	}
 }
 

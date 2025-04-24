@@ -23,10 +23,8 @@ use gnuplot::{
 
 use crate::plot::{
 	Plot,
-	Scaler,
-	NoScaler,
-	SizeScaler,
-	TimeScaler,
+	AxisFormat,
+	init_scaler,
 	auto_option,
 	COLORS,
 };
@@ -51,14 +49,11 @@ pub struct ScatterPlot {
 	x_tick: Option<f64>,
 	y_tick: Option<f64>,
 
-	format_x_log: bool,
-	format_y_log: bool,
+	x_format: Option<AxisFormat>,
+	y_format: Option<AxisFormat>,
 
-	format_x_memory: bool,
-	format_y_memory: bool,
-
-	format_x_time: bool,
-	format_y_time: bool,
+	x_log_base: Option<f64>,
+	y_log_base: Option<f64>,
 
 	points: Vec<Point>,
 }
@@ -154,8 +149,8 @@ impl Plot for ScatterPlot {
 			self.font_size.unwrap_or(16.0),
 		);
 
-		let x_scaler = self.x_scaler();
-		let y_scaler = self.y_scaler();
+		let x_scaler = init_scaler(self.x_format, self.max_x_value());
+		let y_scaler = init_scaler(self.y_format, self.max_y_value());
 
 		axes
 			.set_border(
@@ -206,12 +201,12 @@ impl Plot for ScatterPlot {
 			axes.set_y_label(&y_scaler.apply_unit(y_label), &[font]);
 		}
 
-		if self.format_x_log {
-			axes.set_x_log(Some(10.0));
+		if let Some(base) = self.x_log_base {
+			axes.set_x_log(Some(base));
 		}
 
-		if self.format_y_log {
-			axes.set_y_log(Some(10.0));
+		if let Some(base) = self.y_log_base {
+			axes.set_y_log(Some(base));
 		}
 
 		for point in &self.points {
@@ -295,69 +290,35 @@ impl ScatterPlot {
 		self
 	}
 
-	/// Enables or disables logarithmic formatting in the x-axis.
-	pub fn set_format_x_log(&mut self, value: bool) {
-		self.format_x_log = value;
+	/// Sets the plot's x-format type.
+	pub fn set_x_format(&mut self, format_type: AxisFormat) {
+		if let AxisFormat::Log(base) = format_type {
+			self.x_log_base = Some(base);
+			return;
+		}
+
+		self.x_format = Some(format_type);
 	}
 
-	/// Enables or disables logarithmic formatting in the x-axis.
-	pub fn with_format_x_log(mut self, value: bool) -> Self {
-		self.set_format_x_log(value);
+	/// Sets the plot's x-format type.
+	pub fn with_x_format(mut self, format_type: AxisFormat) -> Self {
+		self.set_x_format(format_type);
 		self
 	}
 
-	/// Enables or disables logarithmic formatting in the y-axis.
-	pub fn set_format_y_log(&mut self, value: bool) {
-		self.format_y_log = value;
+	/// Sets the plot's y-format type.
+	pub fn set_y_format(&mut self, format_type: AxisFormat) {
+		if let AxisFormat::Log(base) = format_type {
+			self.y_log_base = Some(base);
+			return;
+		}
+
+		self.y_format = Some(format_type);
 	}
 
-	/// Enables or disables logarithmic formatting in the y-axis.
-	pub fn with_format_y_log(mut self, value: bool) -> Self {
-		self.set_format_y_log(value);
-		self
-	}
-
-	/// Enables or disables memory formatting in the x-axis.
-	pub fn set_format_x_memory(&mut self, value: bool) {
-		self.format_x_memory = value;
-	}
-
-	/// Enables or disables memory formatting in the x-axis.
-	pub fn with_format_x_memory(mut self, value: bool) -> Self {
-		self.set_format_x_memory(value);
-		self
-	}
-
-	/// Enables or disables memory formatting in the y-axis.
-	pub fn set_format_y_memory(&mut self, value: bool) {
-		self.format_y_memory = value;
-	}
-
-	/// Enables or disables memory formatting in the y-axis.
-	pub fn with_format_y_memory(mut self, value: bool) -> Self {
-		self.set_format_y_memory(value);
-		self
-	}
-
-	/// Enables or disables time formatting in the x-axis.
-	pub fn set_format_x_time(&mut self, value: bool) {
-		self.format_x_time = value;
-	}
-
-	/// Enables or disables time formatting in the x-axis.
-	pub fn with_format_x_time(mut self, value: bool) -> Self {
-		self.set_format_x_time(value);
-		self
-	}
-
-	/// Enables or disables time formatting in the y-axis.
-	pub fn set_format_y_time(&mut self, value: bool) {
-		self.format_y_time = value;
-	}
-
-	/// Enables or disables time formatting in the y-axis.
-	pub fn with_format_y_time(mut self, value: bool) -> Self {
-		self.set_format_y_time(value);
+	/// Sets the plot's y-format type.
+	pub fn with_y_format(mut self, format_type: AxisFormat) -> Self {
+		self.set_y_format(format_type);
 		self
 	}
 
@@ -388,34 +349,6 @@ impl ScatterPlot {
 		}
 
 		max.unwrap_or(0.0)
-	}
-
-	fn x_scaler(&self) -> Box<dyn Scaler> {
-		let max_x_value = self.max_x_value();
-
-		if self.format_x_memory {
-			return Box::new(SizeScaler::new(max_x_value));
-		}
-
-		if self.format_x_time {
-			return Box::new(TimeScaler::new(max_x_value));
-		}
-
-		Box::new(NoScaler::new(max_x_value))
-	}
-
-	fn y_scaler(&self) -> Box<dyn Scaler> {
-		let max_y_value = self.max_y_value();
-
-		if self.format_y_memory {
-			return Box::new(SizeScaler::new(max_y_value));
-		}
-
-		if self.format_y_time {
-			return Box::new(TimeScaler::new(max_y_value));
-		}
-
-		Box::new(NoScaler::new(max_y_value))
 	}
 }
 

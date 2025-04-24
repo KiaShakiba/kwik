@@ -14,7 +14,7 @@ pub mod bar_plot;
 use std::fmt::Display;
 use num_traits::AsPrimitive;
 use gnuplot::{Axes2D, AutoOption, DashType};
-use crate::fmt::MEMORY_UNITS;
+use crate::fmt::{self, MEMORY_UNITS};
 
 const COLORS: &[&str] = &[
 	"#c4342b",
@@ -101,6 +101,21 @@ pub trait Plot {
 	fn configure(&mut self, axes: &mut Axes2D);
 }
 
+#[derive(Clone, Copy)]
+pub enum AxisFormat {
+	/// Logarithmic formatting with the supplied base.
+	Log(f64),
+
+	/// Memory size formatting (up to EiB).
+	Memory,
+
+	/// Time formatting (up to days).
+	Time,
+
+	/// Number formatting (starting at 10s).
+	Number,
+}
+
 trait Scaler {
 	fn new(max: impl AsPrimitive<u64>) -> Self
 	where
@@ -113,13 +128,17 @@ trait Scaler {
 
 struct NoScaler;
 
-struct SizeScaler {
+struct MemoryScaler {
 	unit: Option<&'static str>,
 	denominator: f64,
 }
 
 struct TimeScaler {
 	unit: Option<&'static str>,
+	denominator: f64,
+}
+
+struct NumberScaler {
 	denominator: f64,
 }
 
@@ -137,7 +156,7 @@ impl Scaler for NoScaler {
 	}
 }
 
-impl Scaler for SizeScaler {
+impl Scaler for MemoryScaler {
 	fn new(max_size: impl AsPrimitive<u64>) -> Self {
 		let mut max_size = max_size.as_();
 		let mut count: usize = 0;
@@ -149,7 +168,7 @@ impl Scaler for SizeScaler {
 			count += 1;
 		}
 
-		SizeScaler {
+		MemoryScaler {
 			unit: Some(MEMORY_UNITS[count]),
 			denominator,
 		}
@@ -200,6 +219,52 @@ impl Scaler for TimeScaler {
 			Some(unit) => format!("{label} ({unit})"),
 			None => label.to_string(),
 		}
+	}
+}
+
+impl Scaler for NumberScaler {
+	fn new(max_number: impl AsPrimitive<u64>) -> Self {
+		let mut max_number = max_number.as_();
+		let mut denominator = 1.0f64;
+
+		while max_number >= 10 {
+			denominator *= 10.0;
+			max_number /= 10;
+		}
+
+		NumberScaler {
+			denominator,
+		}
+	}
+
+	fn scale(&self, number: f64) -> f64 {
+		number / self.denominator
+	}
+
+	fn apply_unit(&self, label: &str) -> String {
+		if self.denominator > 1.0 {
+			format!("{label} ({}s)", fmt::number(self.denominator))
+		} else {
+			label.to_owned()
+		}
+	}
+}
+
+fn init_scaler(
+	format: Option<AxisFormat>,
+	max_value: impl AsPrimitive<u64>,
+) -> Box<dyn Scaler> {
+	let no_scaler = Box::new(NoScaler::new(max_value));
+
+	let Some(format) = format else {
+		return no_scaler;
+	};
+
+	match format {
+		AxisFormat::Memory => Box::new(MemoryScaler::new(max_value)),
+		AxisFormat::Time => Box::new(TimeScaler::new(max_value)),
+		AxisFormat::Number => Box::new(NumberScaler::new(max_value)),
+		_ => no_scaler,
 	}
 }
 
