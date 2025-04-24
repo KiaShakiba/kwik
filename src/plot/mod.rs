@@ -112,7 +112,7 @@ pub enum AxisFormat {
 	/// Time formatting (up to days).
 	Time,
 
-	/// Number formatting (starting at 10s).
+	/// Number formatting (starting at 10,000).
 	Number,
 }
 
@@ -227,9 +227,11 @@ impl Scaler for NumberScaler {
 		let mut max_number = max_number.as_();
 		let mut denominator = 1.0f64;
 
-		while max_number >= 10 {
-			denominator *= 10.0;
-			max_number /= 10;
+		if max_number >= 10_000 {
+			while max_number >= 10 {
+				denominator *= 10.0;
+				max_number /= 10;
+			}
 		}
 
 		NumberScaler {
