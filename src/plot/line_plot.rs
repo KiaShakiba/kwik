@@ -11,6 +11,9 @@ use num_traits::AsPrimitive;
 use gnuplot::{
 	Axes2D,
 	AxesCommon,
+	Coordinate,
+	LegendOption,
+	AlignType,
 	Caption,
 	DashType,
 	BorderLocation2D,
@@ -24,6 +27,7 @@ use gnuplot::{
 use crate::plot::{
 	Plot,
 	AxisFormat,
+	LegendPosition,
 	init_scaler,
 	auto_option,
 	COLORS,
@@ -61,6 +65,8 @@ pub struct LinePlot {
 	x_log_base: Option<f64>,
 	y_log_base: Option<f64>,
 	y2_log_base: Option<f64>,
+
+	legend_position: Option<LegendPosition>,
 
 	y1_lines: Vec<Line>,
 	y2_lines: Vec<Line>,
@@ -244,6 +250,27 @@ impl Plot for LinePlot {
 
 		if let Some(base) = self.y_log_base {
 			axes.set_y_log(Some(base));
+		}
+
+		if let Some(legend_position) = &self.legend_position {
+			let (x, halign) = match legend_position {
+				LegendPosition::TopRight | LegendPosition::BottomRight =>
+					(Coordinate::Graph(1.0), AlignType::AlignRight),
+
+				LegendPosition::TopLeft | LegendPosition::BottomLeft =>
+					(Coordinate::Graph(0.02), AlignType::AlignLeft),
+			};
+
+			let (y, valign) = match legend_position {
+				LegendPosition::TopRight | LegendPosition::TopLeft =>
+					(Coordinate::Graph(1.0), AlignType::AlignTop),
+
+				LegendPosition::BottomRight | LegendPosition::BottomLeft =>
+					(Coordinate::Graph(0.0), AlignType::AlignBottom),
+			};
+
+			let placement = LegendOption::Placement(halign, valign);
+			axes.set_legend(x, y, &[placement], &[]);
 		}
 
 		if !self.y2_lines.is_empty() {
@@ -524,6 +551,17 @@ impl LinePlot {
 	/// Sets the plot's y2-format type.
 	pub fn with_y2_format(mut self, format_type: AxisFormat) -> Self {
 		self.set_y2_format(format_type);
+		self
+	}
+
+	/// Sets the plot's legend position.
+	pub fn set_legend_position(&mut self, position: LegendPosition) {
+		self.legend_position = Some(position);
+	}
+
+	/// Sets the plot's legend position.
+	pub fn with_legend_position(mut self, position: LegendPosition) -> Self {
+		self.set_legend_position(position);
 		self
 	}
 

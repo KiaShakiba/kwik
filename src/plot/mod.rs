@@ -116,6 +116,14 @@ pub enum AxisFormat {
 	Number,
 }
 
+#[derive(Clone, Copy)]
+pub enum LegendPosition {
+	TopRight,
+	TopLeft,
+	BottomRight,
+	BottomLeft,
+}
+
 trait Scaler {
 	fn new(max: impl AsPrimitive<u64>) -> Self
 	where
