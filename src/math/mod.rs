@@ -6,7 +6,7 @@
  */
 
 pub mod set;
-pub mod zipf;
+pub mod stats;
 
 /// Returns a clone of the minimum value in the supplied splice.
 ///

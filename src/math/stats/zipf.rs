@@ -24,7 +24,7 @@ impl<T> Zipf<T> {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::math::zipf::Zipf;
+	/// use kwik::math::stats::Zipf;
 	///
 	/// let mut zipf = Zipf::<u64>::default();
 	///
@@ -46,7 +46,7 @@ impl<T> Zipf<T> {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::math::zipf::Zipf;
+	/// use kwik::math::stats::Zipf;
 	///
 	/// let mut zipf = Zipf::<u64>::default();
 	///
