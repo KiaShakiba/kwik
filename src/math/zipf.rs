@@ -14,6 +14,7 @@ use nohash_hasher::{BuildNoHashHasher, IsEnabled};
 use linreg::linear_regression;
 
 /// Calculates streaming Zipf distribution statistics.
+#[derive(Clone)]
 pub struct Zipf<T> {
 	frequencies: HashMap<T, u64, BuildNoHashHasher<T>>,
 }
