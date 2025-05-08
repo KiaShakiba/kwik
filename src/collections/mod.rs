@@ -7,3 +7,6 @@
 
 pub mod hash_list;
 pub use crate::collections::hash_list::HashList;
+
+pub mod hash_tree;
+pub use crate::collections::hash_tree::HashTree;
