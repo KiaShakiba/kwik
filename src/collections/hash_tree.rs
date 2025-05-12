@@ -48,18 +48,12 @@ where
 	/// assert_eq!(tree.insert(2), Some(2));
 	/// ```
 	pub fn insert(&mut self, data: T) -> Option<T> {
-		if self.root.is_null() {
-			let entry = Entry::<T>::new(data);
-			let entry_ptr = entry.as_ptr();
-
-			self.root = entry_ptr;
-			return None;
-		}
-
 		unsafe {
 			let data_ptr = init_data_ptr(data);
-			(*self.root).insert(data_ptr)
+			self.root = insert_entry(self.root, data_ptr);
 		}
+
+		todo!();
 	}
 }
 
@@ -166,46 +160,35 @@ unsafe fn init_data_ptr<T>(data: T) -> NonNull<T> {
 	}
 }
 
-impl<T> Entry<T>
+/// inserts a new entry into the tree, returning the root
+unsafe fn insert_entry<T>(
+	root: *mut Entry<T>,
+	data_ptr: NonNull<T>,
+) -> *mut Entry<T>
 where
 	T: Ord,
 {
-	fn insert(&mut self, data_ptr: NonNull<T>) -> Option<T> {
-		let cmp = unsafe {
-			self.data.read().cmp(&data_ptr.read())
-		};
-
-		match cmp {
-			Ordering::Less if self.left.is_null() => {
-				let entry = Entry::<T>::from_data_ptr(data_ptr);
-				self.left = entry.as_ptr();
-			},
-
-			Ordering::Less => return unsafe {
-				(*self.left).insert(data_ptr)
-			},
-
-			Ordering::Greater if self.right.is_null() => {
-				let entry = Entry::<T>::from_data_ptr(data_ptr);
-				self.right = entry.as_ptr();
-			},
-
-			Ordering::Greater => return unsafe {
-				(*self.right).insert(data_ptr)
-			},
-
-			Ordering::Equal => {
-				// the old data might actually be different than the new
-				// data, even though their cmp is equal
-				let old_data = unsafe {
-					self.data.read()
-				};
-
-				self.data = data_ptr;
-				return Some(old_data);
-			},
-		}
-
-		None
+	if root.is_null() {
+		return Entry::from_data_ptr(data_ptr).as_ptr();
 	}
+
+	let cmp = unsafe {
+		(*root).data.read().cmp(&data_ptr.read())
+	};
+
+	match cmp {
+		Ordering::Less => unsafe {
+			(*root).left = insert_entry((*root).left, data_ptr);
+		},
+
+		Ordering::Greater => unsafe {
+			(*root).right = insert_entry((*root).right, data_ptr);
+		},
+
+		Ordering::Equal => {
+			todo!();
+		},
+	};
+
+	todo!();
 }
