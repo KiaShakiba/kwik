@@ -106,7 +106,7 @@ impl Acf {
 			.map(|i| (self.values[i] - mean) * (self.values[i + lag] - mean))
 			.sum::<f64>();
 
-		Ok(sum / (self.values.len() as f64 * self.variance(mean)?))
+		Ok(sum / ((self.values.len() - lag) as f64 * self.variance(mean)?))
 	}
 
 	fn variance(&self, mean: impl AsPrimitive<f64>) -> Result<f64, AcfError> {
@@ -139,6 +139,7 @@ impl Acf {
 
 #[cfg(test)]
 mod tests {
+	use approx::assert_relative_eq;
 	use crate::math::stats::acf::{Acf, AcfError};
 
 	#[test]
@@ -177,7 +178,7 @@ mod tests {
 	}
 
 	#[test]
-	fn it_calculates_coefficient_correcntly() {
+	fn it_calculates_coefficient_correctly() {
 		let mut acf = Acf::default();
 
 		acf.insert(1);
@@ -187,9 +188,9 @@ mod tests {
 		acf.insert(2);
 		acf.insert(3);
 
-		for (lag, expected) in [1.0, -0.25, -0.5, 0.5, 0.0, -0.25].into_iter().enumerate() {
+		for (lag, expected) in [1.0, -0.3, -0.75, 1.0, 0.0, -1.5].into_iter().enumerate() {
 			let coefficient = acf.coefficient(lag).unwrap();
-			assert_eq!(coefficient, expected);
+			assert_relative_eq!(coefficient, expected);
 		}
 	}
 
