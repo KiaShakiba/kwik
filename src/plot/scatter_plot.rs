@@ -12,9 +12,7 @@ use gnuplot::{
 	Axes2D,
 	AxesCommon,
 	PlotOption,
-	Color,
-	LineWidth,
-	LineStyle,
+	ColorType,
 	DashType,
 	BorderLocation2D,
 	TickOption,
@@ -66,7 +64,7 @@ pub struct Point {
 
 	symbol: char,
 	size: f64,
-	color: String,
+	color: ColorType,
 }
 
 impl Plot for ScatterPlot {
@@ -174,27 +172,27 @@ impl Plot for ScatterPlot {
 			.set_x_ticks(
 				Some((auto_option(self.x_tick, x_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				&[font],
+				&[font.clone()],
 			)
 			.set_y_ticks(
 				Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				&[font],
+				&[font.clone()],
 			)
 			.set_grid_options(false, &[
-				Color("#bbbbbb"),
-				LineWidth(2.0),
-				LineStyle(DashType::Dot),
+				PlotOption::Color(ColorType::RGBString("#bbbbbb")),
+				PlotOption::LineWidth(2.0),
+				PlotOption::LineStyle(DashType::Dot),
 			])
 			.set_x_grid(true)
 			.set_y_grid(true);
 
 		if let Some(title) = &self.title {
-			axes.set_title(title, &[font]);
+			axes.set_title(title, &[font.clone()]);
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(&x_scaler.apply_unit(x_label), &[font]);
+			axes.set_x_label(&x_scaler.apply_unit(x_label), &[font.clone()]);
 		}
 
 		if let Some(y_label) = &self.y_label {
@@ -216,7 +214,7 @@ impl Plot for ScatterPlot {
 				&[
 					PlotOption::PointSymbol(point.symbol),
 					PlotOption::PointSize(point.size),
-					PlotOption::Color(&point.color),
+					PlotOption::Color(point.color.to_ref()),
 				],
 			);
 		}
@@ -392,7 +390,7 @@ impl Point {
 	where
 		T: Display,
 	{
-		self.color = color.to_string();
+		self.color = color.to_string().into();
 	}
 
 	/// Sets the point's color.

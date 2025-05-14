@@ -21,9 +21,7 @@ use gnuplot::{
 	TickOption,
 	LabelOption,
 	PlotOption,
-	LineStyle,
-	Color,
-	LineWidth,
+	ColorType,
 	DashType,
 };
 
@@ -180,28 +178,28 @@ impl Plot for BoxPlot {
 					TickOption::Inward(false),
 				],
 				&[
-					font,
+					font.clone(),
 					LabelOption::Rotate(-45.0),
 				]
 			)
 			.set_y_ticks(
 				Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				&[font]
+				&[font.clone()]
 			)
 			.set_grid_options(false, &[
-				Color("#bbbbbb"),
-				LineWidth(2.0),
-				LineStyle(DashType::Dot),
+				PlotOption::Color(ColorType::RGBString("#bbbbbb")),
+				PlotOption::LineWidth(2.0),
+				PlotOption::LineStyle(DashType::Dot),
 			])
 			.set_y_grid(true);
 
 		if let Some(title) = &self.title {
-			axes.set_title(title, &[font]);
+			axes.set_title(title, &[font.clone()]);
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(x_label, &[font]);
+			axes.set_x_label(x_label, &[font.clone()]);
 		}
 
 		if let Some(y_label) = &self.y_label {
@@ -217,21 +215,21 @@ impl Plot for BoxPlot {
 			let stats = self.get_stats(label);
 
 			let color = self.colors
-					.get(label)
-					.map(|color| color.as_str())
-					.unwrap_or("red");
+				.get(label)
+				.map(|color| color.as_str())
+				.unwrap_or("red");
 
 			axes
-				.box_and_whisker_set_width(
+				.box_and_whisker(
 					[x_value],
 					[y_scaler.scale(stats.q1())],
 					[y_scaler.scale(stats.min())],
 					[y_scaler.scale(stats.max())],
 					[y_scaler.scale(stats.q3())],
-					[0.25],
 					&[
-						PlotOption::Color("white"),
-						PlotOption::BorderColor(color),
+						PlotOption::BoxWidth(vec![0.25]),
+						PlotOption::Color(ColorType::RGBString("white")),
+						PlotOption::BorderColor(ColorType::RGBString(color)),
 						PlotOption::WhiskerBars(0.5),
 						PlotOption::LineWidth(1.25),
 					]
@@ -240,7 +238,7 @@ impl Plot for BoxPlot {
 					[x_value],
 					[y_scaler.scale(stats.mean())],
 					&[
-						PlotOption::Color("blue"),
+						PlotOption::Color(ColorType::RGBString("blue")),
 						PlotOption::PointSymbol('x'),
 						PlotOption::PointSize(0.75),
 					]
@@ -249,7 +247,7 @@ impl Plot for BoxPlot {
 					[x_value],
 					[y_scaler.scale(stats.median())],
 					&[
-						PlotOption::Color("blue"),
+						PlotOption::Color(ColorType::RGBString("blue")),
 						PlotOption::PointSymbol('+'),
 						PlotOption::PointSize(0.75),
 					]
