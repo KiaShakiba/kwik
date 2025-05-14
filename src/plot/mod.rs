@@ -253,7 +253,7 @@ impl Scaler for NumberScaler {
 
 	fn apply_unit(&self, label: &str) -> String {
 		if self.denominator > 1.0 {
-			format!("{label} ({}s)", fmt::number(self.denominator))
+			format!("{label} (x{})", fmt::number(self.denominator))
 		} else {
 			label.to_owned()
 		}

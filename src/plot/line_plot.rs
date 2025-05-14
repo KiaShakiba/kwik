@@ -14,8 +14,8 @@ use gnuplot::{
 	Coordinate,
 	LegendOption,
 	AlignType,
-	Caption,
 	DashType,
+	ColorType,
 	BorderLocation2D,
 	TickOption,
 	LabelOption,
@@ -217,15 +217,15 @@ impl Plot for LinePlot {
 			.set_x_ticks(
 				Some((auto_option(self.x_tick, x_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				&[font],
+				&[font.clone()],
 			)
 			.set_y_ticks(
 				Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				&[font],
+				&[font.clone()],
 			)
 			.set_grid_options(false, &[
-				PlotOption::Color("#bbbbbb"),
+				PlotOption::Color(ColorType::RGBString("#bbbbbb")),
 				PlotOption::LineWidth(2.0),
 				PlotOption::LineStyle(DashType::Dot),
 			])
@@ -233,15 +233,15 @@ impl Plot for LinePlot {
 			.set_y_grid(true);
 
 		if let Some(title) = &self.title {
-			axes.set_title(title, &[font]);
+			axes.set_title(title, &[font.clone()]);
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(&x_scaler.apply_unit(x_label), &[font]);
+			axes.set_x_label(&x_scaler.apply_unit(x_label), &[font.clone()]);
 		}
 
 		if let Some(y_label) = &self.y_label {
-			axes.set_y_label(&y_scaler.apply_unit(y_label), &[font]);
+			axes.set_y_label(&y_scaler.apply_unit(y_label), &[font.clone()]);
 		}
 
 		if let Some(base) = self.x_log_base {
@@ -282,7 +282,7 @@ impl Plot for LinePlot {
 			axes.set_y2_ticks(
 				Some((auto_option(self.y2_tick, y2_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				&[font],
+				&[font.clone()],
 			);
 
 			if let Some(y2_label) = &self.y2_label {
@@ -295,14 +295,14 @@ impl Plot for LinePlot {
 		}
 
 		for (index, line) in self.y1_lines.iter().enumerate() {
-			let mut line_config = vec![
+			let mut line_config: Vec<PlotOption<&str>> = vec![
 				PlotOption::LineWidth(line.width),
-				PlotOption::Color(COLORS[index % COLORS.len()]),
+				PlotOption::Color(COLORS[index % COLORS.len()].into()),
 				PlotOption::LineStyle(DASH_TYPES[index % DASH_TYPES.len()]),
 			];
 
 			if let Some(label) = &line.label {
-				line_config.push(Caption(label));
+				line_config.push(PlotOption::Caption(label));
 			}
 
 			let x_values = line.x_values
@@ -319,15 +319,15 @@ impl Plot for LinePlot {
 		for (index, line) in self.y2_lines.iter().enumerate() {
 			let global_index = self.y1_lines.len() + index;
 
-			let mut line_config = vec![
+			let mut line_config: Vec<PlotOption<&str>> = vec![
 				PlotOption::LineWidth(line.width),
-				PlotOption::Color(COLORS[global_index % COLORS.len()]),
+				PlotOption::Color(COLORS[global_index % COLORS.len()].into()),
 				PlotOption::LineStyle(DASH_TYPES[global_index % DASH_TYPES.len()]),
 				PlotOption::Axes(XAxis::X1, YAxis::Y2),
 			];
 
 			if let Some(label) = &line.label {
-				line_config.push(Caption(label));
+				line_config.push(PlotOption::Caption(label));
 			}
 
 			let x_values = line.x_values
@@ -354,7 +354,7 @@ impl Plot for LinePlot {
 
 			axes.lines(x, y, &[
 				PlotOption::LineWidth(2.0),
-				PlotOption::Color("blue"),
+				PlotOption::Color(ColorType::RGBString("blue")),
 			]);
 		}
 
@@ -371,7 +371,7 @@ impl Plot for LinePlot {
 
 			axes.lines(x, y, &[
 				PlotOption::LineWidth(2.0),
-				PlotOption::Color("blue"),
+				PlotOption::Color(ColorType::RGBString("blue")),
 			]);
 		}
 
@@ -380,9 +380,9 @@ impl Plot for LinePlot {
 				[x_scaler.scale(point.x)],
 				[y_scaler.scale(point.y)],
 				&[
-					PlotOption::Color("blue"),
 					PlotOption::PointSymbol(point.symbol),
 					PlotOption::PointSize(point.size),
+					PlotOption::Color(ColorType::RGBString("blue")),
 				],
 			);
 		}

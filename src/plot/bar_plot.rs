@@ -15,12 +15,10 @@ use gnuplot::{
 	AutoOption,
 	Major,
 	Fix,
+	PlotOption,
 	LabelOption,
-	LineStyle,
-	Color,
-	LineWidth,
+	ColorType,
 	DashType,
-	Caption,
 };
 
 use crate::{
@@ -175,28 +173,28 @@ impl Plot for BarPlot {
 					TickOption::Inward(false),
 				],
 				&[
-					font,
+					font.clone(),
 					LabelOption::Rotate(-45.0),
 				]
 			)
 			.set_y_ticks(
 				Some((AutoOption::Auto, 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				&[font],
+				&[font.clone()],
 			)
 			.set_grid_options(false, &[
-				Color("#bbbbbb"),
-				LineWidth(2.0),
-				LineStyle(DashType::Dot),
+				PlotOption::Color(ColorType::RGBString("#bbbbbb")),
+				PlotOption::LineWidth(2.0),
+				PlotOption::LineStyle(DashType::Dot),
 			])
 			.set_y_grid(true);
 
 		if let Some(title) = &self.title {
-			axes.set_title(title, &[font]);
+			axes.set_title(title, &[font.clone()]);
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(x_label, &[font]);
+			axes.set_x_label(x_label, &[font.clone()]);
 		}
 
 		if let Some(y_label) = &self.y_label {
@@ -229,21 +227,22 @@ impl Plot for BarPlot {
 
 			let widths = self.bar_groups
 				.iter()
-				.map(|bar_group| bar_group.bar_width());
+				.map(|bar_group| bar_group.bar_width())
+				.collect();
 
-			let mut bar_config = vec![
-				Color(COLORS[bar_index % COLORS.len()]),
-				LineWidth(1.25),
+			let mut bar_config: Vec<PlotOption<&str>> = vec![
+				PlotOption::BoxWidth(widths),
+				PlotOption::Color(COLORS[bar_index % COLORS.len()].into()),
+				PlotOption::LineWidth(1.25),
 			];
 
 			if let Some(label) = &self.bar_groups[0].bars[bar_index].label {
-				bar_config.push(Caption(label));
+				bar_config.push(PlotOption::Caption(label));
 			}
 
-			axes.boxes_set_width(
+			axes.boxes(
 				x_values,
 				y_values,
-				widths,
 				&bar_config,
 			);
 		}
