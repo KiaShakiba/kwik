@@ -12,11 +12,14 @@ use num_traits::AsPrimitive;
 #[derive(Clone, Default)]
 pub struct Acf {
 	values: Vec<f64>,
+
+	cached_mean: Option<f64>,
+	cached_variance: Option<f64>,
 }
 
 #[derive(Debug, Error)]
 pub enum AcfError {
-	#[error("lag smaller than number of values")]
+	#[error("empty values")]
 	EmptyValues,
 
 	#[error("lag smaller than number of values")]
@@ -69,6 +72,9 @@ impl Acf {
 	/// ```
 	pub fn insert(&mut self, value: impl AsPrimitive<f64>) {
 		self.values.push(value.as_());
+
+		self.cached_mean = None;
+		self.cached_variance = None;
 	}
 
 	/// Calculates the estimated autocorrelation coefficient.
@@ -89,7 +95,7 @@ impl Acf {
 	/// let coefficient = acf.coefficient(4).unwrap();
 	/// assert_eq!(coefficient, 0.0);
 	/// ```
-	pub fn coefficient(&self, lag: impl AsPrimitive<usize>) -> Result<f64, AcfError> {
+	pub fn coefficient(&mut self, lag: impl AsPrimitive<usize>) -> Result<f64, AcfError> {
 		if self.values.is_empty() {
 			return Err(AcfError::EmptyValues);
 		}
@@ -109,7 +115,11 @@ impl Acf {
 		Ok(sum / ((self.values.len() - lag) as f64 * self.variance(mean)?))
 	}
 
-	fn variance(&self, mean: impl AsPrimitive<f64>) -> Result<f64, AcfError> {
+	fn variance(&mut self, mean: impl AsPrimitive<f64>) -> Result<f64, AcfError> {
+		if let Some(variance) = self.cached_variance {
+			return Ok(variance);
+		};
+
 		if self.values.is_empty() {
 			return Err(AcfError::EmptyValues);
 		}
@@ -121,10 +131,17 @@ impl Acf {
 			.map(|value| (*value - mean).powf(2.0))
 			.sum::<f64>();
 
-		Ok(sum / self.values.len() as f64)
+		let variance = sum / self.values.len() as f64;
+		self.cached_variance = Some(variance);
+
+		Ok(variance)
 	}
 
-	fn mean(&self) -> Result<f64, AcfError> {
+	fn mean(&mut self) -> Result<f64, AcfError> {
+		if let Some(mean) = self.cached_mean {
+			return Ok(mean);
+		};
+
 		if self.values.is_empty() {
 			return Err(AcfError::EmptyValues);
 		}
@@ -133,7 +150,10 @@ impl Acf {
 			.iter()
 			.sum::<f64>();
 
-		Ok(sum / self.values.len() as f64)
+		let mean = sum / self.values.len() as f64;
+		self.cached_mean = Some(mean);
+
+		Ok(mean)
 	}
 }
 
@@ -155,7 +175,7 @@ mod tests {
 
 	#[test]
 	fn it_returns_mean_error_for_empty_values() {
-		let acf = Acf::default();
+		let mut acf = Acf::default();
 		assert!(matches!(acf.mean(), Err(AcfError::EmptyValues)));
 	}
 
@@ -173,7 +193,7 @@ mod tests {
 
 	#[test]
 	fn it_returns_variance_error_for_empty_values() {
-		let acf = Acf::default();
+		let mut acf = Acf::default();
 		assert!(matches!(acf.variance(0), Err(AcfError::EmptyValues)));
 	}
 
@@ -196,7 +216,7 @@ mod tests {
 
 	#[test]
 	fn it_returns_coefficient_error_for_empty_values() {
-		let acf = Acf::default();
+		let mut acf = Acf::default();
 		assert!(matches!(acf.coefficient(0), Err(AcfError::EmptyValues)));
 	}
 
