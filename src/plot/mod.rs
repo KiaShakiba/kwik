@@ -14,7 +14,7 @@ pub mod bar_plot;
 use std::fmt::Display;
 use num_traits::AsPrimitive;
 use gnuplot::{Axes2D, AutoOption, DashType};
-use crate::fmt::{self, MEMORY_UNITS};
+use crate::fmt::MEMORY_UNITS;
 
 const COLORS: &[&str] = &[
 	"#c4342b",
@@ -253,7 +253,7 @@ impl Scaler for NumberScaler {
 
 	fn apply_unit(&self, label: &str) -> String {
 		if self.denominator > 1.0 {
-			format!("{label} (x{})", fmt::number(self.denominator))
+			format!("{label} (x10^{})", self.denominator.log10())
 		} else {
 			label.to_owned()
 		}
