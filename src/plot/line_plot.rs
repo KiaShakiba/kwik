@@ -31,8 +31,15 @@ use crate::plot::{
 	init_scaler,
 	auto_option,
 	COLORS,
-	DASH_TYPES,
 };
+
+const LINE_STYLES: &[LineStyle] = &[
+	LineStyle::Solid,
+	LineStyle::Dash,
+	LineStyle::DotDash,
+	LineStyle::DotDotDash,
+	LineStyle::Dot,
+];
 
 /// A line plot.
 #[derive(Default, Clone)]
@@ -87,6 +94,19 @@ pub struct Line {
 	y_values: Vec<f64>,
 
 	y2_axis: bool,
+
+	maybe_color: Option<String>,
+	maybe_style: Option<LineStyle>,
+}
+
+/// The style of a line on a line plot.
+#[derive(Clone)]
+pub enum LineStyle {
+	Solid,
+	Dash,
+	DotDash,
+	DotDotDash,
+	Dot,
 }
 
 /// An individual point on a line plot.
@@ -295,10 +315,18 @@ impl Plot for LinePlot {
 		}
 
 		for (index, line) in self.y1_lines.iter().enumerate() {
+			let color = line.maybe_color
+				.as_deref()
+				.unwrap_or(COLORS[index % COLORS.len()]);
+
+			let style = line.maybe_style
+				.as_ref()
+				.unwrap_or(&LINE_STYLES[index & LINE_STYLES.len()]);
+
 			let mut line_config: Vec<PlotOption<&str>> = vec![
 				PlotOption::LineWidth(line.width),
-				PlotOption::Color(COLORS[index % COLORS.len()].into()),
-				PlotOption::LineStyle(DASH_TYPES[index % DASH_TYPES.len()]),
+				PlotOption::Color(color.into()),
+				PlotOption::LineStyle(style.into()),
 			];
 
 			if let Some(label) = &line.label {
@@ -319,10 +347,18 @@ impl Plot for LinePlot {
 		for (index, line) in self.y2_lines.iter().enumerate() {
 			let global_index = self.y1_lines.len() + index;
 
+			let color = line.maybe_color
+				.as_deref()
+				.unwrap_or(COLORS[global_index % COLORS.len()]);
+
+			let style = line.maybe_style
+				.as_ref()
+				.unwrap_or(&LINE_STYLES[global_index & LINE_STYLES.len()]);
+
 			let mut line_config: Vec<PlotOption<&str>> = vec![
 				PlotOption::LineWidth(line.width),
-				PlotOption::Color(COLORS[global_index % COLORS.len()].into()),
-				PlotOption::LineStyle(DASH_TYPES[global_index % DASH_TYPES.len()]),
+				PlotOption::Color(color.into()),
+				PlotOption::LineStyle(style.into()),
 				PlotOption::Axes(XAxis::X1, YAxis::Y2),
 			];
 
@@ -796,6 +832,27 @@ impl Default for Line {
 			y_values: Vec::new(),
 
 			y2_axis: false,
+
+			maybe_color: None,
+			maybe_style: None,
+		}
+	}
+}
+
+impl From<LineStyle> for DashType {
+	fn from(style: LineStyle) -> Self {
+		(&style).into()
+	}
+}
+
+impl From<&LineStyle> for DashType {
+	fn from(style: &LineStyle) -> Self {
+		match style {
+			LineStyle::Solid => DashType::Solid,
+			LineStyle::Dash => DashType::Dash,
+			LineStyle::DotDash => DashType::DotDash,
+			LineStyle::DotDotDash => DashType::DotDotDash,
+			LineStyle::Dot => DashType::Dot,
 		}
 	}
 }

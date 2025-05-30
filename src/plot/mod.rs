@@ -13,7 +13,7 @@ pub mod bar_plot;
 
 use std::fmt::Display;
 use num_traits::AsPrimitive;
-use gnuplot::{Axes2D, AutoOption, DashType};
+use gnuplot::{Axes2D, AutoOption};
 use crate::fmt::MEMORY_UNITS;
 
 const COLORS: &[&str] = &[
@@ -26,14 +26,6 @@ const COLORS: &[&str] = &[
 	"#47a8bd",
 	"#006a67",
 	"#f29f05",
-];
-
-const DASH_TYPES: &[DashType] = &[
-	DashType::Solid,
-	DashType::Dash,
-	DashType::DotDash,
-	DashType::DotDotDash,
-	DashType::Dot,
 ];
 
 const TIME_UNITS: &[&str] = &["ms", "s", "mins", "hrs", "days"];
