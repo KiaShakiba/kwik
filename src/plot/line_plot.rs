@@ -321,7 +321,7 @@ impl Plot for LinePlot {
 
 			let style = line.maybe_style
 				.as_ref()
-				.unwrap_or(&LINE_STYLES[index & LINE_STYLES.len()]);
+				.unwrap_or(&LINE_STYLES[index % LINE_STYLES.len()]);
 
 			let mut line_config: Vec<PlotOption<&str>> = vec![
 				PlotOption::LineWidth(line.width),
@@ -353,7 +353,7 @@ impl Plot for LinePlot {
 
 			let style = line.maybe_style
 				.as_ref()
-				.unwrap_or(&LINE_STYLES[global_index & LINE_STYLES.len()]);
+				.unwrap_or(&LINE_STYLES[global_index % LINE_STYLES.len()]);
 
 			let mut line_config: Vec<PlotOption<&str>> = vec![
 				PlotOption::LineWidth(line.width),
