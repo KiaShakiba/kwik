@@ -24,6 +24,8 @@ const COLORS: &[&str] = &[
 	"#f7790d",
 	"#e0ca3c",
 	"#47a8bd",
+	"#006a67",
+	"#f29f05",
 ];
 
 const DASH_TYPES: &[DashType] = &[
