@@ -815,6 +815,34 @@ impl Line {
 		self
 	}
 
+	/// Sets the line's color.
+	pub fn set_color<T>(&mut self, color: T)
+	where
+		T: Display,
+	{
+		self.maybe_color = Some(color.to_string());
+	}
+
+	/// Sets the line's color.
+	pub fn with_color<T>(mut self, color: T) -> Self
+	where
+		T: Display,
+	{
+		self.set_color(color);
+		self
+	}
+
+	/// Sets the line's style.
+	pub fn set_style(&mut self, style: LineStyle) {
+		self.maybe_style = Some(style);
+	}
+
+	/// Sets the line's style.
+	pub fn with_style(mut self, style: LineStyle) -> Self {
+		self.set_style(style);
+		self
+	}
+
 	/// Adds a data point to the line.
 	pub fn push(&mut self, x: impl AsPrimitive<f64>, y: impl AsPrimitive<f64>) {
 		self.x_values.push(x.as_());
