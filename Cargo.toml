@@ -1,6 +1,6 @@
 [package]
 name = "kwik"
-version = "1.18.3"
+version = "1.18.4"
 edition = "2024"
 
 [dependencies]
@@ -19,6 +19,8 @@ thiserror = "2.0.12"
 nohash-hasher = "0.2.0"
 linreg = "0.2.0"
 parking_lot = "0.12.3"
+serde = "1.0.219"
 
 [dev-dependencies]
 approx = "0.5.1"
+serde_test = "1.0.177"
