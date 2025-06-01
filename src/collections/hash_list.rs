@@ -11,7 +11,13 @@ use std::{
 	iter::{FromIterator, FusedIterator},
 	fmt::{self, Formatter, Debug},
 	hash::{Hash, Hasher, BuildHasher, RandomState},
+	marker::PhantomData,
 	collections::HashMap,
+};
+
+use serde::{
+	ser::{Serialize, Serializer, SerializeSeq},
+	de::{Deserialize, Deserializer, Visitor, SeqAccess},
 };
 
 /// A hash list where each entry is stored in a doubly-linked list.
@@ -742,6 +748,20 @@ where
 	}
 }
 
+impl<T, S> PartialEq for HashList<T, S>
+where
+	T: PartialEq,
+{
+	fn eq(&self, other: &Self) -> bool {
+		self.len() == other.len() && self.iter().eq(other.iter())
+	}
+}
+
+impl<T, S> Eq for HashList<T, S>
+where
+	T: Eq,
+{}
+
 impl<T> Entry<T> {
 	fn new(data: T) -> NonNull<Self> {
 		let boxed_data = Box::new(data);
@@ -1060,11 +1080,77 @@ impl<T, S> Drop for HashList<T, S> {
 	}
 }
 
+impl<T, S> Serialize for HashList<T, S>
+where
+	T: Eq + Hash + Serialize,
+	S: BuildHasher,
+{
+	fn serialize<Se>(&self, serializer: Se) -> Result<Se::Ok, Se::Error>
+	where
+		Se: Serializer,
+	{
+		let mut seq = serializer.serialize_seq(Some(self.len()))?;
+
+		for value in self {
+			seq.serialize_element(value)?;
+		}
+
+		seq.end()
+	}
+}
+
+struct HashListVisitor<T, S> {
+	marker: PhantomData<(T, S)>,
+}
+
+impl<'de, T, S> Visitor<'de> for HashListVisitor<T, S>
+where
+	T: Eq + Hash + Deserialize<'de>,
+	S: Default + BuildHasher,
+{
+	type Value = HashList<T, S>;
+
+	fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+		formatter.write_str("a hash list")
+	}
+
+	fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+    where
+        A: SeqAccess<'de>,
+	{
+		let mut list = HashList::<T, S>::default();
+
+		while let Some(value) = seq.next_element()? {
+			list.push_back(value);
+		}
+
+		Ok(list)
+	}
+}
+
+impl<'de, T, S> Deserialize<'de> for HashList<T, S>
+where
+	T: Eq + Hash + Deserialize<'de>,
+	S: Default + BuildHasher,
+{
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+    	let visitor = HashListVisitor {
+    		marker: PhantomData,
+    	};
+
+    	deserializer.deserialize_seq(visitor)
+    }
+}
+
 unsafe impl<T, S> Send for HashList<T, S> {}
 unsafe impl<T, S> Sync for HashList<T, S> {}
 
 #[cfg(test)]
 mod tests {
+	use serde_test::{Token, assert_tokens};
 	use crate::collections::HashList;
 
 	#[test]
@@ -1205,5 +1291,33 @@ mod tests {
 		assert_eq!(iter.next(), Some(4));
 		assert_eq!(iter.next(), None);
 		assert_eq!(iter.next_back(), None);
+	}
+
+	#[test]
+	fn it_ser_de_empty() {
+		let list = HashList::<u32>::default();
+
+		assert_tokens(&list, &[
+			Token::Seq { len: Some(0) },
+			Token::SeqEnd,
+		]);
+	}
+
+	#[test]
+	fn it_ser_de() {
+		let list: HashList<u32> = [1, 2, 3, 4, 5, 6].into_iter().collect();
+
+		assert_tokens(&list, &[
+			Token::Seq { len: Some(6) },
+
+			Token::U32(1),
+			Token::U32(2),
+			Token::U32(3),
+			Token::U32(4),
+			Token::U32(5),
+			Token::U32(6),
+
+			Token::SeqEnd,
+		]);
 	}
 }
