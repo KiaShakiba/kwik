@@ -1115,8 +1115,8 @@ where
 	}
 
 	fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-    where
-        A: SeqAccess<'de>,
+	where
+		A: SeqAccess<'de>,
 	{
 		let mut list = HashList::<T, S>::default();
 
@@ -1134,15 +1134,15 @@ where
 	S: Default + BuildHasher,
 {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-    	let visitor = HashListVisitor {
-    		marker: PhantomData,
-    	};
+	where
+		D: Deserializer<'de>,
+	{
+		let visitor = HashListVisitor {
+			marker: PhantomData,
+		};
 
-    	deserializer.deserialize_seq(visitor)
-    }
+		deserializer.deserialize_seq(visitor)
+	}
 }
 
 unsafe impl<T, S> Send for HashList<T, S> {}
