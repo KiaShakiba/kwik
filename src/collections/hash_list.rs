@@ -75,6 +75,7 @@ where
 	///
 	/// assert_eq!(list.front(), Some(&1));
 	/// ```
+	#[inline]
 	pub fn front(&self) -> Option<&T> {
 		if self.head.is_null() {
 			return None;
@@ -102,6 +103,7 @@ where
 	///
 	/// assert_eq!(list.back(), Some(&3));
 	/// ```
+	#[inline]
 	pub fn back(&self) -> Option<&T> {
 		if self.tail.is_null() {
 			return None;
@@ -130,6 +132,7 @@ where
 	/// assert!(list.contains(&2));
 	/// assert!(!list.contains(&4));
 	/// ```
+	#[inline]
 	pub fn contains<K>(&self, key: &K) -> bool
 	where
 		T: Borrow<K>,
@@ -156,6 +159,7 @@ where
 	/// assert_eq!(list.push_front(3), None);
 	/// assert_eq!(list.push_front(2), Some(2));
 	/// ```
+	#[inline]
 	pub fn push_front(&mut self, data: T) -> Option<T> {
 		let maybe_old_entry = self.map
 			.remove(&DataRef { data: &data })
@@ -204,6 +208,7 @@ where
 	/// assert_eq!(list.push_back(3), None);
 	/// assert_eq!(list.push_back(2), Some(2));
 	/// ```
+	#[inline]
 	pub fn push_back(&mut self, data: T) -> Option<T> {
 		let maybe_old_entry = self.map
 			.remove(&DataRef { data: &data })
@@ -251,6 +256,7 @@ where
 	///
 	/// list.move_front(&2);
 	/// ```
+	#[inline]
 	pub fn move_front<K>(&mut self, key: &K)
 	where
 		T: Borrow<K>,
@@ -289,6 +295,7 @@ where
 	///
 	/// list.move_back(&2);
 	/// ```
+	#[inline]
 	pub fn move_back<K>(&mut self, key: &K)
 	where
 		T: Borrow<K>,
@@ -325,6 +332,7 @@ where
 	/// assert_eq!(list.pop_front(), Some(2));
 	/// assert_eq!(list.pop_front(), None);
 	/// ```
+	#[inline]
 	pub fn pop_front(&mut self) -> Option<T> {
 		if self.head.is_null() {
 			return None;
@@ -358,6 +366,7 @@ where
 	/// assert_eq!(list.pop_back(), Some(1));
 	/// assert_eq!(list.pop_back(), None);
 	/// ```
+	#[inline]
 	pub fn pop_back(&mut self) -> Option<T> {
 		if self.tail.is_null() {
 			return None;
@@ -392,6 +401,7 @@ where
 	/// assert_eq!(list.get(&1), Some(&1));
 	/// assert_eq!(list.get(&3), None);
 	/// ```
+	#[inline]
 	pub fn get<K>(&self, key: &K) -> Option<&T>
 	where
 		T: Borrow<K>,
@@ -423,6 +433,7 @@ where
 	/// assert_eq!(list.before(&2), Some(&1));
 	/// assert_eq!(list.before(&1), None);
 	/// ```
+	#[inline]
 	pub fn before<K>(&self, key: &K) -> Option<&T>
 	where
 		T: Borrow<K>,
@@ -462,6 +473,7 @@ where
 	/// assert_eq!(list.after(&1), Some(&2));
 	/// assert_eq!(list.after(&2), None);
 	/// ```
+	#[inline]
 	pub fn after<K>(&self, key: &K) -> Option<&T>
 	where
 		T: Borrow<K>,
@@ -503,6 +515,7 @@ where
 	/// assert_eq!(list.get(&1), None);
 	/// assert_eq!(list.get(&2), Some(&2));
 	/// ```
+	#[inline]
 	pub fn update<K, F>(&mut self, key: &K, mut f: F)
 	where
 		T: Borrow<K>,
@@ -546,6 +559,7 @@ where
 	/// assert_eq!(list.remove(&1), Some(1));
 	/// assert_eq!(list.remove(&3), None);
 	/// ```
+	#[inline]
 	pub fn remove<K>(&mut self, key: &K) -> Option<T>
 	where
 		T: Borrow<K>,
@@ -579,6 +593,7 @@ where
 	///
 	/// assert_eq!(list.len(), 0);
 	/// ```
+	#[inline]
 	pub fn clear(&mut self) {
 		while self.pop_front().is_some() {}
 	}
@@ -666,6 +681,7 @@ impl<T, S> HashList<T, S> {
 	/// let s = RandomState::new();
 	/// let list = HashList::<u64, RandomState>::with_hasher(s);
 	/// ```
+	#[inline]
 	pub fn with_hasher(hasher: S) -> Self {
 		HashList {
 			map: HashMap::with_hasher(hasher),
@@ -684,6 +700,7 @@ impl<T, S> HashList<T, S> {
 	/// let list = HashList::<u64>::default();
 	/// assert!(list.is_empty());
 	/// ```
+	#[inline]
 	pub fn is_empty(&self) -> bool {
 		self.map.is_empty()
 	}
@@ -697,6 +714,7 @@ impl<T, S> HashList<T, S> {
 	/// let list = HashList::<u64>::default();
 	/// assert_eq!(list.len(), 0);
 	/// ```
+	#[inline]
 	pub fn len(&self) -> usize {
 		self.map.len()
 	}
@@ -715,6 +733,7 @@ impl<T, S> HashList<T, S> {
 	///     // use entry
 	/// }
 	/// ```
+	#[inline]
 	pub fn iter(&self) -> Iter<'_, T, S> {
 		Iter {
 			_list: self,
@@ -734,6 +753,7 @@ impl<T> HashList<T, RandomState> {
 	///
 	/// let list = HashList::<u64>::new();
 	/// ```
+	#[inline]
 	pub fn new() -> Self {
 		HashList::with_hasher(RandomState::new())
 	}

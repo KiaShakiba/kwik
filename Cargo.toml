@@ -1,6 +1,6 @@
 [package]
 name = "kwik"
-version = "1.18.4"
+version = "1.18.5"
 edition = "2024"
 
 [dependencies]
@@ -14,11 +14,11 @@ rand = { version = "0.9.1", features = ["small_rng"] }
 rayon = "1.10.0"
 sha2 = "0.10.9"
 statrs = "0.18.0"
-sysinfo = "0.35.1"
+sysinfo = "0.35.2"
 thiserror = "2.0.12"
 nohash-hasher = "0.2.0"
 linreg = "0.2.0"
-parking_lot = "0.12.3"
+parking_lot = "0.12.4"
 serde = "1.0.219"
 
 [dev-dependencies]

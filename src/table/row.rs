@@ -152,7 +152,6 @@ impl Row {
 	}
 
 	/// Returns the string value of the row.
-	#[inline]
 	#[must_use]
 	fn to_string(
 		&self,
