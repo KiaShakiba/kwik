@@ -178,7 +178,7 @@ impl Plot for BarPlot {
 				]
 			)
 			.set_y_ticks(
-				Some((AutoOption::Auto, 0)),
+				Some((AutoOption::Fix(10.0), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
 				&[font.clone()],
 			)
@@ -233,7 +233,7 @@ impl Plot for BarPlot {
 			let mut bar_config: Vec<PlotOption<&str>> = vec![
 				PlotOption::BoxWidth(widths),
 				PlotOption::Color(COLORS[bar_index % COLORS.len()].into()),
-				PlotOption::LineWidth(1.25),
+				PlotOption::LineWidth(0.0),
 			];
 
 			if let Some(label) = &self.bar_groups[0].bars[bar_index].label {
@@ -321,7 +321,7 @@ impl BarGroup {
 	}
 
 	fn bar_width(&self) -> f64 {
-		*math::min(&[1.0 / self.bars.len() as f64, 0.15]).unwrap()
+		*math::min(&[1.0 / self.bars.len() as f64, 1.0]).unwrap()
 	}
 
 	fn bar_x_value(

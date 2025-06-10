@@ -303,7 +303,6 @@ impl Progress {
 		self.draw_final(amount, now - self.instants[0].unwrap());
 	}
 
-	#[inline]
 	#[must_use]
 	fn pulse(&mut self, now: &Instant) -> Option<Duration> {
 		let duration = now.duration_since(self.pulse_instant);
