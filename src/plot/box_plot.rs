@@ -6,6 +6,7 @@
  */
 
 use std::{
+	slice,
 	fmt::Display,
 	collections::HashMap,
 };
@@ -185,7 +186,7 @@ impl Plot for BoxPlot {
 			.set_y_ticks(
 				Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				&[font.clone()]
+				slice::from_ref(&font),
 			)
 			.set_grid_options(false, &[
 				PlotOption::Color(ColorType::RGBString("#bbbbbb")),
@@ -195,11 +196,11 @@ impl Plot for BoxPlot {
 			.set_y_grid(true);
 
 		if let Some(title) = &self.title {
-			axes.set_title(title, &[font.clone()]);
+			axes.set_title(title, slice::from_ref(&font));
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(x_label, &[font.clone()]);
+			axes.set_x_label(x_label, slice::from_ref(&font));
 		}
 
 		if let Some(y_label) = &self.y_label {

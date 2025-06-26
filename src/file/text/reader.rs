@@ -139,7 +139,7 @@ impl TextReader {
 	/// }
 	/// ```
 	#[inline]
-	pub fn iter(&mut self) -> Iter {
+	pub fn iter(&mut self) -> Iter<'_> {
 		Iter {
 			reader: self
 		}

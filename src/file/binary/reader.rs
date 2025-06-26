@@ -224,7 +224,7 @@ where
 	/// }
 	/// ```
 	#[inline]
-	pub fn iter(&mut self) -> Iter<T> {
+	pub fn iter(&mut self) -> Iter<'_, T> {
 		Iter {
 			reader: self
 		}

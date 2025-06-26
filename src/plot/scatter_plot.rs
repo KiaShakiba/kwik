@@ -5,7 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::fmt::Display;
+use std::{
+	slice,
+	fmt::Display,
+};
+
 use num_traits::AsPrimitive;
 
 use gnuplot::{
@@ -172,12 +176,12 @@ impl Plot for ScatterPlot {
 			.set_x_ticks(
 				Some((auto_option(self.x_tick, x_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				&[font.clone()],
+				slice::from_ref(&font),
 			)
 			.set_y_ticks(
 				Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				&[font.clone()],
+				slice::from_ref(&font),
 			)
 			.set_grid_options(false, &[
 				PlotOption::Color(ColorType::RGBString("#bbbbbb")),
@@ -188,11 +192,11 @@ impl Plot for ScatterPlot {
 			.set_y_grid(true);
 
 		if let Some(title) = &self.title {
-			axes.set_title(title, &[font.clone()]);
+			axes.set_title(title, slice::from_ref(&font));
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(&x_scaler.apply_unit(x_label), &[font.clone()]);
+			axes.set_x_label(&x_scaler.apply_unit(x_label), slice::from_ref(&font));
 		}
 
 		if let Some(y_label) = &self.y_label {
