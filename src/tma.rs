@@ -149,7 +149,7 @@ impl TimeMovingAverage {
 	/// }
 	/// ```
 	#[inline]
-	pub fn window_iter(&self, window: Duration) -> WindowIter {
+	pub fn window_iter(&self, window: Duration) -> WindowIter<'_> {
 		let current = self.points
 			.first_key_value()
 			.map(|(instant, _)| *instant);

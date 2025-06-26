@@ -5,7 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::fmt::Display;
+use std::{
+	slice,
+	fmt::Display,
+};
+
 use num_traits::AsPrimitive;
 
 use gnuplot::{
@@ -180,7 +184,7 @@ impl Plot for BarPlot {
 			.set_y_ticks(
 				Some((AutoOption::Fix(10.0), 0)),
 				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				&[font.clone()],
+				slice::from_ref(&font),
 			)
 			.set_grid_options(false, &[
 				PlotOption::Color(ColorType::RGBString("#bbbbbb")),
@@ -190,11 +194,11 @@ impl Plot for BarPlot {
 			.set_y_grid(true);
 
 		if let Some(title) = &self.title {
-			axes.set_title(title, &[font.clone()]);
+			axes.set_title(title, slice::from_ref(&font));
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(x_label, &[font.clone()]);
+			axes.set_x_label(x_label, slice::from_ref(&font));
 		}
 
 		if let Some(y_label) = &self.y_label {
