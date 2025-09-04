@@ -83,7 +83,7 @@ where
 		}
 
 		let data = unsafe {
-			&*(*self.head).data.as_ptr()
+			(*self.head).data.assume_init_ref()
 		};
 
 		Some(data)
@@ -111,7 +111,7 @@ where
 		}
 
 		let data = unsafe {
-			&*(*self.tail).data.as_ptr()
+			(*self.tail).data.assume_init_ref()
 		};
 
 		Some(data)
@@ -384,7 +384,7 @@ where
 		let entry_ptr = entry.as_ptr();
 
 		let data = unsafe {
-			&*(*entry_ptr).data.as_ptr()
+			(*entry_ptr).data.assume_init_ref()
 		};
 
 		Some(data)
@@ -424,7 +424,7 @@ where
 		}
 
 		let data = unsafe {
-			&*(*prev_ptr).data.as_ptr()
+			(*prev_ptr).data.assume_init_ref()
 		};
 
 		Some(data)
@@ -464,7 +464,7 @@ where
 		}
 
 		let data = unsafe {
-			&*(*next_ptr).data.as_ptr()
+			(*next_ptr).data.assume_init_ref()
 		};
 
 		Some(data)
@@ -886,7 +886,7 @@ impl<'a, T, S> Iterator for Iter<'a, T, S> {
 		}
 
 		let data = unsafe {
-			&*(*self.head).data.as_ptr()
+			(*self.head).data.assume_init_ref()
 		};
 
 		unsafe {
@@ -914,7 +914,7 @@ impl<T, S> DoubleEndedIterator for Iter<'_, T, S> {
 		}
 
 		let data = unsafe {
-			&*(*self.tail).data.as_ptr()
+			(*self.tail).data.assume_init_ref()
 		};
 
 		unsafe {
