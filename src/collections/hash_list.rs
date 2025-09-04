@@ -7,6 +7,7 @@
 
 use std::{
 	ptr::{self, NonNull},
+	mem::MaybeUninit,
 	borrow::Borrow,
 	iter::{FromIterator, FusedIterator},
 	fmt::{self, Formatter, Debug},
@@ -29,7 +30,7 @@ pub struct HashList<T, S = RandomState> {
 }
 
 struct Entry<T> {
-	data: NonNull<T>,
+	data: MaybeUninit<T>,
 
 	prev: *mut Entry<T>,
 	next: *mut Entry<T>,
@@ -174,11 +175,7 @@ where
 
 		self.attach_front(entry_ptr);
 
-		let data_ptr = unsafe {
-			(*entry_ptr).data.as_ptr()
-		};
-
-		let data_ref = DataRef::from_mut_ptr(data_ptr);
+		let data_ref = DataRef::from_entry_ptr(entry_ptr);
 		self.map.insert(data_ref, entry);
 
 		maybe_old_data
@@ -217,11 +214,7 @@ where
 
 		self.attach_back(entry_ptr);
 
-		let data_ptr = unsafe {
-			(*entry_ptr).data.as_ptr()
-		};
-
-		let data_ref = DataRef::from_mut_ptr(data_ptr);
+		let data_ref = DataRef::from_entry_ptr(entry_ptr);
 		self.map.insert(data_ref, entry);
 
 		maybe_old_data
@@ -509,7 +502,7 @@ where
 		let entry_ptr = entry.as_ptr();
 
 		let data = unsafe {
-			&mut *(*entry_ptr).data.as_ptr()
+			&mut *(*entry_ptr).data.as_mut_ptr()
 		};
 
 		f(data);
@@ -757,14 +750,8 @@ where
 
 impl<T> Entry<T> {
 	fn new(data: T) -> NonNull<Self> {
-		let boxed_data = Box::new(data);
-
-		let data_ptr = unsafe {
-			NonNull::new_unchecked(Box::into_raw(boxed_data))
-		};
-
 		let entry = Entry {
-			data: data_ptr,
+			data: MaybeUninit::new(data),
 
 			prev: ptr::null_mut(),
 			next: ptr::null_mut(),
@@ -779,20 +766,14 @@ impl<T> Entry<T> {
 
 	fn into_data(entry_ptr: *mut Entry<T>) -> T {
 		unsafe {
-			let data_ptr = (*entry_ptr).data.as_ptr();
-			*Box::from_raw(data_ptr)
+			let entry = *Box::from_raw(entry_ptr);
+			entry.data.assume_init()
 		}
 	}
 }
 
 impl<T> DataRef<T> {
 	fn from_ref(data: &T) -> Self {
-		DataRef {
-			data,
-		}
-	}
-
-	fn from_mut_ptr(data: *mut T) -> Self {
 		DataRef {
 			data,
 		}
@@ -1086,8 +1067,8 @@ where
 impl<T, S> Drop for HashList<T, S> {
 	fn drop(&mut self) {
 		self.map.drain().for_each(|(_, entry)| unsafe {
-			let entry = *Box::from_raw(entry.as_ptr());
-			ptr::drop_in_place(entry.data.as_ptr());
+			let mut entry = *Box::from_raw(entry.as_ptr());
+			ptr::drop_in_place(entry.data.as_mut_ptr());
 		});
 	}
 }
@@ -1162,8 +1143,19 @@ unsafe impl<T, S> Sync for HashList<T, S> {}
 
 #[cfg(test)]
 mod tests {
+	use std::{
+		borrow::Borrow,
+		hash::{Hash, Hasher},
+	};
+
 	use serde_test::{Token, assert_tokens};
+	use droptest::{DropRegistry, DropGuard, assert_drop, assert_no_drop};
 	use crate::collections::HashList;
+
+	struct DroppableObject<'a> {
+		id: u64,
+		guard: DropGuard<'a, ()>,
+	}
 
 	#[test]
 	fn it_pushes_front_correctly() {
@@ -1306,6 +1298,99 @@ mod tests {
 	}
 
 	#[test]
+	fn it_drops_removed_object() {
+		let registry = DropRegistry::default();
+		let mut list = HashList::<DroppableObject>::default();
+
+		let object1 = DroppableObject::new(&registry, 1);
+		let object2 = DroppableObject::new(&registry, 2);
+
+		let object1_guard_id = object1.guard.id();
+		let object2_guard_id = object2.guard.id();
+
+		list.push_front(object1);
+		list.push_front(object2);
+		list.remove(&1);
+
+		assert_drop!(registry, object1_guard_id);
+		assert_no_drop!(registry, object2_guard_id);
+	}
+
+	#[test]
+	fn it_drops_front_popped_object() {
+		let registry = DropRegistry::default();
+		let mut list = HashList::<DroppableObject>::default();
+
+		let object1 = DroppableObject::new(&registry, 1);
+		let object2 = DroppableObject::new(&registry, 2);
+
+		let object1_guard_id = object1.guard.id();
+		let object2_guard_id = object2.guard.id();
+
+		list.push_front(object1);
+		list.push_front(object2);
+		list.pop_front();
+
+		assert_no_drop!(registry, object1_guard_id);
+		assert_drop!(registry, object2_guard_id);
+	}
+
+	#[test]
+	fn it_drops_back_popped_object() {
+		let registry = DropRegistry::default();
+		let mut list = HashList::<DroppableObject>::default();
+
+		let object1 = DroppableObject::new(&registry, 1);
+		let object2 = DroppableObject::new(&registry, 2);
+
+		let object1_guard_id = object1.guard.id();
+		let object2_guard_id = object2.guard.id();
+
+		list.push_front(object1);
+		list.push_front(object2);
+		list.pop_back();
+
+		assert_drop!(registry, object1_guard_id);
+		assert_no_drop!(registry, object2_guard_id);
+	}
+
+	#[test]
+	fn it_drops_front_replaced_object() {
+		let registry = DropRegistry::default();
+		let mut list = HashList::<DroppableObject>::default();
+
+		let object1 = DroppableObject::new(&registry, 1);
+		let object2 = DroppableObject::new(&registry, 1);
+
+		let object1_guard_id = object1.guard.id();
+		let object2_guard_id = object2.guard.id();
+
+		list.push_front(object1);
+		list.push_front(object2);
+
+		assert_drop!(registry, object1_guard_id);
+		assert_no_drop!(registry, object2_guard_id);
+	}
+
+	#[test]
+	fn it_drops_back_replaced_object() {
+		let registry = DropRegistry::default();
+		let mut list = HashList::<DroppableObject>::default();
+
+		let object1 = DroppableObject::new(&registry, 1);
+		let object2 = DroppableObject::new(&registry, 1);
+
+		let object1_guard_id = object1.guard.id();
+		let object2_guard_id = object2.guard.id();
+
+		list.push_back(object1);
+		list.push_back(object2);
+
+		assert_drop!(registry, object1_guard_id);
+		assert_no_drop!(registry, object2_guard_id);
+	}
+
+	#[test]
 	fn it_ser_de_empty() {
 		let list = HashList::<u32>::default();
 
@@ -1331,5 +1416,37 @@ mod tests {
 
 			Token::SeqEnd,
 		]);
+	}
+
+	impl<'a> DroppableObject<'a> {
+		fn new(registry: &'a DropRegistry, id: u64) -> Self {
+			DroppableObject {
+				id,
+				guard: registry.new_guard(),
+			}
+		}
+	}
+
+	impl PartialEq for DroppableObject<'_> {
+		fn eq(&self, other: &Self) -> bool {
+			self.id == other.id
+		}
+	}
+
+	impl Eq for DroppableObject<'_> {}
+
+	impl Borrow<u64> for DroppableObject<'_> {
+		fn borrow(&self) -> &u64 {
+			&self.id
+		}
+	}
+
+	impl Hash for DroppableObject<'_> {
+		fn hash<H>(&self, state: &mut H)
+		where
+			H: Hasher,
+		{
+			self.id.hash(state)
+		}
 	}
 }
