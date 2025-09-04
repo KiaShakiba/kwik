@@ -161,15 +161,12 @@ where
 	/// ```
 	#[inline]
 	pub fn push_front(&mut self, data: T) -> Option<T> {
-		let maybe_old_entry = self.map
-			.remove(&DataRef { data: &data })
+		let maybe_old_data = self.map
+			.remove(&DataRef::from_ref(&data))
 			.map(|old_entry| {
 				let old_entry_ptr = old_entry.as_ptr();
 				self.detach(old_entry_ptr);
-
-				unsafe {
-					(*old_entry_ptr).data.read()
-				}
+				Entry::<T>::into_data(old_entry_ptr)
 			});
 
 		let entry = Entry::<T>::new(data);
@@ -177,17 +174,14 @@ where
 
 		self.attach_front(entry_ptr);
 
-		let data_ref = unsafe {
+		let data_ptr = unsafe {
 			(*entry_ptr).data.as_ptr()
 		};
 
-		let data_ref = DataRef {
-			data: data_ref,
-		};
-
+		let data_ref = DataRef::from_mut_ptr(data_ptr);
 		self.map.insert(data_ref, entry);
 
-		maybe_old_entry
+		maybe_old_data
 	}
 
 	/// Appends an entry to the hash list.
@@ -210,15 +204,12 @@ where
 	/// ```
 	#[inline]
 	pub fn push_back(&mut self, data: T) -> Option<T> {
-		let maybe_old_entry = self.map
-			.remove(&DataRef { data: &data })
+		let maybe_old_data = self.map
+			.remove(&DataRef::from_ref(&data))
 			.map(|old_entry| {
 				let old_entry_ptr = old_entry.as_ptr();
 				self.detach(old_entry_ptr);
-
-				unsafe {
-					(*old_entry_ptr).data.read()
-				}
+				Entry::<T>::into_data(old_entry_ptr)
 			});
 
 		let entry = Entry::<T>::new(data);
@@ -226,17 +217,14 @@ where
 
 		self.attach_back(entry_ptr);
 
-		let data_ref = unsafe {
+		let data_ptr = unsafe {
 			(*entry_ptr).data.as_ptr()
 		};
 
-		let data_ref = DataRef {
-			data: data_ref,
-		};
-
+		let data_ref = DataRef::from_mut_ptr(data_ptr);
 		self.map.insert(data_ref, entry);
 
-		maybe_old_entry
+		maybe_old_data
 	}
 
 	/// Moves and the entry which has the corresponding hash of that of
@@ -341,14 +329,10 @@ where
 		let entry_ptr = self.head;
 		self.detach(entry_ptr);
 
-		let data_ref = DataRef::new(entry_ptr);
+		let data_ref = DataRef::from_entry_ptr(entry_ptr);
 		self.map.remove(&data_ref).unwrap();
 
-		let data = unsafe {
-			(*entry_ptr).data.read()
-		};
-
-		Some(data)
+		Some(Entry::<T>::into_data(entry_ptr))
 	}
 
 	/// Removes the first entry and returns it, or `None` if the hash list is empty.
@@ -375,14 +359,10 @@ where
 		let entry_ptr = self.tail;
 		self.detach(entry_ptr);
 
-		let data_ref = DataRef::new(entry_ptr);
+		let data_ref = DataRef::from_entry_ptr(entry_ptr);
 		self.map.remove(&data_ref).unwrap();
 
-		let data = unsafe {
-			(*entry_ptr).data.read()
-		};
-
-		Some(data)
+		Some(Entry::<T>::into_data(entry_ptr))
 	}
 
 	/// Returns a reference to the entry which has the corresponding
@@ -534,9 +514,7 @@ where
 
 		f(data);
 
-		let data_ref = DataRef {
-			data,
-		};
+		let data_ref = DataRef::from_ref(data);
 
 		// updating the entry may have modified its resulting hash, so we
 		// have to remove and reinsert it
@@ -569,12 +547,7 @@ where
 		let entry_ptr = entry.as_ptr();
 
 		self.detach(entry_ptr);
-
-		let data = unsafe {
-			(*entry_ptr).data.read()
-		};
-
-		Some(data)
+		Some(Entry::<T>::into_data(entry_ptr))
 	}
 
 	/// Clears the hash list, removing all entries.
@@ -803,10 +776,29 @@ impl<T> Entry<T> {
 			NonNull::new_unchecked(Box::into_raw(boxed))
 		}
 	}
+
+	fn into_data(entry_ptr: *mut Entry<T>) -> T {
+		unsafe {
+			let data_ptr = (*entry_ptr).data.as_ptr();
+			*Box::from_raw(data_ptr)
+		}
+	}
 }
 
 impl<T> DataRef<T> {
-	fn new(entry_ptr: *mut Entry<T>) -> Self {
+	fn from_ref(data: &T) -> Self {
+		DataRef {
+			data,
+		}
+	}
+
+	fn from_mut_ptr(data: *mut T) -> Self {
+		DataRef {
+			data,
+		}
+	}
+
+	fn from_entry_ptr(entry_ptr: *mut Entry<T>) -> Self {
 		let data_ptr = unsafe {
 			(*entry_ptr).data.as_ptr()
 		};
