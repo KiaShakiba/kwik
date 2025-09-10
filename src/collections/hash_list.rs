@@ -44,9 +44,9 @@ struct DataRef<T> {
 struct KeyWrapper<K>(K);
 
 pub struct Iter<'a, T, S> {
-	// we don't actually need to hold a reference to the list here, but we
-	// do so to ensure the entries have correct lifetimes
-	_list: &'a HashList<T, S>,
+	// we hold a reference to the list to ensure the entries have
+	// correct lifetimes and to inform the size hint
+	list: &'a HashList<T, S>,
 
 	head: *mut Entry<T>,
 	tail: *mut Entry<T>,
@@ -702,7 +702,7 @@ impl<T, S> HashList<T, S> {
 	#[inline]
 	pub fn iter(&self) -> Iter<'_, T, S> {
 		Iter {
-			_list: self,
+			list: self,
 
 			head: self.head,
 			tail: self.tail,
@@ -894,6 +894,10 @@ impl<'a, T, S> Iterator for Iter<'a, T, S> {
 		}
 
 		Some(data)
+	}
+
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		(self.list.len(), Some(self.list.len()))
 	}
 }
 
