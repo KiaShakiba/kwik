@@ -72,9 +72,12 @@ impl TextWriter {
 	///
 	/// This function will return an error if the line could not be written.
 	#[inline]
-	pub fn write_line(&mut self, line: &[u8]) -> io::Result<()> {
+	pub fn write_line<T>(&mut self, line: T) -> io::Result<()>
+	where
+		T: AsRef<[u8]>,
+	{
 		self.count += 1;
-		self.file.write_all(&[line, b"\n"].concat())
+		self.file.write_all(&[line.as_ref(), b"\n"].concat())
 	}
 }
 
