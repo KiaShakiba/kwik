@@ -8,11 +8,7 @@
 mod reader;
 mod writer;
 
-use std::{
-	io,
-	fmt::Display,
-};
-
+use std::io;
 use num_traits::AsPrimitive;
 use csv::StringRecord;
 
@@ -66,9 +62,9 @@ impl RowData {
 	#[inline]
 	pub fn push<T>(&mut self, value: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
-		self.data.push_field(&value.to_string());
+		self.data.push_field(value.as_ref());
 	}
 }
 

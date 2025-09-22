@@ -9,7 +9,6 @@ use std::{
 	path::Path,
 	fs::File,
 	io::{self, Seek, SeekFrom},
-	fmt::Display,
 	marker::PhantomData,
 };
 
@@ -137,7 +136,7 @@ where
 	/// This function will return an error if the header row could not be written.
 	pub fn set_headers<H>(&mut self, headers: &[H]) -> io::Result<()>
 	where
-		H: Display,
+		H: AsRef<str>,
 	{
 		if self.count > 0 {
 			return Err(io::Error::new(
@@ -150,7 +149,7 @@ where
 		self.count += 1;
 
 		for header in headers {
-			self.buf.data.push_field(&header.to_string());
+			self.buf.data.push_field(header.as_ref());
 		}
 
 		self.file
@@ -196,7 +195,7 @@ where
 	/// This function will return an error if the header row could not be written.
 	pub fn with_headers<H>(mut self, headers: &[H]) -> io::Result<Self>
 	where
-		H: Display,
+		H: AsRef<str>,
 	{
 		self.set_headers(headers)?;
 		Ok(self)

@@ -11,7 +11,6 @@ pub mod box_plot;
 pub mod scatter_plot;
 pub mod bar_plot;
 
-use std::fmt::Display;
 use num_traits::AsPrimitive;
 use gnuplot::{Axes2D, AutoOption};
 use crate::fmt::MEMORY_UNITS;
@@ -39,13 +38,13 @@ pub trait Plot {
 	/// Sets the plot's font type.
 	fn set_font_type<T>(&mut self, font_type: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	;
 
 	/// Sets the plot's font type.
 	fn with_font_type<T>(self, font_type: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	;
 
 	/// Sets the plot's font size.
@@ -57,37 +56,37 @@ pub trait Plot {
 	/// Sets the plot's title.
 	fn set_title<T>(&mut self, title: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	;
 
 	/// Sets the plot's title.
 	fn with_title<T>(self, title: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	;
 
 	/// Sets the plot's x-axis label.
 	fn set_x_label<T>(&mut self, label: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	;
 
 	/// Sets the plot's x-axis label.
 	fn with_x_label<T>(self, label: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	;
 
 	/// Sets the plot's y-axis label.
 	fn set_y_label<T>(&mut self, label: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	;
 
 	/// Sets the plot's y-axis label.
 	fn with_y_label<T>(self, label: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	;
 
 	/// Configures the supplied `Gnuplot` `Axes2D` with the

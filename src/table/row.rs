@@ -5,10 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{
-	io::{self, Write},
-	fmt::Display,
-};
+use std::io::{self, Write};
 
 use crate::{
 	file::csv::{WriteRow, RowData},
@@ -88,11 +85,11 @@ impl Row {
 		style: Style,
 	) -> Self
 	where
-		T: 'static + Display,
+		T: AsRef<str>,
 	{
-		let string = value.to_string();
-		let len = string.len();
-		let cell = Cell::new(string, align, style);
+		let value = value.as_ref().to_string();
+		let len = value.len();
+		let cell = Cell::new(value, align, style);
 
 		if len > self.max_len {
 			self.max_len = len;

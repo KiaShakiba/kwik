@@ -74,10 +74,10 @@ impl TextWriter {
 	#[inline]
 	pub fn write_line<T>(&mut self, line: T) -> io::Result<()>
 	where
-		T: AsRef<[u8]>,
+		T: AsRef<str>,
 	{
 		self.count += 1;
-		self.file.write_all(&[line.as_ref(), b"\n"].concat())
+		self.file.write_all(&[line.as_ref().as_bytes(), b"\n"].concat())
 	}
 }
 

@@ -5,11 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{
-	slice,
-	fmt::Display,
-};
-
+use std::slice;
 use num_traits::AsPrimitive;
 
 use gnuplot::{
@@ -76,14 +72,14 @@ impl Plot for BarPlot {
 
 	fn set_font_type<T>(&mut self, font_type: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
-		self.font_type = Some(font_type.to_string());
+		self.font_type = Some(font_type.as_ref().to_string());
 	}
 
 	fn with_font_type<T>(mut self, font_type: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
 		self.set_font_type(font_type);
 		self
@@ -100,14 +96,14 @@ impl Plot for BarPlot {
 
 	fn set_title<T>(&mut self, title: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
-		self.title = Some(title.to_string());
+		self.title = Some(title.as_ref().to_string());
 	}
 
 	fn with_title<T>(mut self, title: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
 		self.set_title(title);
 		self
@@ -115,14 +111,14 @@ impl Plot for BarPlot {
 
 	fn set_x_label<T>(&mut self, label: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
-		self.x_label = Some(label.to_string());
+		self.x_label = Some(label.as_ref().to_string());
 	}
 
 	fn with_x_label<T>(mut self, label: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
 		self.set_x_label(label);
 		self
@@ -130,14 +126,14 @@ impl Plot for BarPlot {
 
 	fn set_y_label<T>(&mut self, label: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
-		self.y_label = Some(label.to_string());
+		self.y_label = Some(label.as_ref().to_string());
 	}
 
 	fn with_y_label<T>(mut self, label: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
 		self.set_y_label(label);
 		self
@@ -305,15 +301,15 @@ impl BarGroup {
 	/// Sets the bar group's label.
 	pub fn set_label<T>(&mut self, label: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
-		self.label = Some(label.to_string());
+		self.label = Some(label.as_ref().to_string());
 	}
 
 	/// Sets the bar group's label.
 	pub fn with_label<T>(mut self, label: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
 		self.set_label(label);
 		self
@@ -354,15 +350,15 @@ impl Bar {
 	/// Sets the bar's label.
 	pub fn set_label<T>(&mut self, label: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
-		self.label = Some(label.to_string());
+		self.label = Some(label.as_ref().to_string());
 	}
 
 	/// Sets the bar's label.
 	pub fn with_label<T>(mut self, label: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
 		self.set_label(label);
 		self

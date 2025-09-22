@@ -7,7 +7,6 @@
 
 use std::{
 	slice,
-	fmt::Display,
 	collections::HashMap,
 };
 
@@ -78,14 +77,14 @@ impl Plot for BoxPlot {
 
 	fn set_font_type<T>(&mut self, font_type: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
-		self.font_type = Some(font_type.to_string());
+		self.font_type = Some(font_type.as_ref().to_string());
 	}
 
 	fn with_font_type<T>(mut self, font_type: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
 		self.set_font_type(font_type);
 		self
@@ -102,14 +101,14 @@ impl Plot for BoxPlot {
 
 	fn set_title<T>(&mut self, title: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
-		self.title = Some(title.to_string());
+		self.title = Some(title.as_ref().to_string());
 	}
 
 	fn with_title<T>(mut self, title: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
 		self.set_title(title);
 		self
@@ -117,14 +116,14 @@ impl Plot for BoxPlot {
 
 	fn set_x_label<T>(&mut self, label: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
-		self.x_label = Some(label.to_string());
+		self.x_label = Some(label.as_ref().to_string());
 	}
 
 	fn with_x_label<T>(mut self, label: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
 		self.set_x_label(label);
 		self
@@ -132,14 +131,14 @@ impl Plot for BoxPlot {
 
 	fn set_y_label<T>(&mut self, label: T)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
-		self.y_label = Some(label.to_string());
+		self.y_label = Some(label.as_ref().to_string());
 	}
 
 	fn with_y_label<T>(mut self, label: T) -> Self
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
 		self.set_y_label(label);
 		self
@@ -310,17 +309,17 @@ impl BoxPlot {
 	/// Sets an individual box's color.
 	pub fn set_color<T1, T2>(&mut self, label: T1, color: T2)
 	where
-		T1: Display,
-		T2: Display,
+		T1: AsRef<str>,
+		T2: AsRef<str>,
 	{
-		self.colors.insert(label.to_string(), color.to_string());
+		self.colors.insert(label.as_ref().to_string(), color.as_ref().to_string());
 	}
 
 	/// Sets an individual box's color.
 	pub fn with_color<T1, T2>(mut self, label: T1, color: T1) -> Self
 	where
-		T1: Display,
-		T2: Display,
+		T1: AsRef<str>,
+		T2: AsRef<str>,
 	{
 		self.set_color(label, color);
 		self
@@ -330,10 +329,10 @@ impl BoxPlot {
 	/// box with the supplied label.
 	pub fn add<T>(&mut self, label: T, value: impl AsPrimitive<f64>)
 	where
-		T: Display,
+		T: AsRef<str>,
 	{
 		self.map
-			.entry(label.to_string())
+			.entry(label.as_ref().to_string())
 			.and_modify(|values| values.push(value.as_()))
 			.or_insert(vec![value.as_()]);
 	}
