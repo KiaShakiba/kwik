@@ -27,6 +27,8 @@ const COLORS: &[&str] = &[
 	"#f29f05",
 ];
 
+const DEFAULT_FONT_FAMILY: &str = "Arial";
+const DEFAULT_FONT_SIZE: f64 = 16.0;
 const TIME_UNITS: &[&str] = &["ms", "s", "mins", "hrs", "days"];
 
 /// Implementing this trait allows the struct to be added to a

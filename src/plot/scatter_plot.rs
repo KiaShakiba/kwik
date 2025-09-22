@@ -25,6 +25,8 @@ use crate::plot::{
 	init_scaler,
 	auto_option,
 	COLORS,
+	DEFAULT_FONT_FAMILY,
+	DEFAULT_FONT_SIZE,
 };
 
 /// A scatter plot.
@@ -143,8 +145,8 @@ impl Plot for ScatterPlot {
 
 	fn configure(&mut self, axes: &mut Axes2D) {
 		let font = LabelOption::Font(
-			self.font_type.as_deref().unwrap_or("Arial"),
-			self.font_size.unwrap_or(16.0),
+			self.font_type.as_deref().unwrap_or(DEFAULT_FONT_FAMILY),
+			self.font_size.unwrap_or(DEFAULT_FONT_SIZE),
 		);
 
 		let x_scaler = init_scaler(self.x_format, self.max_x_value());

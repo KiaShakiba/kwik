@@ -33,6 +33,8 @@ use crate::plot::{
 	AxisFormat,
 	init_scaler,
 	auto_option,
+	DEFAULT_FONT_FAMILY,
+	DEFAULT_FONT_SIZE,
 };
 
 /// A box plot.
@@ -146,8 +148,8 @@ impl Plot for BoxPlot {
 
 	fn configure(&mut self, axes: &mut Axes2D) {
 		let font = LabelOption::Font(
-			self.font_type.as_deref().unwrap_or("Arial"),
-			self.font_size.unwrap_or(16.0),
+			self.font_type.as_deref().unwrap_or(DEFAULT_FONT_FAMILY),
+			self.font_size.unwrap_or(DEFAULT_FONT_SIZE),
 		);
 
 		let labels = self.map

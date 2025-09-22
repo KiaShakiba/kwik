@@ -29,6 +29,8 @@ use crate::{
 		init_scaler,
 		auto_option,
 		COLORS,
+		DEFAULT_FONT_FAMILY,
+		DEFAULT_FONT_SIZE,
 	},
 };
 
@@ -141,8 +143,8 @@ impl Plot for BarPlot {
 
 	fn configure(&mut self, axes: &mut Axes2D) {
 		let font = LabelOption::Font(
-			self.font_type.as_deref().unwrap_or("Arial"),
-			self.font_size.unwrap_or(16.0),
+			self.font_type.as_deref().unwrap_or(DEFAULT_FONT_FAMILY),
+			self.font_size.unwrap_or(DEFAULT_FONT_SIZE),
 		);
 
 		let labels = self.bar_groups
