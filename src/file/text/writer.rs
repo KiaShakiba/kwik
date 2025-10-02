@@ -65,7 +65,7 @@ impl TextWriter {
 	///
 	/// let mut reader = TextWriter::from_path("/path/to/file").unwrap();
 	///
-	/// reader.write_line(b"data").unwrap();
+	/// reader.write_line("data").unwrap();
 	/// ```
 	///
 	/// # Errors
