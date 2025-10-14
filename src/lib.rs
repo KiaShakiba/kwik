@@ -5,15 +5,15 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-pub mod fmt;
-pub mod math;
-pub mod time;
-pub mod sys;
+pub mod collections;
 pub mod file;
-pub mod progress;
+pub mod fmt;
 pub mod genetic;
+pub mod math;
+pub mod plot;
+pub mod progress;
+pub mod sys;
 pub mod table;
 pub mod thread_pool;
-pub mod plot;
+pub mod time;
 pub mod tma;
-pub mod collections;

@@ -6,15 +6,9 @@
  */
 
 use std::{
-	path::Path,
 	fs::File,
-	io::{
-		self,
-		LineWriter,
-		Write,
-		Seek,
-		SeekFrom,
-	},
+	io::{self, LineWriter, Seek, SeekFrom, Write},
+	path::Path,
 };
 
 use crate::file::FileWriter;
@@ -77,7 +71,14 @@ impl TextWriter {
 		T: AsRef<str>,
 	{
 		self.count += 1;
-		self.file.write_all(&[line.as_ref().as_bytes(), b"\n"].concat())
+
+		self.file.write_all(
+			&[
+				line.as_ref().as_bytes(),
+				b"\n",
+			]
+			.concat(),
+		)
 	}
 }
 

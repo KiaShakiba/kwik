@@ -6,15 +6,11 @@
  */
 
 pub mod binary;
-pub mod text;
 pub mod csv;
 pub mod hash;
+pub mod text;
 
-use std::{
-	io,
-	path::Path,
-	fs::File,
-};
+use std::{fs::File, io, path::Path};
 
 pub trait FileReader {
 	/// Opens the file at the supplied path. If the file could not be
@@ -22,14 +18,12 @@ pub trait FileReader {
 	fn from_path<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
-		P: AsRef<Path>,
-	;
+		P: AsRef<Path>;
 
 	/// Opens the reader with the supplied file.
 	fn from_file(file: File) -> io::Result<Self>
 	where
-		Self: Sized,
-	;
+		Self: Sized;
 
 	/// Returns the number of bytes in the opened file.
 	fn size(&self) -> u64;
@@ -42,14 +36,12 @@ pub trait FileWriter {
 	fn from_path<P>(path: P) -> io::Result<Self>
 	where
 		Self: Sized,
-		P: AsRef<Path>,
-	;
+		P: AsRef<Path>;
 
 	/// Opens the writer with the supplied file.
 	fn from_file(file: File) -> io::Result<Self>
 	where
-		Self: Sized,
-	;
+		Self: Sized;
 
 	/// Flushes the current buffer to the file. If the buffer could not
 	/// be flushed, returns an error result.

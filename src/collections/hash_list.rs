@@ -6,19 +6,19 @@
  */
 
 use std::{
-	ptr::{self, NonNull},
-	mem::MaybeUninit,
 	borrow::Borrow,
-	iter::{FromIterator, FusedIterator},
-	fmt::{self, Formatter, Debug},
-	hash::{Hash, Hasher, BuildHasher, RandomState},
-	marker::PhantomData,
 	collections::HashMap,
+	fmt::{self, Debug, Formatter},
+	hash::{BuildHasher, Hash, Hasher, RandomState},
+	iter::{FromIterator, FusedIterator},
+	marker::PhantomData,
+	mem::MaybeUninit,
+	ptr::{self, NonNull},
 };
 
 use serde::{
-	ser::{Serialize, Serializer, SerializeSeq},
-	de::{Deserialize, Deserializer, Visitor, SeqAccess},
+	de::{Deserialize, Deserializer, SeqAccess, Visitor},
+	ser::{Serialize, SerializeSeq, Serializer},
 };
 
 /// A hash list where each entry is stored in a doubly-linked list.
@@ -82,9 +82,7 @@ where
 			return None;
 		}
 
-		let data = unsafe {
-			(*self.head).data.assume_init_ref()
-		};
+		let data = unsafe { (*self.head).data.assume_init_ref() };
 
 		Some(data)
 	}
@@ -110,9 +108,7 @@ where
 			return None;
 		}
 
-		let data = unsafe {
-			(*self.tail).data.assume_init_ref()
-		};
+		let data = unsafe { (*self.tail).data.assume_init_ref() };
 
 		Some(data)
 	}
@@ -162,13 +158,14 @@ where
 	/// ```
 	#[inline]
 	pub fn push_front(&mut self, data: T) -> Option<T> {
-		let maybe_old_data = self.map
-			.remove(&DataRef::from_ref(&data))
-			.map(|old_entry| {
-				let old_entry_ptr = old_entry.as_ptr();
-				self.detach(old_entry_ptr);
-				Entry::<T>::into_data(old_entry_ptr)
-			});
+		let maybe_old_data =
+			self.map
+				.remove(&DataRef::from_ref(&data))
+				.map(|old_entry| {
+					let old_entry_ptr = old_entry.as_ptr();
+					self.detach(old_entry_ptr);
+					Entry::<T>::into_data(old_entry_ptr)
+				});
 
 		let entry = Entry::<T>::new(data);
 		let entry_ptr = entry.as_ptr();
@@ -201,13 +198,14 @@ where
 	/// ```
 	#[inline]
 	pub fn push_back(&mut self, data: T) -> Option<T> {
-		let maybe_old_data = self.map
-			.remove(&DataRef::from_ref(&data))
-			.map(|old_entry| {
-				let old_entry_ptr = old_entry.as_ptr();
-				self.detach(old_entry_ptr);
-				Entry::<T>::into_data(old_entry_ptr)
-			});
+		let maybe_old_data =
+			self.map
+				.remove(&DataRef::from_ref(&data))
+				.map(|old_entry| {
+					let old_entry_ptr = old_entry.as_ptr();
+					self.detach(old_entry_ptr);
+					Entry::<T>::into_data(old_entry_ptr)
+				});
 
 		let entry = Entry::<T>::new(data);
 		let entry_ptr = entry.as_ptr();
@@ -298,7 +296,8 @@ where
 		self.attach_back(entry_ptr);
 	}
 
-	/// Removes the first entry and returns it, or `None` if the hash list is empty.
+	/// Removes the first entry and returns it, or `None` if the hash list is
+	/// empty.
 	///
 	/// # Examples
 	/// ```
@@ -328,7 +327,8 @@ where
 		Some(Entry::<T>::into_data(entry_ptr))
 	}
 
-	/// Removes the first entry and returns it, or `None` if the hash list is empty.
+	/// Removes the first entry and returns it, or `None` if the hash list is
+	/// empty.
 	///
 	/// # Examples
 	/// ```
@@ -382,10 +382,7 @@ where
 	{
 		let entry = self.map.get(KeyWrapper::from_ref(key))?;
 		let entry_ptr = entry.as_ptr();
-
-		let data = unsafe {
-			(*entry_ptr).data.assume_init_ref()
-		};
+		let data = unsafe { (*entry_ptr).data.assume_init_ref() };
 
 		Some(data)
 	}
@@ -414,18 +411,13 @@ where
 	{
 		let entry = self.map.get(KeyWrapper::from_ref(key))?;
 		let entry_ptr = entry.as_ptr();
-
-		let prev_ptr = unsafe {
-			(*entry_ptr).prev
-		};
+		let prev_ptr = unsafe { (*entry_ptr).prev };
 
 		if prev_ptr.is_null() {
 			return None;
 		}
 
-		let data = unsafe {
-			(*prev_ptr).data.assume_init_ref()
-		};
+		let data = unsafe { (*prev_ptr).data.assume_init_ref() };
 
 		Some(data)
 	}
@@ -454,18 +446,13 @@ where
 	{
 		let entry = self.map.get(KeyWrapper::from_ref(key))?;
 		let entry_ptr = entry.as_ptr();
-
-		let next_ptr = unsafe {
-			(*entry_ptr).next
-		};
+		let next_ptr = unsafe { (*entry_ptr).next };
 
 		if next_ptr.is_null() {
 			return None;
 		}
 
-		let data = unsafe {
-			(*next_ptr).data.assume_init_ref()
-		};
+		let data = unsafe { (*next_ptr).data.assume_init_ref() };
 
 		Some(data)
 	}
@@ -500,10 +487,7 @@ where
 		};
 
 		let entry_ptr = entry.as_ptr();
-
-		let data = unsafe {
-			&mut *(*entry_ptr).data.as_mut_ptr()
-		};
+		let data = unsafe { &mut *(*entry_ptr).data.as_mut_ptr() };
 
 		f(data);
 
@@ -601,13 +585,8 @@ where
 	}
 
 	fn detach(&mut self, entry_ptr: *mut Entry<T>) {
-		let prev = unsafe {
-			(*entry_ptr).prev
-		};
-
-		let next = unsafe {
-			(*entry_ptr).next
-		};
+		let prev = unsafe { (*entry_ptr).prev };
+		let next = unsafe { (*entry_ptr).next };
 
 		if !prev.is_null() {
 			unsafe {
@@ -743,10 +722,7 @@ where
 	}
 }
 
-impl<T, S> Eq for HashList<T, S>
-where
-	T: Eq,
-{}
+impl<T, S> Eq for HashList<T, S> where T: Eq {}
 
 impl<T> Entry<T> {
 	fn new(data: T) -> NonNull<Self> {
@@ -759,9 +735,7 @@ impl<T> Entry<T> {
 
 		let boxed = Box::new(entry);
 
-		unsafe {
-			NonNull::new_unchecked(Box::into_raw(boxed))
-		}
+		unsafe { NonNull::new_unchecked(Box::into_raw(boxed)) }
 	}
 
 	fn into_data(entry_ptr: *mut Entry<T>) -> T {
@@ -780,9 +754,7 @@ impl<T> DataRef<T> {
 	}
 
 	fn from_entry_ptr(entry_ptr: *mut Entry<T>) -> Self {
-		let data_ptr = unsafe {
-			(*entry_ptr).data.as_ptr()
-		};
+		let data_ptr = unsafe { (*entry_ptr).data.as_ptr() };
 
 		DataRef {
 			data: data_ptr,
@@ -798,9 +770,7 @@ where
 	where
 		H: Hasher,
 	{
-		unsafe {
-			(*self.data).hash(state)
-		}
+		unsafe { (*self.data).hash(state) }
 	}
 }
 
@@ -809,22 +779,15 @@ where
 	T: PartialEq,
 {
 	fn eq(&self, other: &Self) -> bool {
-		unsafe {
-			(*self.data).eq(&*other.data)
-		}
+		unsafe { (*self.data).eq(&*other.data) }
 	}
 }
 
-impl<T> Eq for DataRef<T>
-where
-	T: Eq,
-{}
+impl<T> Eq for DataRef<T> where T: Eq {}
 
 impl<K> KeyWrapper<K> {
 	fn from_ref(key: &K) -> &Self {
-		unsafe {
-			&*(key as *const K as *const KeyWrapper<K>)
-		}
+		unsafe { &*(key as *const K as *const KeyWrapper<K>) }
 	}
 }
 
@@ -849,19 +812,14 @@ where
 	}
 }
 
-impl<K> Eq for KeyWrapper<K>
-where
-	K: Eq,
-{}
+impl<K> Eq for KeyWrapper<K> where K: Eq {}
 
 impl<K, T> Borrow<KeyWrapper<K>> for DataRef<T>
 where
 	T: Borrow<K>,
 {
 	fn borrow(&self) -> &KeyWrapper<K> {
-		let data_ref = unsafe {
-			&*self.data
-		}.borrow();
+		let data_ref = unsafe { &*self.data }.borrow();
 
 		KeyWrapper::from_ref(data_ref)
 	}
@@ -875,9 +833,7 @@ impl<'a, T, S> Iterator for Iter<'a, T, S> {
 			return None;
 		}
 
-		let prev = unsafe {
-			(*self.head).prev
-		};
+		let prev = unsafe { (*self.head).prev };
 
 		// the head pointer may have passed the tail pointer
 		// if using a double ended iterator
@@ -885,9 +841,7 @@ impl<'a, T, S> Iterator for Iter<'a, T, S> {
 			return None;
 		}
 
-		let data = unsafe {
-			(*self.head).data.assume_init_ref()
-		};
+		let data = unsafe { (*self.head).data.assume_init_ref() };
 
 		unsafe {
 			self.head = (*self.head).next;
@@ -907,9 +861,7 @@ impl<T, S> DoubleEndedIterator for Iter<'_, T, S> {
 			return None;
 		}
 
-		let next = unsafe {
-			(*self.tail).next
-		};
+		let next = unsafe { (*self.tail).next };
 
 		// the tail pointer may have passed the head pointer
 		// if using a double ended iterator
@@ -917,9 +869,7 @@ impl<T, S> DoubleEndedIterator for Iter<'_, T, S> {
 			return None;
 		}
 
-		let data = unsafe {
-			(*self.tail).data.assume_init_ref()
-		};
+		let data = unsafe { (*self.tail).data.assume_init_ref() };
 
 		unsafe {
 			self.tail = (*self.tail).prev;
@@ -968,25 +918,29 @@ impl<T, S> ExactSizeIterator for Iter<'_, T, S>
 where
 	T: Eq + Hash,
 	S: BuildHasher,
-{}
+{
+}
 
 impl<T, S> ExactSizeIterator for IntoIter<T, S>
 where
 	T: Eq + Hash,
 	S: BuildHasher,
-{}
+{
+}
 
 impl<T, S> FusedIterator for Iter<'_, T, S>
 where
 	T: Eq + Hash,
 	S: BuildHasher,
-{}
+{
+}
 
 impl<T, S> FusedIterator for IntoIter<T, S>
 where
 	T: Eq + Hash,
 	S: BuildHasher,
-{}
+{
+}
 
 impl<T, S> IntoIterator for HashList<T, S>
 where
@@ -1152,8 +1106,9 @@ mod tests {
 		hash::{Hash, Hasher},
 	};
 
+	use droptest::{DropGuard, DropRegistry, assert_drop, assert_no_drop};
 	use serde_test::{Token, assert_tokens};
-	use droptest::{DropRegistry, DropGuard, assert_drop, assert_no_drop};
+
 	use crate::collections::HashList;
 
 	struct DroppableObject<'a> {
@@ -1399,7 +1354,9 @@ mod tests {
 		let list = HashList::<u32>::default();
 
 		assert_tokens(&list, &[
-			Token::Seq { len: Some(0) },
+			Token::Seq {
+				len: Some(0),
+			},
 			Token::SeqEnd,
 		]);
 	}
@@ -1409,15 +1366,15 @@ mod tests {
 		let list: HashList<u32> = [1, 2, 3, 4, 5, 6].into_iter().collect();
 
 		assert_tokens(&list, &[
-			Token::Seq { len: Some(6) },
-
+			Token::Seq {
+				len: Some(6),
+			},
 			Token::U32(1),
 			Token::U32(2),
 			Token::U32(3),
 			Token::U32(4),
 			Token::U32(5),
 			Token::U32(6),
-
 			Token::SeqEnd,
 		]);
 	}

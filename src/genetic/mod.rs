@@ -5,31 +5,31 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-mod error;
-mod individual;
-mod gene;
 mod chromosome;
+mod error;
 mod fitness;
+mod gene;
+mod individual;
 mod offspring;
 mod solution;
 
 use std::time::{Duration, Instant};
-use rayon::prelude::*;
-pub use rand::Rng;
 
+pub use rand::Rng;
 use rand::{
 	SeedableRng,
+	distr::{Distribution, Uniform},
 	rngs::SmallRng,
 	seq::SliceRandom,
-	distr::{Distribution, Uniform},
 };
+use rayon::prelude::*;
 
 pub use crate::genetic::{
-	error::GeneticError,
-	individual::Individual,
 	chromosome::Chromosome,
-	gene::Gene,
+	error::GeneticError,
 	fitness::{Fitness, FitnessOrd},
+	gene::Gene,
+	individual::Individual,
 	offspring::Offspring,
 	solution::GeneticSolution,
 };
@@ -205,7 +205,10 @@ where
 	///
 	/// This function returns an error if the population size is zero.
 	#[inline]
-	pub fn set_population_size(&mut self, population_size: usize) -> Result<(), GeneticError> {
+	pub fn set_population_size(
+		&mut self,
+		population_size: usize,
+	) -> Result<(), GeneticError> {
 		if population_size == 0 {
 			return Err(GeneticError::InvalidPopulationSize);
 		}
@@ -228,7 +231,10 @@ where
 	///
 	/// This function returns an error if the population size is zero.
 	#[inline]
-	pub fn with_population_size(mut self, population_size: usize) -> Result<Self, GeneticError> {
+	pub fn with_population_size(
+		mut self,
+		population_size: usize,
+	) -> Result<Self, GeneticError> {
 		self.set_population_size(population_size)?;
 		Ok(self)
 	}
@@ -270,7 +276,10 @@ where
 	/// Sets the mutation probability.
 	#[inline]
 	#[must_use]
-	pub fn with_mutation_probability(mut self, mutation_probability: f64) -> Self {
+	pub fn with_mutation_probability(
+		mut self,
+		mutation_probability: f64,
+	) -> Self {
 		self.set_mutation_probability(mutation_probability);
 		self
 	}
@@ -289,8 +298,8 @@ where
 		self
 	}
 
-	/// Runs the genetic algorithm until either the most fit individual has a fitness
-	/// of 0 or the population has converged and is no longer changing.
+	/// Runs the genetic algorithm until either the most fit individual has a
+	/// fitness of 0 or the population has converged and is no longer changing.
 	pub fn run(&mut self) -> Result<GeneticSolution<C>, GeneticError> {
 		let time = Instant::now();
 
@@ -300,10 +309,9 @@ where
 		let mut convergence_count: u64 = 0;
 		let mut last_fittest = self.population[0].clone();
 
-		while
-			!last_fittest.is_optimal()
-				&& convergence_count < self.convergence_limit
-				&& time.elapsed().lt(&self.max_runtime)
+		while !last_fittest.is_optimal()
+			&& convergence_count < self.convergence_limit
+			&& time.elapsed().lt(&self.max_runtime)
 		{
 			total_mutations += self.iterate()?;
 
@@ -329,9 +337,10 @@ where
 		Ok(solution)
 	}
 
-	/// Performs one iteration of the genetic algorithm, creating a new generation
-	/// and overwriting the current population. Returns the total number of
-	/// mutations that occurred during the creation of the new generation.
+	/// Performs one iteration of the genetic algorithm, creating a new
+	/// generation and overwriting the current population. Returns the total
+	/// number of mutations that occurred during the creation of the new
+	/// generation.
 	fn iterate(&mut self) -> Result<u64, GeneticError> {
 		let population_size = self.population.len();
 
@@ -365,7 +374,10 @@ where
 	}
 
 	/// Selects two individuals to mate
-	fn gen_mating_pair(&self, rng: &mut impl Rng) -> (&Individual<C>, &Individual<C>) {
+	fn gen_mating_pair(
+		&self,
+		rng: &mut impl Rng,
+	) -> (&Individual<C>, &Individual<C>) {
 		let index1 = self.gen_tournament_parent(rng);
 		let mut index2 = self.gen_tournament_parent(rng);
 
@@ -400,10 +412,8 @@ where
 	let mutated_population = (0..(population_size - 1))
 		.into_par_iter()
 		.map(|_| {
-			let chromosome = init_mutated_chromosome(
-				initial_chromosome,
-				max_runtime,
-			)?;
+			let chromosome =
+				init_mutated_chromosome(initial_chromosome, max_runtime)?;
 
 			Ok(chromosome.into())
 		})
@@ -440,9 +450,7 @@ where
 		let mut mutated_chromosome = chromosome.base();
 
 		for gene in mutated_genes.iter_mut() {
-			let gene = gene
-				.take()
-				.ok_or(GeneticError::Internal)?;
+			let gene = gene.take().ok_or(GeneticError::Internal)?;
 
 			mutated_chromosome.push(gene);
 		}
@@ -462,21 +470,15 @@ where
 	Err(GeneticError::InitialPopulationTimeout)
 }
 
-fn init_mating_dist(population_size: usize) -> Result<Uniform<usize>, GeneticError> {
-	Uniform::try_from(0..population_size)
-		.map_err(|_| GeneticError::Internal)
+fn init_mating_dist(
+	population_size: usize,
+) -> Result<Uniform<usize>, GeneticError> {
+	Uniform::try_from(0..population_size).map_err(|_| GeneticError::Internal)
 }
 
 #[cfg(test)]
 mod tests {
-	use crate::genetic::{
-		Genetic,
-		Gene,
-		Chromosome,
-		Fitness,
-		FitnessOrd,
-		Rng
-	};
+	use crate::genetic::{Chromosome, Fitness, FitnessOrd, Gene, Genetic, Rng};
 
 	#[derive(Clone)]
 	struct TestData {
@@ -518,7 +520,8 @@ mod tests {
 		}
 
 		fn is_optimal(&self) -> bool {
-			let sum = self.config
+			let sum = self
+				.config
 				.iter()
 				.map(|item| item.data)
 				.sum::<u32>();
@@ -563,13 +566,24 @@ mod tests {
 	fn it_optimizes() {
 		let mut initial_chromosome = TestConfig::default();
 
-		initial_chromosome.push(TestData { data: 0 });
-		initial_chromosome.push(TestData { data: 0 });
-		initial_chromosome.push(TestData { data: 0 });
-		initial_chromosome.push(TestData { data: 0 });
-		initial_chromosome.push(TestData { data: 0 });
+		initial_chromosome.push(TestData {
+			data: 0,
+		});
+		initial_chromosome.push(TestData {
+			data: 0,
+		});
+		initial_chromosome.push(TestData {
+			data: 0,
+		});
+		initial_chromosome.push(TestData {
+			data: 0,
+		});
+		initial_chromosome.push(TestData {
+			data: 0,
+		});
 
-		let mut genetic = Genetic::<TestConfig>::new(initial_chromosome).unwrap();
+		let mut genetic =
+			Genetic::<TestConfig>::new(initial_chromosome).unwrap();
 
 		let result = genetic.run().unwrap();
 

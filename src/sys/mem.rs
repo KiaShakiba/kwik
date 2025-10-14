@@ -5,20 +5,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{
-	mem,
-	str::FromStr,
-	process::Command,
-};
+use std::{mem, process::Command, str::FromStr};
 
-use thiserror::Error;
 use sysinfo::System;
+use thiserror::Error;
 
 use crate::{
-	file::{
-		FileReader,
-		text::TextReader,
-	},
+	file::{FileReader, text::TextReader},
 	sys::Pid,
 };
 
@@ -69,8 +62,7 @@ where
 		None => String::from("/proc/self/status"),
 	};
 
-	let reader = TextReader::from_path(path)
-		.map_err(|_| MemError::Internal)?;
+	let reader = TextReader::from_path(path).map_err(|_| MemError::Internal)?;
 
 	for line in reader {
 		if line.starts_with(key) {
@@ -81,7 +73,7 @@ where
 			return match parsed {
 				Ok(value) => Ok(*value),
 				Err(_) => Err(MemError::InvalidStat(key.to_string())),
-			}
+			};
 		}
 	}
 

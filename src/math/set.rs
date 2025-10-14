@@ -36,7 +36,8 @@ pub trait Superset {
 }
 
 pub trait Multiset {
-	/// Returns true if `self` is a multiset (i.e. it contains duplicate values).
+	/// Returns true if `self` is a multiset (i.e. it contains duplicate
+	/// values).
 	///
 	/// # Examples
 	/// ```
@@ -59,11 +60,7 @@ where
 	fn is_subset(&mut self, other: Self) -> bool {
 		let other_clone = other.clone();
 
-		!self.any(|value|
-			!other_clone
-				.clone()
-				.any(|other| value.eq(&other))
-		)
+		!self.any(|value| !other_clone.clone().any(|other| value.eq(&other)))
 	}
 }
 
@@ -75,11 +72,7 @@ where
 	fn is_superset(&mut self, mut other: Self) -> bool {
 		let self_clone = self.clone();
 
-		!other.any(|value|
-			!self_clone
-				.clone()
-				.any(|other| value.eq(&other))
-		)
+		!other.any(|value| !self_clone.clone().any(|other| value.eq(&other)))
 	}
 }
 
@@ -91,18 +84,18 @@ where
 	fn is_multiset(&mut self) -> bool {
 		let iter_clone = self.clone();
 
-		self.enumerate().any(|(index, value)|
+		self.enumerate().any(|(index, value)| {
 			iter_clone
 				.clone()
 				.skip(index + 1)
 				.any(|other| value.eq(&other))
-		)
+		})
 	}
 }
 
 #[cfg(test)]
 mod tests {
-	use crate::math::set::{Subset, Superset, Multiset};
+	use crate::math::set::{Multiset, Subset, Superset};
 
 	#[test]
 	fn it_identifies_subsets() {

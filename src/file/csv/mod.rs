@@ -9,8 +9,9 @@ mod reader;
 mod writer;
 
 use std::io;
-use num_traits::AsPrimitive;
+
 use csv::StringRecord;
+use num_traits::AsPrimitive;
 
 /// CSV row data.
 #[derive(Default)]
@@ -35,7 +36,8 @@ impl RowData {
 	/// and the new line character.
 	#[inline]
 	pub fn size(&self) -> usize {
-		let items_size = self.data
+		let items_size = self
+			.data
 			.iter()
 			.map(|item| item.len())
 			.sum::<usize>();
@@ -50,12 +52,10 @@ impl RowData {
 	/// This function returns an error if the column does not exist.
 	#[inline]
 	pub fn get(&self, index: impl AsPrimitive<usize>) -> io::Result<&str> {
-		self.data
-			.get(index.as_())
-			.ok_or(io::Error::new(
-				io::ErrorKind::InvalidData,
-				format!("Invalid CSV column {}", index.as_()),
-			))
+		self.data.get(index.as_()).ok_or(io::Error::new(
+			io::ErrorKind::InvalidData,
+			format!("Invalid CSV column {}", index.as_()),
+		))
 	}
 
 	/// Adds a new column to the end of the row.
@@ -69,6 +69,6 @@ impl RowData {
 }
 
 pub use crate::file::csv::{
-	reader::{CsvReader, ReadRow, Iter, IntoIter},
+	reader::{CsvReader, IntoIter, Iter, ReadRow},
 	writer::{CsvWriter, WriteRow},
 };

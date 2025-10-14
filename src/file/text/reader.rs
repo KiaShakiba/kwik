@@ -6,15 +6,9 @@
  */
 
 use std::{
-	path::Path,
 	fs::File,
-	io::{
-		self,
-		BufReader,
-		BufRead,
-		Seek,
-		SeekFrom,
-	},
+	io::{self, BufRead, BufReader, Seek, SeekFrom},
+	path::Path,
 };
 
 use crate::file::FileReader;
@@ -26,8 +20,7 @@ pub struct TextReader {
 	count: u64,
 }
 
-pub struct Iter<'a>
-{
+pub struct Iter<'a> {
 	reader: &'a mut TextReader,
 }
 
@@ -59,7 +52,8 @@ impl FileReader for TextReader {
 
 	#[inline]
 	fn size(&self) -> u64 {
-		let metadata = self.file
+		let metadata = self
+			.file
 			.get_ref()
 			.metadata()
 			.expect("Could not get text file's size");
@@ -120,8 +114,8 @@ impl TextReader {
 	}
 
 	/// Returns an iterator over the text file. The iterator takes a mutable
-	/// reference to `self` as it is iterating over a stream. This means performing
-	/// the iteration modifies the reader's position in the file.
+	/// reference to `self` as it is iterating over a stream. This means
+	/// performing the iteration modifies the reader's position in the file.
 	///
 	/// # Examples
 	/// ```no_run
@@ -141,7 +135,7 @@ impl TextReader {
 	#[inline]
 	pub fn iter(&mut self) -> Iter<'_> {
 		Iter {
-			reader: self
+			reader: self,
 		}
 	}
 }
@@ -174,7 +168,7 @@ impl IntoIterator for TextReader {
 
 	fn into_iter(self) -> Self::IntoIter {
 		IntoIter {
-			reader: self
+			reader: self,
 		}
 	}
 }

@@ -5,10 +5,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use num_traits::AsPrimitive;
 use num_format::{Locale, ToFormattedString};
+use num_traits::AsPrimitive;
 
-pub const MEMORY_UNITS: &[&str] = &["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"];
+pub const MEMORY_UNITS: &[&str] = &[
+	"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB",
+];
 
 /// Formats a number with commas.
 ///
@@ -35,7 +37,10 @@ pub fn number(value: impl AsPrimitive<u64>) -> String {
 /// ```
 #[inline]
 #[must_use]
-pub fn memory(value: impl AsPrimitive<u64>, precision: Option<usize>) -> String {
+pub fn memory(
+	value: impl AsPrimitive<u64>,
+	precision: Option<usize>,
+) -> String {
 	let value = value.as_();
 	let mut copy: f64 = value.as_();
 

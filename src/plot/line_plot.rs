@@ -6,33 +6,33 @@
  */
 
 use std::slice;
-use num_traits::AsPrimitive;
 
 use gnuplot::{
+	AlignType,
 	Axes2D,
 	AxesCommon,
-	Coordinate,
-	LegendOption,
-	AlignType,
-	DashType,
-	ColorType,
 	BorderLocation2D,
-	TickOption,
+	ColorType,
+	Coordinate,
+	DashType,
 	LabelOption,
+	LegendOption,
 	PlotOption,
+	TickOption,
 	XAxis,
 	YAxis,
 };
+use num_traits::AsPrimitive;
 
 use crate::plot::{
-	Plot,
 	AxisFormat,
-	LegendPosition,
-	init_scaler,
-	auto_option,
 	COLORS,
 	DEFAULT_FONT_FAMILY,
 	DEFAULT_FONT_SIZE,
+	LegendPosition,
+	Plot,
+	auto_option,
+	init_scaler,
 };
 
 const LINE_STYLES: &[LineStyle] = &[
@@ -129,13 +129,8 @@ impl Plot for LinePlot {
 		}
 
 		// there are lines in the plot, though they all may be empty
-		let y1_lines_empty = self.y1_lines
-			.iter()
-			.all(|line| line.is_empty());
-
-		let y2_lines_empty = self.y2_lines
-			.iter()
-			.all(|line| line.is_empty());
+		let y1_lines_empty = self.y1_lines.iter().all(|line| line.is_empty());
+		let y2_lines_empty = self.y2_lines.iter().all(|line| line.is_empty());
 
 		y1_lines_empty && y2_lines_empty
 	}
@@ -211,7 +206,9 @@ impl Plot for LinePlot {
 
 	fn configure(&mut self, axes: &mut Axes2D) {
 		let font = LabelOption::Font(
-			self.font_type.as_deref().unwrap_or(DEFAULT_FONT_FAMILY),
+			self.font_type
+				.as_deref()
+				.unwrap_or(DEFAULT_FONT_FAMILY),
 			self.font_size.unwrap_or(DEFAULT_FONT_SIZE),
 		);
 
@@ -219,51 +216,62 @@ impl Plot for LinePlot {
 		let y_scaler = init_scaler(self.y_format, self.max_y_value());
 		let y2_scaler = init_scaler(self.y2_format, self.max_y2_value());
 
-		axes
-			.set_border(
-				false,
-				&[
-					BorderLocation2D::Bottom,
-					BorderLocation2D::Left,
-				],
-				&[]
-			)
-			.set_x_range(
-				auto_option(self.x_min, x_scaler.as_ref()),
-				auto_option(self.x_max, x_scaler.as_ref()),
-			)
-			.set_y_range(
-				auto_option(self.y_min, y_scaler.as_ref()),
-				auto_option(self.y_max, y_scaler.as_ref()),
-			)
-			.set_x_ticks(
-				Some((auto_option(self.x_tick, x_scaler.as_ref()), 0)),
-				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				slice::from_ref(&font),
-			)
-			.set_y_ticks(
-				Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
-				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				slice::from_ref(&font),
-			)
-			.set_grid_options(false, &[
-				PlotOption::Color(ColorType::RGBString("#bbbbbb")),
-				PlotOption::LineWidth(2.0),
-				PlotOption::LineStyle(DashType::Dot),
-			])
-			.set_x_grid(true)
-			.set_y_grid(true);
+		axes.set_border(
+			false,
+			&[
+				BorderLocation2D::Bottom,
+				BorderLocation2D::Left,
+			],
+			&[],
+		)
+		.set_x_range(
+			auto_option(self.x_min, x_scaler.as_ref()),
+			auto_option(self.x_max, x_scaler.as_ref()),
+		)
+		.set_y_range(
+			auto_option(self.y_min, y_scaler.as_ref()),
+			auto_option(self.y_max, y_scaler.as_ref()),
+		)
+		.set_x_ticks(
+			Some((auto_option(self.x_tick, x_scaler.as_ref()), 0)),
+			&[
+				TickOption::Mirror(false),
+				TickOption::Inward(false),
+			],
+			slice::from_ref(&font),
+		)
+		.set_y_ticks(
+			Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
+			&[
+				TickOption::Mirror(false),
+				TickOption::Inward(false),
+			],
+			slice::from_ref(&font),
+		)
+		.set_grid_options(false, &[
+			PlotOption::Color(ColorType::RGBString("#bbbbbb")),
+			PlotOption::LineWidth(2.0),
+			PlotOption::LineStyle(DashType::Dot),
+		])
+		.set_x_grid(true)
+		.set_y_grid(true);
 
 		if let Some(title) = &self.title {
 			axes.set_title(title, slice::from_ref(&font));
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(&x_scaler.apply_unit(x_label), slice::from_ref(&font));
+			axes.set_x_label(
+				&x_scaler.apply_unit(x_label),
+				slice::from_ref(&font),
+			);
 		}
 
 		if let Some(y_label) = &self.y_label {
-			axes.set_y_label(&y_scaler.apply_unit(y_label), slice::from_ref(&font));
+			axes.set_y_label(
+				&y_scaler.apply_unit(y_label),
+				slice::from_ref(&font),
+			);
 		}
 
 		if let Some(base) = self.x_log_base {
@@ -276,19 +284,23 @@ impl Plot for LinePlot {
 
 		if let Some(legend_position) = &self.legend_position {
 			let (x, halign) = match legend_position {
-				LegendPosition::TopRight | LegendPosition::BottomRight =>
-					(Coordinate::Graph(1.0), AlignType::AlignRight),
+				LegendPosition::TopRight | LegendPosition::BottomRight => {
+					(Coordinate::Graph(1.0), AlignType::AlignRight)
+				},
 
-				LegendPosition::TopLeft | LegendPosition::BottomLeft =>
-					(Coordinate::Graph(0.02), AlignType::AlignLeft),
+				LegendPosition::TopLeft | LegendPosition::BottomLeft => {
+					(Coordinate::Graph(0.02), AlignType::AlignLeft)
+				},
 			};
 
 			let (y, valign) = match legend_position {
-				LegendPosition::TopRight | LegendPosition::TopLeft =>
-					(Coordinate::Graph(1.0), AlignType::AlignTop),
+				LegendPosition::TopRight | LegendPosition::TopLeft => {
+					(Coordinate::Graph(1.0), AlignType::AlignTop)
+				},
 
-				LegendPosition::BottomRight | LegendPosition::BottomLeft =>
-					(Coordinate::Graph(0.0), AlignType::AlignBottom),
+				LegendPosition::BottomRight | LegendPosition::BottomLeft => {
+					(Coordinate::Graph(0.0), AlignType::AlignBottom)
+				},
 			};
 
 			let placement = LegendOption::Placement(halign, valign);
@@ -303,7 +315,10 @@ impl Plot for LinePlot {
 
 			axes.set_y2_ticks(
 				Some((auto_option(self.y2_tick, y2_scaler.as_ref()), 0)),
-				&[TickOption::Mirror(false), TickOption::Inward(false)],
+				&[
+					TickOption::Mirror(false),
+					TickOption::Inward(false),
+				],
 				slice::from_ref(&font),
 			);
 
@@ -317,11 +332,13 @@ impl Plot for LinePlot {
 		}
 
 		for (index, line) in self.y1_lines.iter().enumerate() {
-			let color = line.maybe_color
+			let color = line
+				.maybe_color
 				.as_deref()
 				.unwrap_or(COLORS[index % COLORS.len()]);
 
-			let style = line.maybe_style
+			let style = line
+				.maybe_style
 				.as_ref()
 				.unwrap_or(&LINE_STYLES[index % LINE_STYLES.len()]);
 
@@ -335,11 +352,13 @@ impl Plot for LinePlot {
 				line_config.push(PlotOption::Caption(label));
 			}
 
-			let x_values = line.x_values
+			let x_values = line
+				.x_values
 				.iter()
 				.map(|value| x_scaler.scale(*value));
 
-			let y_values = line.y_values
+			let y_values = line
+				.y_values
 				.iter()
 				.map(|value| y_scaler.scale(*value));
 
@@ -349,11 +368,13 @@ impl Plot for LinePlot {
 		for (index, line) in self.y2_lines.iter().enumerate() {
 			let global_index = self.y1_lines.len() + index;
 
-			let color = line.maybe_color
+			let color = line
+				.maybe_color
 				.as_deref()
 				.unwrap_or(COLORS[global_index % COLORS.len()]);
 
-			let style = line.maybe_style
+			let style = line
+				.maybe_style
 				.as_ref()
 				.unwrap_or(&LINE_STYLES[global_index % LINE_STYLES.len()]);
 
@@ -368,11 +389,13 @@ impl Plot for LinePlot {
 				line_config.push(PlotOption::Caption(label));
 			}
 
-			let x_values = line.x_values
+			let x_values = line
+				.x_values
 				.iter()
 				.map(|value| x_scaler.scale(*value));
 
-			let y_values = line.y_values
+			let y_values = line
+				.y_values
 				.iter()
 				.map(|value| y2_scaler.scale(*value));
 
@@ -631,7 +654,8 @@ impl LinePlot {
 		let mut min = self.x_min;
 
 		for line in &self.y1_lines {
-			let line_min = line.x_values
+			let line_min = line
+				.x_values
 				.iter()
 				.min_by(|a, b| a.total_cmp(b))
 				.copied()
@@ -643,7 +667,8 @@ impl LinePlot {
 		}
 
 		for line in &self.y2_lines {
-			let line_min = line.x_values
+			let line_min = line
+				.x_values
 				.iter()
 				.min_by(|a, b| a.total_cmp(b))
 				.copied()
@@ -667,7 +692,8 @@ impl LinePlot {
 		let mut max = self.x_max;
 
 		for line in &self.y1_lines {
-			let line_max = line.x_values
+			let line_max = line
+				.x_values
 				.iter()
 				.max_by(|a, b| a.total_cmp(b))
 				.copied()
@@ -679,7 +705,8 @@ impl LinePlot {
 		}
 
 		for line in &self.y2_lines {
-			let line_max = line.x_values
+			let line_max = line
+				.x_values
 				.iter()
 				.max_by(|a, b| a.total_cmp(b))
 				.copied()
@@ -703,7 +730,8 @@ impl LinePlot {
 		let mut min = self.y_min;
 
 		for line in &self.y1_lines {
-			let line_min = line.y_values
+			let line_min = line
+				.y_values
 				.iter()
 				.min_by(|a, b| a.total_cmp(b))
 				.copied()
@@ -727,7 +755,8 @@ impl LinePlot {
 		let mut max = self.y_max;
 
 		for line in &self.y1_lines {
-			let line_max = line.y_values
+			let line_max = line
+				.y_values
 				.iter()
 				.max_by(|a, b| a.total_cmp(b))
 				.copied()
@@ -751,7 +780,8 @@ impl LinePlot {
 		let mut max = self.y2_max;
 
 		for line in &self.y2_lines {
-			let line_max = line.y_values
+			let line_max = line
+				.y_values
 				.iter()
 				.max_by(|a, b| a.total_cmp(b))
 				.copied()

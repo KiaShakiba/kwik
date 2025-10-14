@@ -5,36 +5,31 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{
-	slice,
-	collections::HashMap,
-};
-
-use num_traits::AsPrimitive;
+use std::{collections::HashMap, slice};
 
 use gnuplot::{
+	AutoOption,
 	Axes2D,
 	AxesCommon,
-	AutoOption,
-	Major,
-	Fix,
-	TickOption,
-	LabelOption,
-	PlotOption,
 	ColorType,
 	DashType,
+	Fix,
+	LabelOption,
+	Major,
+	PlotOption,
+	TickOption,
 };
-
 use indexmap::IndexMap;
-use statrs::statistics::{Data, Min, Max, Distribution, OrderStatistics};
+use num_traits::AsPrimitive;
+use statrs::statistics::{Data, Distribution, Max, Min, OrderStatistics};
 
 use crate::plot::{
-	Plot,
 	AxisFormat,
-	init_scaler,
-	auto_option,
 	DEFAULT_FONT_FAMILY,
 	DEFAULT_FONT_SIZE,
+	Plot,
+	auto_option,
+	init_scaler,
 };
 
 /// A box plot.
@@ -148,53 +143,56 @@ impl Plot for BoxPlot {
 
 	fn configure(&mut self, axes: &mut Axes2D) {
 		let font = LabelOption::Font(
-			self.font_type.as_deref().unwrap_or(DEFAULT_FONT_FAMILY),
+			self.font_type
+				.as_deref()
+				.unwrap_or(DEFAULT_FONT_FAMILY),
 			self.font_size.unwrap_or(DEFAULT_FONT_SIZE),
 		);
 
-		let labels = self.map
+		let labels = self
+			.map
 			.keys()
 			.map(|label| label.into())
 			.collect::<Vec<String>>();
 
 		let y_scaler = init_scaler(self.y_format, self.max_y_value());
 
-		axes
-			.set_x_range(
-				AutoOption::Fix(0.0),
-				AutoOption::Fix(self.map.len() as f64 + 1.0)
-			)
-			.set_y_range(
-				auto_option(self.y_min, y_scaler.as_ref()),
-				auto_option(self.y_max, y_scaler.as_ref()),
-			)
-			.set_x_ticks_custom(
-				labels
-					.iter()
-					.enumerate()
-					.map(|(index, label)| {
-						Major(index as f64 + 1.0, Fix(label))
-					}),
-				&[
-					TickOption::Mirror(false),
-					TickOption::Inward(false),
-				],
-				&[
-					font.clone(),
-					LabelOption::Rotate(-45.0),
-				]
-			)
-			.set_y_ticks(
-				Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
-				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				slice::from_ref(&font),
-			)
-			.set_grid_options(false, &[
-				PlotOption::Color(ColorType::RGBString("#bbbbbb")),
-				PlotOption::LineWidth(2.0),
-				PlotOption::LineStyle(DashType::Dot),
-			])
-			.set_y_grid(true);
+		axes.set_x_range(
+			AutoOption::Fix(0.0),
+			AutoOption::Fix(self.map.len() as f64 + 1.0),
+		)
+		.set_y_range(
+			auto_option(self.y_min, y_scaler.as_ref()),
+			auto_option(self.y_max, y_scaler.as_ref()),
+		)
+		.set_x_ticks_custom(
+			labels
+				.iter()
+				.enumerate()
+				.map(|(index, label)| Major(index as f64 + 1.0, Fix(label))),
+			&[
+				TickOption::Mirror(false),
+				TickOption::Inward(false),
+			],
+			&[
+				font.clone(),
+				LabelOption::Rotate(-45.0),
+			],
+		)
+		.set_y_ticks(
+			Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
+			&[
+				TickOption::Mirror(false),
+				TickOption::Inward(false),
+			],
+			slice::from_ref(&font),
+		)
+		.set_grid_options(false, &[
+			PlotOption::Color(ColorType::RGBString("#bbbbbb")),
+			PlotOption::LineWidth(2.0),
+			PlotOption::LineStyle(DashType::Dot),
+		])
+		.set_y_grid(true);
 
 		if let Some(title) = &self.title {
 			axes.set_title(title, slice::from_ref(&font));
@@ -216,44 +214,36 @@ impl Plot for BoxPlot {
 			let x_value = index as f64 + 1.0;
 			let stats = self.get_stats(label);
 
-			let color = self.colors
+			let color = self
+				.colors
 				.get(label)
 				.map(|color| color.as_str())
 				.unwrap_or("red");
 
-			axes
-				.box_and_whisker(
-					[x_value],
-					[y_scaler.scale(stats.q1())],
-					[y_scaler.scale(stats.min())],
-					[y_scaler.scale(stats.max())],
-					[y_scaler.scale(stats.q3())],
-					&[
-						PlotOption::BoxWidth(vec![0.25]),
-						PlotOption::Color(ColorType::RGBString("white")),
-						PlotOption::BorderColor(ColorType::RGBString(color)),
-						PlotOption::WhiskerBars(0.5),
-						PlotOption::LineWidth(1.25),
-					]
-				)
-				.points(
-					[x_value],
-					[y_scaler.scale(stats.mean())],
-					&[
-						PlotOption::Color(ColorType::RGBString("blue")),
-						PlotOption::PointSymbol('x'),
-						PlotOption::PointSize(0.75),
-					]
-				)
-				.points(
-					[x_value],
-					[y_scaler.scale(stats.median())],
-					&[
-						PlotOption::Color(ColorType::RGBString("blue")),
-						PlotOption::PointSymbol('+'),
-						PlotOption::PointSize(0.75),
-					]
-				);
+			axes.box_and_whisker(
+				[x_value],
+				[y_scaler.scale(stats.q1())],
+				[y_scaler.scale(stats.min())],
+				[y_scaler.scale(stats.max())],
+				[y_scaler.scale(stats.q3())],
+				&[
+					PlotOption::BoxWidth(vec![0.25]),
+					PlotOption::Color(ColorType::RGBString("white")),
+					PlotOption::BorderColor(ColorType::RGBString(color)),
+					PlotOption::WhiskerBars(0.5),
+					PlotOption::LineWidth(1.25),
+				],
+			)
+			.points([x_value], [y_scaler.scale(stats.mean())], &[
+				PlotOption::Color(ColorType::RGBString("blue")),
+				PlotOption::PointSymbol('x'),
+				PlotOption::PointSize(0.75),
+			])
+			.points([x_value], [y_scaler.scale(stats.median())], &[
+				PlotOption::Color(ColorType::RGBString("blue")),
+				PlotOption::PointSymbol('+'),
+				PlotOption::PointSize(0.75),
+			]);
 		}
 	}
 }
@@ -314,7 +304,8 @@ impl BoxPlot {
 		T1: AsRef<str>,
 		T2: AsRef<str>,
 	{
-		self.colors.insert(label.as_ref().to_string(), color.as_ref().to_string());
+		self.colors
+			.insert(label.as_ref().to_string(), color.as_ref().to_string());
 	}
 
 	/// Sets an individual box's color.
@@ -340,7 +331,9 @@ impl BoxPlot {
 	}
 
 	fn get_stats(&mut self, label: &str) -> Stats {
-		let values = self.map.get_mut(label)
+		let values = self
+			.map
+			.get_mut(label)
 			.expect("Could not get stats");
 
 		Stats::new(values)
@@ -369,7 +362,9 @@ impl Stats {
 			min: data.min(),
 			max: data.max(),
 
-			mean: data.mean().expect("Could not calculate mean of data."),
+			mean: data
+				.mean()
+				.expect("Could not calculate mean of data."),
 			median: data.median(),
 
 			q1: data.lower_quartile(),
@@ -377,12 +372,24 @@ impl Stats {
 		}
 	}
 
-	fn min(&self) -> f64 { self.min }
-	fn max(&self) -> f64 { self.max }
+	fn min(&self) -> f64 {
+		self.min
+	}
+	fn max(&self) -> f64 {
+		self.max
+	}
 
-	fn mean(&self) -> f64 { self.mean }
-	fn median(&self) -> f64 { self.median }
+	fn mean(&self) -> f64 {
+		self.mean
+	}
+	fn median(&self) -> f64 {
+		self.median
+	}
 
-	fn q1(&self) -> f64 { self.q1 }
-	fn q3(&self) -> f64 { self.q3 }
+	fn q1(&self) -> f64 {
+		self.q1
+	}
+	fn q3(&self) -> f64 {
+		self.q3
+	}
 }

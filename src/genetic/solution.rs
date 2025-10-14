@@ -6,11 +6,12 @@
  */
 
 use std::time::Duration;
+
 use crate::genetic::chromosome::Chromosome;
 
-/// The solution of a genetic run. Holds the chromosome of the fittest individual,
-/// the number of generations processed during the run, and the total duration
-/// of the run.
+/// The solution of a genetic run. Holds the chromosome of the fittest
+/// individual, the number of generations processed during the run, and the
+/// total duration of the run.
 pub struct GeneticSolution<C>
 where
 	C: Chromosome,

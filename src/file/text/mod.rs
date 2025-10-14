@@ -9,6 +9,6 @@ mod reader;
 mod writer;
 
 pub use crate::file::text::{
-	reader::{TextReader, Iter, IntoIter},
+	reader::{IntoIter, Iter, TextReader},
 	writer::TextWriter,
 };

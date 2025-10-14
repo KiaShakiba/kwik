@@ -6,27 +6,27 @@
  */
 
 use std::slice;
-use num_traits::AsPrimitive;
 
 use gnuplot::{
 	Axes2D,
 	AxesCommon,
-	PlotOption,
+	BorderLocation2D,
 	ColorType,
 	DashType,
-	BorderLocation2D,
-	TickOption,
 	LabelOption,
+	PlotOption,
+	TickOption,
 };
+use num_traits::AsPrimitive;
 
 use crate::plot::{
-	Plot,
 	AxisFormat,
-	init_scaler,
-	auto_option,
 	COLORS,
 	DEFAULT_FONT_FAMILY,
 	DEFAULT_FONT_SIZE,
+	Plot,
+	auto_option,
+	init_scaler,
 };
 
 /// A scatter plot.
@@ -145,56 +145,66 @@ impl Plot for ScatterPlot {
 
 	fn configure(&mut self, axes: &mut Axes2D) {
 		let font = LabelOption::Font(
-			self.font_type.as_deref().unwrap_or(DEFAULT_FONT_FAMILY),
+			self.font_type
+				.as_deref()
+				.unwrap_or(DEFAULT_FONT_FAMILY),
 			self.font_size.unwrap_or(DEFAULT_FONT_SIZE),
 		);
 
 		let x_scaler = init_scaler(self.x_format, self.max_x_value());
 		let y_scaler = init_scaler(self.y_format, self.max_y_value());
 
-		axes
-			.set_border(
-				false,
-				&[
-					BorderLocation2D::Top,
-					BorderLocation2D::Right,
-					BorderLocation2D::Bottom,
-					BorderLocation2D::Left,
-				],
-				&[]
-			)
-			.set_x_range(
-				auto_option(self.x_min, x_scaler.as_ref()),
-				auto_option(self.x_max, x_scaler.as_ref()),
-			)
-			.set_y_range(
-				auto_option(self.y_min, y_scaler.as_ref()),
-				auto_option(self.y_max, y_scaler.as_ref()),
-			)
-			.set_x_ticks(
-				Some((auto_option(self.x_tick, x_scaler.as_ref()), 0)),
-				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				slice::from_ref(&font),
-			)
-			.set_y_ticks(
-				Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
-				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				slice::from_ref(&font),
-			)
-			.set_grid_options(false, &[
-				PlotOption::Color(ColorType::RGBString("#bbbbbb")),
-				PlotOption::LineWidth(2.0),
-				PlotOption::LineStyle(DashType::Dot),
-			])
-			.set_x_grid(true)
-			.set_y_grid(true);
+		axes.set_border(
+			false,
+			&[
+				BorderLocation2D::Top,
+				BorderLocation2D::Right,
+				BorderLocation2D::Bottom,
+				BorderLocation2D::Left,
+			],
+			&[],
+		)
+		.set_x_range(
+			auto_option(self.x_min, x_scaler.as_ref()),
+			auto_option(self.x_max, x_scaler.as_ref()),
+		)
+		.set_y_range(
+			auto_option(self.y_min, y_scaler.as_ref()),
+			auto_option(self.y_max, y_scaler.as_ref()),
+		)
+		.set_x_ticks(
+			Some((auto_option(self.x_tick, x_scaler.as_ref()), 0)),
+			&[
+				TickOption::Mirror(false),
+				TickOption::Inward(false),
+			],
+			slice::from_ref(&font),
+		)
+		.set_y_ticks(
+			Some((auto_option(self.y_tick, y_scaler.as_ref()), 0)),
+			&[
+				TickOption::Mirror(false),
+				TickOption::Inward(false),
+			],
+			slice::from_ref(&font),
+		)
+		.set_grid_options(false, &[
+			PlotOption::Color(ColorType::RGBString("#bbbbbb")),
+			PlotOption::LineWidth(2.0),
+			PlotOption::LineStyle(DashType::Dot),
+		])
+		.set_x_grid(true)
+		.set_y_grid(true);
 
 		if let Some(title) = &self.title {
 			axes.set_title(title, slice::from_ref(&font));
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(&x_scaler.apply_unit(x_label), slice::from_ref(&font));
+			axes.set_x_label(
+				&x_scaler.apply_unit(x_label),
+				slice::from_ref(&font),
+			);
 		}
 
 		if let Some(y_label) = &self.y_label {

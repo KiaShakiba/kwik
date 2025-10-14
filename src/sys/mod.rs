@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-pub mod mem;
 pub mod cpu;
+pub mod mem;
 
 pub type Pid = u32;

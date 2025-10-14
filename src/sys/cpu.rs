@@ -6,14 +6,9 @@
  */
 
 use std::time::Instant;
-use thiserror::Error;
 
-use sysinfo::{
-	System,
-	Pid as SysPid,
-	ProcessesToUpdate,
-	ProcessRefreshKind,
-};
+use sysinfo::{Pid as SysPid, ProcessRefreshKind, ProcessesToUpdate, System};
+use thiserror::Error;
 
 use crate::sys::Pid;
 
@@ -106,7 +101,8 @@ impl CpuUsage {
 
 	fn refresh_cached_usage(&mut self) -> Result<(), CpuError> {
 		if self.cached_total_usage.is_some()
-			&& self.last_refresh.elapsed() < sysinfo::MINIMUM_CPU_UPDATE_INTERVAL
+			&& self.last_refresh.elapsed()
+				< sysinfo::MINIMUM_CPU_UPDATE_INTERVAL
 		{
 			return Ok(());
 		}

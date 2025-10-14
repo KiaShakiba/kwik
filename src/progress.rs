@@ -6,13 +6,14 @@
  */
 
 use std::{
-	io::{self, Write, StdoutLock},
-	fmt::Debug,
 	cmp::Ordering,
-	time::{Instant, Duration},
+	fmt::Debug,
+	io::{self, StdoutLock, Write},
+	time::{Duration, Instant},
 };
 
 use num_traits::AsPrimitive;
+
 use crate::{fmt, math};
 
 const DEFAULT_WIDTH: u64 = 70;
@@ -169,7 +170,10 @@ impl Progress {
 	/// Sets the progress bar's remaining character. The default is ' '.
 	#[inline]
 	#[must_use]
-	pub fn with_remaining_character(mut self, remaining_character: char) -> Self {
+	pub fn with_remaining_character(
+		mut self,
+		remaining_character: char,
+	) -> Self {
 		self.set_remaining_character(remaining_character);
 		self
 	}
@@ -259,7 +263,10 @@ impl Progress {
 		let pulse_duration = self.pulse(&now);
 		let rate = self.get_rate(pulse_duration);
 
-		if amount == previous_amount && amount != 100 && pulse_duration.is_none() {
+		if amount == previous_amount
+			&& amount != 100
+			&& pulse_duration.is_none()
+		{
 			return;
 		}
 
@@ -288,7 +295,6 @@ impl Progress {
 	/// progress.tick(50);
 	/// progress.stop(); // the progress bar will stop at 50%
 	/// ```
-	///
 	#[inline]
 	pub fn stop(&mut self) {
 		if self.stopped {
@@ -361,7 +367,8 @@ impl Progress {
 				return None;
 			}
 
-			let duration_ms = ((self.total - self.current) as f64 / rate) as u64;
+			let duration_ms =
+				((self.total - self.current) as f64 / rate) as u64;
 			let duration = Duration::from_millis(duration_ms);
 
 			return Some(duration);
@@ -375,7 +382,11 @@ impl Progress {
 		let m = y2 - y1;
 		let b = y1 - m * x1 as u32;
 
-		Some(*now - (b + Duration::from_millis((m.as_millis() as f64 * x) as u64)))
+		Some(
+			*now - (b + Duration::from_millis(
+				(m.as_millis() as f64 * x) as u64,
+			)),
+		)
 	}
 
 	fn draw(
@@ -408,16 +419,22 @@ impl Progress {
 
 		for tag in &self.tags {
 			match tag {
-				Tag::Tps => if rate > 0 {
-					print_rate(&mut lock, rate);
+				Tag::Tps => {
+					if rate > 0 {
+						print_rate(&mut lock, rate);
+					}
 				},
 
-				Tag::Eta => if eta.is_some_and(|eta| !eta.is_zero()) {
-					print_eta(&mut lock, eta.unwrap());
+				Tag::Eta => {
+					if eta.is_some_and(|eta| !eta.is_zero()) {
+						print_eta(&mut lock, eta.unwrap());
+					}
 				},
 
-				Tag::Time => if !elapsed.is_zero() {
-					print_time(&mut lock, elapsed);
+				Tag::Time => {
+					if !elapsed.is_zero() {
+						print_time(&mut lock, elapsed);
+					}
 				},
 			}
 		}
@@ -462,25 +479,13 @@ impl Progress {
 }
 
 fn print_rate(lock: &mut StdoutLock, rate: u64) {
-	write!(
-		lock,
-		" ({} tps)",
-		fmt::number(rate),
-	).unwrap();
+	write!(lock, " ({} tps)", fmt::number(rate),).unwrap();
 }
 
 fn print_eta(lock: &mut StdoutLock, eta: Duration) {
-	write!(
-		lock,
-		" (eta {})",
-		fmt::timespan(eta.as_millis()),
-	).unwrap();
+	write!(lock, " (eta {})", fmt::timespan(eta.as_millis()),).unwrap();
 }
 
 fn print_time(lock: &mut StdoutLock, elapsed: Duration) {
-	write!(
-		lock,
-		" (time {})",
-		fmt::timespan(elapsed.as_millis()),
-	).unwrap();
+	write!(lock, " (time {})", fmt::timespan(elapsed.as_millis()),).unwrap();
 }

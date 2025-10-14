@@ -5,23 +5,19 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-mod row;
 mod cell;
+mod row;
 
 use std::{
-	path::Path,
-	io::{self, Write},
 	collections::HashSet,
+	io::{self, Write},
+	path::Path,
 };
 
-use crate::file::{
-	FileWriter,
-	csv::CsvWriter,
-};
-
+use crate::file::{FileWriter, csv::CsvWriter};
 pub use crate::table::{
-	row::{Row, ColumnJoinType},
 	cell::{Align, Style},
+	row::{ColumnJoinType, Row},
 };
 
 #[derive(Default)]
@@ -256,10 +252,7 @@ impl Table {
 	}
 }
 
-fn print_spacer_row(
-	stdout: &mut impl Write,
-	sizes: &Vec<usize>
-) {
+fn print_spacer_row(stdout: &mut impl Write, sizes: &Vec<usize>) {
 	let mut row = Row::default();
 
 	for size in sizes {

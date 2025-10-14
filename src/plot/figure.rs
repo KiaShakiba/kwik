@@ -5,14 +5,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{
-	cmp,
-	io,
-	path::Path,
-};
+use std::{cmp, io, path::Path};
 
-use num_traits::AsPrimitive;
 use gnuplot::Figure as GnuplotFigure;
+use num_traits::AsPrimitive;
+
 use crate::plot::Plot;
 
 /// A figure which may hold one or more plots.
@@ -115,7 +112,10 @@ impl Figure {
 	/// let figure = Figure::default()
 	///     .with_plot_width(200.0);
 	/// ```
-	pub fn with_plot_width(mut self, plot_width_px: impl AsPrimitive<f32>) -> Self {
+	pub fn with_plot_width(
+		mut self,
+		plot_width_px: impl AsPrimitive<f32>,
+	) -> Self {
 		self.set_plot_width(plot_width_px);
 		self
 	}
@@ -144,7 +144,10 @@ impl Figure {
 	/// let figure = Figure::default()
 	///     .with_plot_height(200.0);
 	/// ```
-	pub fn with_plot_height(mut self, plot_height_px: impl AsPrimitive<f32>) -> Self {
+	pub fn with_plot_height(
+		mut self,
+		plot_height_px: impl AsPrimitive<f32>,
+	) -> Self {
 		self.set_plot_height(plot_height_px);
 		self
 	}
@@ -172,7 +175,7 @@ impl Figure {
 
 		self.figure.set_multiplot_layout(
 			(self.count as f32 / self.columns as f32).ceil() as usize,
-			*cmp::min(&self.count, &self.columns)
+			*cmp::min(&self.count, &self.columns),
 		);
 
 		plot.configure(self.figure.axes2d());
@@ -191,7 +194,7 @@ impl Figure {
 		if self.is_empty() {
 			return Err(io::Error::new(
 				io::ErrorKind::InvalidData,
-				"Could not save figure with no plots"
+				"Could not save figure with no plots",
 			));
 		}
 
@@ -209,7 +212,7 @@ impl Figure {
 
 			Err(_) => Err(io::Error::new(
 				io::ErrorKind::PermissionDenied,
-				"Could not save figure"
+				"Could not save figure",
 			)),
 		}
 	}

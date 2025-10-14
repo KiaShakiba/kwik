@@ -6,31 +6,31 @@
  */
 
 use std::slice;
-use num_traits::AsPrimitive;
 
 use gnuplot::{
+	AutoOption,
 	Axes2D,
 	AxesCommon,
-	TickOption,
-	AutoOption,
-	Major,
-	Fix,
-	PlotOption,
-	LabelOption,
 	ColorType,
 	DashType,
+	Fix,
+	LabelOption,
+	Major,
+	PlotOption,
+	TickOption,
 };
+use num_traits::AsPrimitive;
 
 use crate::{
 	math,
 	plot::{
-		Plot,
 		AxisFormat,
-		init_scaler,
-		auto_option,
 		COLORS,
 		DEFAULT_FONT_FAMILY,
 		DEFAULT_FONT_SIZE,
+		Plot,
+		auto_option,
+		init_scaler,
 	},
 };
 
@@ -143,53 +143,56 @@ impl Plot for BarPlot {
 
 	fn configure(&mut self, axes: &mut Axes2D) {
 		let font = LabelOption::Font(
-			self.font_type.as_deref().unwrap_or(DEFAULT_FONT_FAMILY),
+			self.font_type
+				.as_deref()
+				.unwrap_or(DEFAULT_FONT_FAMILY),
 			self.font_size.unwrap_or(DEFAULT_FONT_SIZE),
 		);
 
-		let labels = self.bar_groups
+		let labels = self
+			.bar_groups
 			.iter()
 			.map(|bar_group| bar_group.label.as_deref().unwrap_or("").into())
 			.collect::<Vec<String>>();
 
 		let y_scaler = init_scaler(self.y_format, self.max_y_value());
 
-		axes
-			.set_x_range(
-				AutoOption::Fix(0.0),
-				AutoOption::Fix(self.bar_groups.len() as f64 + 1.0)
-			)
-			.set_y_range(
-				AutoOption::Fix(0.0),
-				auto_option(self.y_max, y_scaler.as_ref()),
-			)
-			.set_x_ticks_custom(
-				labels
-					.iter()
-					.enumerate()
-					.map(|(index, label)| {
-						Major(index as f64 + 1.0, Fix(label))
-					}),
-				&[
-					TickOption::Mirror(false),
-					TickOption::Inward(false),
-				],
-				&[
-					font.clone(),
-					LabelOption::Rotate(-45.0),
-				]
-			)
-			.set_y_ticks(
-				Some((AutoOption::Fix(10.0), 0)),
-				&[TickOption::Mirror(false), TickOption::Inward(false)],
-				slice::from_ref(&font),
-			)
-			.set_grid_options(false, &[
-				PlotOption::Color(ColorType::RGBString("#bbbbbb")),
-				PlotOption::LineWidth(2.0),
-				PlotOption::LineStyle(DashType::Dot),
-			])
-			.set_y_grid(true);
+		axes.set_x_range(
+			AutoOption::Fix(0.0),
+			AutoOption::Fix(self.bar_groups.len() as f64 + 1.0),
+		)
+		.set_y_range(
+			AutoOption::Fix(0.0),
+			auto_option(self.y_max, y_scaler.as_ref()),
+		)
+		.set_x_ticks_custom(
+			labels
+				.iter()
+				.enumerate()
+				.map(|(index, label)| Major(index as f64 + 1.0, Fix(label))),
+			&[
+				TickOption::Mirror(false),
+				TickOption::Inward(false),
+			],
+			&[
+				font.clone(),
+				LabelOption::Rotate(-45.0),
+			],
+		)
+		.set_y_ticks(
+			Some((AutoOption::Fix(10.0), 0)),
+			&[
+				TickOption::Mirror(false),
+				TickOption::Inward(false),
+			],
+			slice::from_ref(&font),
+		)
+		.set_grid_options(false, &[
+			PlotOption::Color(ColorType::RGBString("#bbbbbb")),
+			PlotOption::LineWidth(2.0),
+			PlotOption::LineStyle(DashType::Dot),
+		])
+		.set_y_grid(true);
 
 		if let Some(title) = &self.title {
 			axes.set_title(title, slice::from_ref(&font));
@@ -212,22 +215,22 @@ impl Plot for BarPlot {
 		}
 
 		for bar_index in 0..self.bar_groups[0].bars.len() {
-			let x_values = self.bar_groups
-				.iter()
-				.enumerate()
-				.map(|(bar_group_index, bar_group)| {
+			let x_values = self.bar_groups.iter().enumerate().map(
+				|(bar_group_index, bar_group)| {
 					bar_group.bar_x_value(
 						bar_group_index,
 						bar_group.bars.len(),
 						bar_index,
 					)
-				});
+				},
+			);
 
-			let y_values = self.bar_groups
-				.iter()
-				.map(|bar_group| y_scaler.scale(bar_group.bars[bar_index].value));
+			let y_values = self.bar_groups.iter().map(|bar_group| {
+				y_scaler.scale(bar_group.bars[bar_index].value)
+			});
 
-			let widths = self.bar_groups
+			let widths = self
+				.bar_groups
 				.iter()
 				.map(|bar_group| bar_group.bar_width())
 				.collect();
@@ -242,11 +245,7 @@ impl Plot for BarPlot {
 				bar_config.push(PlotOption::Caption(label));
 			}
 
-			axes.boxes(
-				x_values,
-				y_values,
-				&bar_config,
-			);
+			axes.boxes(x_values, y_values, &bar_config);
 		}
 	}
 }
@@ -323,7 +322,11 @@ impl BarGroup {
 	}
 
 	fn bar_width(&self) -> f64 {
-		*math::min(&[1.0 / self.bars.len() as f64, 1.0]).unwrap()
+		*math::min(&[
+			1.0 / self.bars.len() as f64,
+			1.0,
+		])
+		.unwrap()
 	}
 
 	fn bar_x_value(

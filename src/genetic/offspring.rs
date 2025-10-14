@@ -5,10 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use crate::genetic::{
-	individual::Individual,
-	chromosome::Chromosome,
-};
+use crate::genetic::{chromosome::Chromosome, individual::Individual};
 
 pub struct Offspring<C>
 where

@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use thiserror::Error;
 use num_traits::AsPrimitive;
+use thiserror::Error;
 
 /// Calculates the streaming autocorrelation coefficient.
 #[derive(Clone, Default)]
@@ -95,7 +95,10 @@ impl Acf {
 	/// let coefficient = acf.coefficient(4).unwrap();
 	/// assert_eq!(coefficient, 0.0);
 	/// ```
-	pub fn coefficient(&mut self, lag: impl AsPrimitive<usize>) -> Result<f64, AcfError> {
+	pub fn coefficient(
+		&mut self,
+		lag: impl AsPrimitive<usize>,
+	) -> Result<f64, AcfError> {
 		if self.values.is_empty() {
 			return Err(AcfError::EmptyValues);
 		}
@@ -115,7 +118,10 @@ impl Acf {
 		Ok(sum / ((self.values.len() - lag) as f64 * self.variance(mean)?))
 	}
 
-	fn variance(&mut self, mean: impl AsPrimitive<f64>) -> Result<f64, AcfError> {
+	fn variance(
+		&mut self,
+		mean: impl AsPrimitive<f64>,
+	) -> Result<f64, AcfError> {
 		if let Some(variance) = self.cached_variance {
 			return Ok(variance);
 		};
@@ -126,7 +132,8 @@ impl Acf {
 
 		let mean = mean.as_();
 
-		let sum = self.values
+		let sum = self
+			.values
 			.iter()
 			.map(|value| (*value - mean).powf(2.0))
 			.sum::<f64>();
@@ -146,9 +153,7 @@ impl Acf {
 			return Err(AcfError::EmptyValues);
 		}
 
-		let sum = self.values
-			.iter()
-			.sum::<f64>();
+		let sum = self.values.iter().sum::<f64>();
 
 		let mean = sum / self.values.len() as f64;
 		self.cached_mean = Some(mean);
@@ -160,6 +165,7 @@ impl Acf {
 #[cfg(test)]
 mod tests {
 	use approx::assert_relative_eq;
+
 	use crate::math::stats::acf::{Acf, AcfError};
 
 	#[test]
@@ -208,7 +214,12 @@ mod tests {
 		acf.insert(2);
 		acf.insert(3);
 
-		for (lag, expected) in [1.0, -0.3, -0.75, 1.0, 0.0, -1.5].into_iter().enumerate() {
+		for (lag, expected) in [
+			1.0, -0.3, -0.75, 1.0, 0.0, -1.5,
+		]
+		.into_iter()
+		.enumerate()
+		{
 			let coefficient = acf.coefficient(lag).unwrap();
 			assert_relative_eq!(coefficient, expected);
 		}

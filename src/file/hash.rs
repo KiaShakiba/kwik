@@ -5,14 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{
-	io,
-	path::Path,
-	fs::File,
-};
+use std::{fs::File, io, path::Path};
 
-use sha2::{Digest, Sha256, Sha512};
 use md5::Md5;
+use sha2::{Digest, Sha256, Sha512};
 
 /// Computes the SHA256 hash of the file at the provided path.
 ///

@@ -8,12 +8,8 @@
 use std::io::{self, Write};
 
 use crate::{
-	file::csv::{WriteRow, RowData},
-	table::cell::{
-		Cell,
-		Align,
-		Style,
-	},
+	file::csv::{RowData, WriteRow},
+	table::cell::{Align, Cell, Style},
 };
 
 #[derive(Default)]
@@ -78,12 +74,7 @@ impl Row {
 	/// ```
 	#[inline]
 	#[must_use]
-	pub fn push<T>(
-		mut self,
-		value: T,
-		align: Align,
-		style: Style,
-	) -> Self
+	pub fn push<T>(mut self, value: T, align: Align, style: Style) -> Self
 	where
 		T: AsRef<str>,
 	{
@@ -141,11 +132,7 @@ impl Row {
 		sizes: &Vec<usize>,
 		join_type: ColumnJoinType,
 	) {
-		writeln!(
-			stdout,
-			"{}",
-			self.to_string(Some(sizes), join_type)
-		).unwrap();
+		writeln!(stdout, "{}", self.to_string(Some(sizes), join_type)).unwrap();
 	}
 
 	/// Returns the string value of the row.
@@ -161,7 +148,8 @@ impl Row {
 			ColumnJoinType::Plus => "+",
 		};
 
-		let line = self.cells
+		let line = self
+			.cells
 			.iter()
 			.enumerate()
 			.map(|(index, cell)| {

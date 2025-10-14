@@ -6,18 +6,15 @@
  */
 
 use std::{
-	path::Path,
 	fs::File,
 	io::{self, Seek, SeekFrom},
 	marker::PhantomData,
+	path::Path,
 };
 
 use csv::Writer;
 
-use crate::file::{
-	FileWriter,
-	csv::RowData,
-};
+use crate::file::{FileWriter, csv::RowData};
 
 /// Writes a CSV file in rows.
 pub struct CsvWriter<T>
@@ -133,7 +130,8 @@ where
 	///
 	/// # Errors
 	///
-	/// This function will return an error if the header row could not be written.
+	/// This function will return an error if the header row could not be
+	/// written.
 	pub fn set_headers<H>(&mut self, headers: &[H]) -> io::Result<()>
 	where
 		H: AsRef<str>,
@@ -154,10 +152,12 @@ where
 
 		self.file
 			.write_record(&self.buf.data)
-			.map_err(|_| io::Error::new(
-				io::ErrorKind::InvalidData,
-				"An error occurred when writing CSV file header",
-			))
+			.map_err(|_| {
+				io::Error::new(
+					io::ErrorKind::InvalidData,
+					"An error occurred when writing CSV file header",
+				)
+			})
 	}
 
 	/// Adds a header row to the CSV file.
@@ -192,7 +192,8 @@ where
 	///
 	/// # Errors
 	///
-	/// This function will return an error if the header row could not be written.
+	/// This function will return an error if the header row could not be
+	/// written.
 	pub fn with_headers<H>(mut self, headers: &[H]) -> io::Result<Self>
 	where
 		H: AsRef<str>,

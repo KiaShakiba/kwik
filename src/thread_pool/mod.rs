@@ -7,9 +7,11 @@
 
 mod worker;
 
-use std::sync::{mpsc, Arc};
+use std::sync::{Arc, mpsc};
+
 use parking_lot::Mutex;
-use crate::thread_pool::worker::{Worker, Job};
+
+use crate::thread_pool::worker::{Job, Worker};
 
 pub struct ThreadPool {
 	workers: Vec<Worker>,
@@ -36,9 +38,7 @@ impl ThreadPool {
 		let receiver = Arc::new(Mutex::new(receiver));
 
 		for _ in 0..size {
-			workers.push(Worker::new(
-				Arc::clone(&receiver)
-			));
+			workers.push(Worker::new(Arc::clone(&receiver)));
 		}
 
 		ThreadPool {
@@ -70,9 +70,7 @@ impl ThreadPool {
 	{
 		let job = Box::new(f);
 
-		self.sender
-			.as_ref().unwrap()
-			.send(job).unwrap();
+		self.sender.as_ref().unwrap().send(job).unwrap();
 	}
 }
 

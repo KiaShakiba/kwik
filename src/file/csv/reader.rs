@@ -6,18 +6,15 @@
  */
 
 use std::{
-	path::Path,
 	fs::File,
 	io::{self, Seek, SeekFrom},
 	marker::PhantomData,
+	path::Path,
 };
 
 use csv::{Reader, ReaderBuilder};
 
-use crate::file::{
-	FileReader,
-	csv::RowData,
-};
+use crate::file::{FileReader, csv::RowData};
 
 /// Reads a CSV file in rows.
 pub struct CsvReader<T>
@@ -63,8 +60,7 @@ pub trait ReadRow {
 	/// This function will return an error if the row could not be parsed.
 	fn from_row(row: &RowData) -> io::Result<Self>
 	where
-		Self: Sized,
-	;
+		Self: Sized;
 }
 
 pub struct Iter<'a, T>
@@ -114,7 +110,8 @@ where
 
 	#[inline]
 	fn size(&self) -> u64 {
-		let metadata = self.file
+		let metadata = self
+			.file
 			.get_ref()
 			.metadata()
 			.expect("Could not get CSV file's size");
@@ -172,12 +169,15 @@ where
 
 		self.buf.data.clear();
 
-		let result = self.file
+		let result = self
+			.file
 			.read_record(&mut self.buf.data)
-			.map_err(|_| io::Error::new(
-				io::ErrorKind::InvalidData,
-				"An error occurred when reading CSV file header",
-			))?;
+			.map_err(|_| {
+				io::Error::new(
+					io::ErrorKind::InvalidData,
+					"An error occurred when reading CSV file header",
+				)
+			})?;
 
 		if !result {
 			return Err(io::Error::new(
@@ -271,7 +271,8 @@ where
 	pub fn read_row(&mut self) -> io::Result<T> {
 		self.buf.data.clear();
 
-		let result = self.file
+		let result = self
+			.file
 			.read_record(&mut self.buf.data)
 			.map_err(|_| {
 				let message = format!(
@@ -296,8 +297,8 @@ where
 	}
 
 	/// Returns an iterator over the CSV file. The iterator takes a mutable
-	/// reference to `self` as it is iterating over a stream. This means performing
-	/// the iteration modifies the reader's position in the file.
+	/// reference to `self` as it is iterating over a stream. This means
+	/// performing the iteration modifies the reader's position in the file.
 	///
 	/// # Examples
 	/// ```no_run
@@ -332,7 +333,7 @@ where
 	#[inline]
 	pub fn iter(&mut self) -> Iter<'_, T> {
 		Iter {
-			reader: self
+			reader: self,
 		}
 	}
 }
@@ -374,7 +375,7 @@ where
 
 	fn into_iter(self) -> Self::IntoIter {
 		IntoIter {
-			reader: self
+			reader: self,
 		}
 	}
 }

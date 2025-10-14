@@ -6,7 +6,7 @@
  */
 
 use std::{
-	sync::{mpsc, Arc},
+	sync::{Arc, mpsc},
 	thread,
 };
 
@@ -20,12 +20,14 @@ pub type Job = Box<dyn 'static + FnOnce() + Send>;
 
 impl Worker {
 	pub fn new(receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
-		let thread = thread::spawn(move || loop {
-			let job = receiver.lock().recv();
+		let thread = thread::spawn(move || {
+			loop {
+				let job = receiver.lock().recv();
 
-			match job {
-				Ok(job) => job(),
-				Err(_) => break,
+				match job {
+					Ok(job) => job(),
+					Err(_) => break,
+				}
 			}
 		});
 

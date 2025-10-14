@@ -6,22 +6,13 @@
  */
 
 use std::{
+	fs::File,
+	io::{self, BufReader, Read, Seek, SeekFrom},
 	marker::PhantomData,
 	path::Path,
-	fs::File,
-	io::{
-		self,
-		BufReader,
-		Read,
-		Seek,
-		SeekFrom,
-	},
 };
 
-use crate::file::{
-	FileReader,
-	binary::SizedChunk,
-};
+use crate::file::{FileReader, binary::SizedChunk};
 
 /// Reads a binary file in chunks.
 pub struct BinaryReader<T>
@@ -85,8 +76,7 @@ pub trait ReadChunk: SizedChunk {
 	/// This function will return an error if the chunk could not be parsed.
 	fn from_chunk(buf: &[u8]) -> io::Result<Self>
 	where
-		Self: Sized,
-	;
+		Self: Sized;
 }
 
 impl<T> FileReader for BinaryReader<T>
@@ -118,7 +108,8 @@ where
 
 	#[inline]
 	fn size(&self) -> u64 {
-		let metadata = self.file
+		let metadata = self
+			.file
 			.get_ref()
 			.metadata()
 			.expect("Could not get binary file's size");
@@ -175,19 +166,17 @@ where
 	/// This function will return an error if the chunk could not be read.
 	#[inline]
 	pub fn read_chunk(&mut self) -> io::Result<T> {
-		self.file
-			.read_exact(&mut self.buf)
-			.and_then(|_| {
-				self.count += 1;
+		self.file.read_exact(&mut self.buf).and_then(|_| {
+			self.count += 1;
 
-				let object = T::from_chunk(&self.buf)?;
-				Ok(object)
-			})
+			let object = T::from_chunk(&self.buf)?;
+			Ok(object)
+		})
 	}
 
 	/// Returns an iterator over the binary file. The iterator takes a mutable
-	/// reference to `self` as it is iterating over a stream. This means performing
-	/// the iteration modifies the reader's position in the file.
+	/// reference to `self` as it is iterating over a stream. This means
+	/// performing the iteration modifies the reader's position in the file.
 	///
 	/// # Examples
 	/// ```no_run
@@ -226,7 +215,7 @@ where
 	#[inline]
 	pub fn iter(&mut self) -> Iter<'_, T> {
 		Iter {
-			reader: self
+			reader: self,
 		}
 	}
 }
@@ -268,7 +257,7 @@ where
 
 	fn into_iter(self) -> Self::IntoIter {
 		IntoIter {
-			reader: self
+			reader: self,
 		}
 	}
 }

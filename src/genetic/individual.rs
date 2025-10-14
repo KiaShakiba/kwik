@@ -10,14 +10,11 @@ use std::{
 	time::{Duration, Instant},
 };
 
-use rand::{
-	Rng,
-	seq::SliceRandom,
-};
+use rand::{Rng, seq::SliceRandom};
 
 use crate::genetic::{
-	error::GeneticError,
 	chromosome::{Chromosome, Gene},
+	error::GeneticError,
 	fitness::Fitness,
 	offspring::Offspring,
 };
@@ -68,13 +65,16 @@ where
 				return Err(GeneticError::MateTimeout);
 			}
 
-			let mut gene_indexes = (0..self.chromosome.len()).collect::<Vec<_>>();
+			let mut gene_indexes =
+				(0..self.chromosome.len()).collect::<Vec<_>>();
 			gene_indexes.shuffle(rng);
 
 			for index in gene_indexes {
 				let gene = match get_mate_result(rng, mutation_probability) {
 					MateResult::Parent1 => self.chromosome.get(index).clone(),
-					MateResult::Parent2 => partner.chromosome.get(index).clone(),
+					MateResult::Parent2 => {
+						partner.chromosome.get(index).clone()
+					},
 
 					MateResult::Mutation => {
 						mutations += 1;
@@ -90,9 +90,7 @@ where
 			}
 
 			for gene in child_genes.iter_mut() {
-				let gene = gene
-					.take()
-					.ok_or(GeneticError::Internal)?;
+				let gene = gene.take().ok_or(GeneticError::Internal)?;
 
 				child_chromosome.push(gene);
 			}
@@ -111,10 +109,7 @@ where
 			child_genes.resize(self.chromosome.len(), None);
 		}
 
-		let offspring = Offspring::new(
-			child_chromosome.into(),
-			mutations,
-		);
+		let offspring = Offspring::new(child_chromosome.into(), mutations);
 
 		Ok(offspring)
 	}
@@ -158,16 +153,19 @@ where
 	C: Chromosome,
 {
 	fn eq(&self, other: &Self) -> bool {
-		matches!(self.chromosome.fitness_cmp(other.chromosome()), Fitness::Equal)
+		matches!(
+			self.chromosome.fitness_cmp(other.chromosome()),
+			Fitness::Equal
+		)
 	}
 }
 
-impl<C> Eq for Individual<C>
-where
-	C: Chromosome,
-{}
+impl<C> Eq for Individual<C> where C: Chromosome {}
 
-fn get_mate_result(rng: &mut impl Rng, mutation_probability: f64) -> MateResult {
+fn get_mate_result(
+	rng: &mut impl Rng,
+	mutation_probability: f64,
+) -> MateResult {
 	let random: f64 = rng.random();
 
 	if random < (1.0 - mutation_probability) / 2.0 {

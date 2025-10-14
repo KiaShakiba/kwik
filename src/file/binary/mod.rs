@@ -11,7 +11,7 @@ mod writer;
 use std::{cmp, mem};
 
 pub use crate::file::binary::{
-	reader::{BinaryReader, ReadChunk, Iter, IntoIter},
+	reader::{BinaryReader, IntoIter, Iter, ReadChunk},
 	writer::{BinaryWriter, WriteChunk},
 };
 
@@ -62,7 +62,7 @@ macro_rules! impl_sized_chunk_primitive {
 				mem::size_of::<$T>()
 			}
 		}
-	}
+	};
 }
 
 impl_sized_chunk_primitive!(u8);

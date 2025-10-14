@@ -5,13 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{
-	hash::Hash,
-	collections::HashMap,
-};
+use std::{collections::HashMap, hash::Hash};
 
-use nohash_hasher::{BuildNoHashHasher, IsEnabled};
 use linreg::linear_regression;
+use nohash_hasher::{BuildNoHashHasher, IsEnabled};
 
 /// Calculates streaming Zipf distribution statistics.
 #[derive(Clone)]
@@ -66,9 +63,7 @@ impl<T> Zipf<T> {
 			return None;
 		}
 
-		let mut frequencies = self.frequencies
-			.into_iter()
-			.collect::<Vec<_>>();
+		let mut frequencies = self.frequencies.into_iter().collect::<Vec<_>>();
 
 		frequencies.sort_unstable_by(|(_, a), (_, b)| b.cmp(a));
 

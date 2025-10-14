@@ -6,9 +6,9 @@
  */
 
 use std::{
-	time::{Instant, Duration},
 	collections::BTreeMap,
 	ops::Bound,
+	time::{Duration, Instant},
 };
 
 use num_traits::AsPrimitive;
@@ -150,7 +150,8 @@ impl TimeMovingAverage {
 	/// ```
 	#[inline]
 	pub fn window_iter(&self, window: Duration) -> WindowIter<'_> {
-		let current = self.points
+		let current = self
+			.points
 			.first_key_value()
 			.map(|(instant, _)| *instant);
 
@@ -184,7 +185,8 @@ impl TimeMovingAverage {
 	/// ```
 	#[inline]
 	pub fn into_window_iter(self, window: Duration) -> IntoWindowIter {
-		let current = self.points
+		let current = self
+			.points
 			.first_key_value()
 			.map(|(instant, _)| *instant);
 
@@ -202,7 +204,9 @@ impl Iterator for WindowIter<'_> {
 
 	fn next(&mut self) -> Option<Self::Item> {
 		let instant = self.current?;
-		let value = self.tma.get_windowed_average(instant, self.window)?;
+		let value = self
+			.tma
+			.get_windowed_average(instant, self.window)?;
 
 		self.current = Some(instant + self.window / 2);
 
@@ -215,7 +219,9 @@ impl Iterator for IntoWindowIter {
 
 	fn next(&mut self) -> Option<Self::Item> {
 		let instant = self.current?;
-		let value = self.tma.get_windowed_average(instant, self.window)?;
+		let value = self
+			.tma
+			.get_windowed_average(instant, self.window)?;
 
 		self.current = Some(instant + self.window / 2);
 
@@ -225,7 +231,8 @@ impl Iterator for IntoWindowIter {
 
 #[cfg(test)]
 mod tests {
-	use std::time::{Instant, Duration};
+	use std::time::{Duration, Instant};
+
 	use crate::tma::TimeMovingAverage;
 
 	#[test]
@@ -233,7 +240,9 @@ mod tests {
 		let mut tma = TimeMovingAverage::default();
 
 		let times = &[0, 1, 2, 3, 4, 5];
-		let values = &[1.0, 1.5, 2.0, 3.0, 5.0, 5.5];
+		let values = &[
+			1.0, 1.5, 2.0, 3.0, 5.0, 5.5,
+		];
 
 		let start = Instant::now();
 

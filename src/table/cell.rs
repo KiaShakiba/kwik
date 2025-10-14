@@ -23,11 +23,7 @@ pub enum Style {
 }
 
 impl Cell {
-	pub fn new(
-		value: String,
-		align: Align,
-		style: Style,
-	) -> Self {
+	pub fn new(value: String, align: Align, style: Style) -> Self {
 		Cell {
 			value,
 			align,
@@ -56,7 +52,10 @@ impl Cell {
 				let after = (size as f64 - self.value.len() as f64) / 2.0;
 
 				format!(
-					"{:before$}{}{:after$}", "", self.value, "",
+					"{:before$}{}{:after$}",
+					"",
+					self.value,
+					"",
 					before = before.floor() as usize,
 					after = after.ceil() as usize,
 				)

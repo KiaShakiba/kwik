@@ -6,22 +6,13 @@
  */
 
 use std::{
-	path::Path,
 	fs::File,
-	io::{
-		self,
-		BufWriter,
-		Write,
-		Seek,
-		SeekFrom,
-	},
+	io::{self, BufWriter, Seek, SeekFrom, Write},
 	marker::PhantomData,
+	path::Path,
 };
 
-use crate::file::{
-	FileWriter,
-	binary::SizedChunk,
-};
+use crate::file::{FileWriter, binary::SizedChunk};
 
 /// Writes a binary file in chunks.
 pub struct BinaryWriter<T>
@@ -205,7 +196,10 @@ where
 				value.as_chunk(buf)?;
 
 				if T::chunk_size() > E::chunk_size() {
-					let zeros = std::iter::repeat_n(0, T::chunk_size() - E::chunk_size());
+					let zeros = std::iter::repeat_n(
+						0,
+						T::chunk_size() - E::chunk_size(),
+					);
 					buf.extend(zeros);
 				}
 			},
@@ -214,7 +208,10 @@ where
 				err.as_chunk(buf)?;
 
 				if E::chunk_size() > T::chunk_size() {
-					let zeros = std::iter::repeat_n(0, E::chunk_size() - T::chunk_size());
+					let zeros = std::iter::repeat_n(
+						0,
+						E::chunk_size() - T::chunk_size(),
+					);
 					buf.extend(zeros);
 				}
 			},

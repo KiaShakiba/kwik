@@ -7,9 +7,9 @@
 
 use rand::Rng;
 
-/// A gene defines the unit of change in a genetic algorithm. Implement this trait
-/// for whichever struct contains the data for an individual member of the genetic
-/// system.
+/// A gene defines the unit of change in a genetic algorithm. Implement this
+/// trait for whichever struct contains the data for an individual member of the
+/// genetic system.
 ///
 /// # Examples
 /// ```
@@ -31,7 +31,7 @@ where
 	Self: Clone,
 {
 	/// Mutates the value of the gene. Ensure the value is mutated only within
-	/// the acceptable range of possible values. The current (potentially partially
-	/// filled) chromosome is provided.
+	/// the acceptable range of possible values. The current (potentially
+	/// partially filled) chromosome is provided.
 	fn mutate(&mut self, rng: &mut impl Rng, genes: &[Option<Self>]);
 }
