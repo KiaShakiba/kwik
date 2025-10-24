@@ -15,6 +15,7 @@ mod solution;
 
 use std::time::{Duration, Instant};
 
+use num_traits::AsPrimitive;
 pub use rand::Rng;
 use rand::{
 	SeedableRng,
@@ -207,8 +208,10 @@ where
 	#[inline]
 	pub fn set_population_size(
 		&mut self,
-		population_size: usize,
+		population_size: impl AsPrimitive<usize>,
 	) -> Result<(), GeneticError> {
+		let population_size = population_size.as_();
+
 		if population_size == 0 {
 			return Err(GeneticError::InvalidPopulationSize);
 		}
@@ -233,7 +236,7 @@ where
 	#[inline]
 	pub fn with_population_size(
 		mut self,
-		population_size: usize,
+		population_size: impl AsPrimitive<usize>,
 	) -> Result<Self, GeneticError> {
 		self.set_population_size(population_size)?;
 		Ok(self)
@@ -241,14 +244,20 @@ where
 
 	/// Sets the convergence.
 	#[inline]
-	pub fn set_convergence_limit(&mut self, convergence_limit: u64) {
-		self.convergence_limit = convergence_limit;
+	pub fn set_convergence_limit(
+		&mut self,
+		convergence_limit: impl AsPrimitive<u64>,
+	) {
+		self.convergence_limit = convergence_limit.as_();
 	}
 
 	/// Sets the convergence.
 	#[inline]
 	#[must_use]
-	pub fn with_convergence_limit(mut self, convergence_limit: u64) -> Self {
+	pub fn with_convergence_limit(
+		mut self,
+		convergence_limit: impl AsPrimitive<u64>,
+	) -> Self {
 		self.set_convergence_limit(convergence_limit);
 		self
 	}
@@ -269,8 +278,11 @@ where
 
 	/// Sets the mutation probability.
 	#[inline]
-	pub fn set_mutation_probability(&mut self, mutation_probability: f64) {
-		self.mutation_probability = mutation_probability;
+	pub fn set_mutation_probability(
+		&mut self,
+		mutation_probability: impl AsPrimitive<f64>,
+	) {
+		self.mutation_probability = mutation_probability.as_();
 	}
 
 	/// Sets the mutation probability.
@@ -278,7 +290,7 @@ where
 	#[must_use]
 	pub fn with_mutation_probability(
 		mut self,
-		mutation_probability: f64,
+		mutation_probability: impl AsPrimitive<f64>,
 	) -> Self {
 		self.set_mutation_probability(mutation_probability);
 		self
@@ -286,14 +298,20 @@ where
 
 	/// Sets the tournament size.
 	#[inline]
-	pub fn set_tournament_size(&mut self, tournament_size: usize) {
-		self.tournament_size = tournament_size;
+	pub fn set_tournament_size(
+		&mut self,
+		tournament_size: impl AsPrimitive<usize>,
+	) {
+		self.tournament_size = tournament_size.as_();
 	}
 
 	/// Sets the tournament size.
 	#[inline]
 	#[must_use]
-	pub fn with_tournament_size(mut self, tournament_size: usize) -> Self {
+	pub fn with_tournament_size(
+		mut self,
+		tournament_size: impl AsPrimitive<usize>,
+	) -> Self {
 		self.set_tournament_size(tournament_size);
 		self
 	}
