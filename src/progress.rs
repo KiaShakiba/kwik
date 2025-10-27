@@ -37,17 +37,23 @@ pub struct Progress {
 
 	stopped: bool,
 
-	tags: Vec<Tag>,
+	tags: Vec<ProgressTag>,
 
 	rate_count: u64,
 	previous_rate: u64,
 
 	instants: [Option<Instant>; 101],
 	pulse_instant: Instant,
+
+	worker: ProgressWorker,
 }
 
+struct ProgressWorker {}
+
+struct ProgressEvent(Instant, u64);
+
 #[derive(Debug, Clone, PartialEq)]
-pub enum Tag {
+pub enum ProgressTag {
 	/// Ticks per second
 	Tps,
 
@@ -182,20 +188,20 @@ impl Progress {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::progress::{Progress, Tag};
+	/// use kwik::progress::{Progress, ProgressTag};
 	///
 	/// let mut progress = Progress::new(100);
 	///
-	/// progress.set_tag(Tag::Tps);
-	/// progress.set_tag(Tag::Eta);
-	/// progress.set_tag(Tag::Time);
+	/// progress.set_tag(ProgressTag::Tps);
+	/// progress.set_tag(ProgressTag::Eta);
+	/// progress.set_tag(ProgressTag::Time);
 	/// ```
 	///
 	/// # Panics
 	///
 	/// Panics if the tag is already enabled.
 	#[inline]
-	pub fn set_tag(&mut self, tag: Tag) {
+	pub fn set_tag(&mut self, tag: ProgressTag) {
 		assert!(
 			!self.tags.contains(&tag),
 			"Progress tag {tag:?} is already enabled.",
@@ -208,12 +214,12 @@ impl Progress {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::progress::{Progress, Tag};
+	/// use kwik::progress::{Progress, ProgressTag};
 	///
 	/// let progress = Progress::new(100)
-	///     .with_tag(Tag::Tps)
-	///     .with_tag(Tag::Eta)
-	///     .with_tag(Tag::Time);
+	///     .with_tag(ProgressTag::Tps)
+	///     .with_tag(ProgressTag::Eta)
+	///     .with_tag(ProgressTag::Time);
 	/// ```
 	///
 	/// # Panics
@@ -221,7 +227,7 @@ impl Progress {
 	/// Panics if the tag is already enabled.
 	#[inline]
 	#[must_use]
-	pub fn with_tag(mut self, tag: Tag) -> Self {
+	pub fn with_tag(mut self, tag: ProgressTag) -> Self {
 		self.set_tag(tag);
 		self
 	}
@@ -288,7 +294,7 @@ impl Progress {
 	///
 	/// # Examples
 	/// ```
-	/// use kwik::progress::{Progress, Tag};
+	/// use kwik::progress::Progress;
 	///
 	/// let mut progress = Progress::new(100);
 	///
@@ -419,19 +425,19 @@ impl Progress {
 
 		for tag in &self.tags {
 			match tag {
-				Tag::Tps => {
+				ProgressTag::Tps => {
 					if rate > 0 {
 						print_rate(&mut lock, rate);
 					}
 				},
 
-				Tag::Eta => {
+				ProgressTag::Eta => {
 					if eta.is_some_and(|eta| !eta.is_zero()) {
 						print_eta(&mut lock, eta.unwrap());
 					}
 				},
 
-				Tag::Time => {
+				ProgressTag::Time => {
 					if !elapsed.is_zero() {
 						print_time(&mut lock, elapsed);
 					}
@@ -469,7 +475,7 @@ impl Progress {
 			write!(lock, "] \x1B[32m{amount} %\x1B[0m").unwrap();
 		}
 
-		if self.tags.contains(&Tag::Time) {
+		if self.tags.contains(&ProgressTag::Time) {
 			print_time(&mut lock, elapsed);
 		}
 
