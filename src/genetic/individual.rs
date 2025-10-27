@@ -52,7 +52,7 @@ where
 		rng: &mut impl Rng,
 		partner: &Individual<C>,
 		mutation_probability: f64,
-		max_runtime: &Duration,
+		maybe_max_runtime: Option<&Duration>,
 	) -> Result<Offspring<C>, GeneticError> {
 		let time = Instant::now();
 		let mut mutations = 0u64;
@@ -61,7 +61,9 @@ where
 		let mut child_genes = vec![None; self.chromosome.len()];
 
 		loop {
-			if time.elapsed().ge(max_runtime) {
+			if let Some(max_runtime) = maybe_max_runtime
+				&& time.elapsed().ge(max_runtime)
+			{
 				return Err(GeneticError::MateTimeout);
 			}
 

@@ -10,10 +10,11 @@ mod error;
 mod fitness;
 mod gene;
 mod individual;
+mod limit;
 mod offspring;
 mod solution;
 
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use num_traits::AsPrimitive;
 pub use rand::Rng;
@@ -25,6 +26,7 @@ use rand::{
 };
 use rayon::prelude::*;
 
+use crate::genetic::limit::GeneticLimit;
 pub use crate::genetic::{
 	chromosome::Chromosome,
 	error::GeneticError,
@@ -35,10 +37,8 @@ pub use crate::genetic::{
 	solution::GeneticSolution,
 };
 
-const POPULATION_SIZE: usize = 100;
-const CONVERGENCE_LIMIT: u64 = 1_000;
-const MAX_RUNTIME: Duration = Duration::from_millis(10_000);
-const TOURNAMENT_SIZE: usize = 3;
+const DEFAULT_POPULATION_SIZE: usize = 100;
+const DEFAULT_TOURNAMENT_SIZE: usize = 3;
 
 /// Finds the optimal values for a set of inputs using a genetic algorithm.
 ///
@@ -151,8 +151,8 @@ where
 	initial_chromosome: C,
 	population: Vec<Individual<C>>,
 
-	convergence_limit: u64,
-	max_runtime: Duration,
+	population_size: usize,
+	maybe_limit: Option<GeneticLimit>,
 	mutation_probability: f64,
 	tournament_size: usize,
 
@@ -174,27 +174,18 @@ where
 			return Err(GeneticError::InvalidInitialChromosome);
 		}
 
-		let mut population = vec![];
-
-		init_population(
-			&mut population,
-			POPULATION_SIZE,
-			&initial_chromosome,
-			&MAX_RUNTIME,
-		)?;
-
 		let mutation_probability = 1.0 / initial_chromosome.len() as f64;
 
 		let genetic = Genetic {
 			initial_chromosome,
-			population,
+			population: vec![],
 
-			convergence_limit: CONVERGENCE_LIMIT,
-			max_runtime: MAX_RUNTIME,
+			population_size: DEFAULT_POPULATION_SIZE,
+			maybe_limit: None,
 			mutation_probability,
-			tournament_size: TOURNAMENT_SIZE,
+			tournament_size: DEFAULT_TOURNAMENT_SIZE,
 
-			mating_dist: init_mating_dist(POPULATION_SIZE)?,
+			mating_dist: init_mating_dist(DEFAULT_POPULATION_SIZE)?,
 		};
 
 		Ok(genetic)
@@ -216,13 +207,7 @@ where
 			return Err(GeneticError::InvalidPopulationSize);
 		}
 
-		init_population(
-			&mut self.population,
-			population_size,
-			&self.initial_chromosome,
-			&self.max_runtime,
-		)?;
-
+		self.population_size = population_size;
 		self.mating_dist = init_mating_dist(population_size)?;
 
 		Ok(())
@@ -242,37 +227,17 @@ where
 		Ok(self)
 	}
 
-	/// Sets the convergence.
+	/// Sets the genetic limit.
 	#[inline]
-	pub fn set_convergence_limit(
-		&mut self,
-		convergence_limit: impl AsPrimitive<u64>,
-	) {
-		self.convergence_limit = convergence_limit.as_();
+	pub fn set_limit(&mut self, limit: GeneticLimit) {
+		self.maybe_limit = Some(limit);
 	}
 
-	/// Sets the convergence.
+	/// Sets the genetic limit.
 	#[inline]
 	#[must_use]
-	pub fn with_convergence_limit(
-		mut self,
-		convergence_limit: impl AsPrimitive<u64>,
-	) -> Self {
-		self.set_convergence_limit(convergence_limit);
-		self
-	}
-
-	/// Sets the max runtime.
-	#[inline]
-	pub fn set_max_runtime(&mut self, max_runtime: Duration) {
-		self.max_runtime = max_runtime;
-	}
-
-	/// Sets the max runtime.
-	#[inline]
-	#[must_use]
-	pub fn with_max_runtime(mut self, max_runtime: Duration) -> Self {
-		self.set_max_runtime(max_runtime);
+	pub fn with_limit(mut self, limit: GeneticLimit) -> Self {
+		self.set_limit(limit);
 		self
 	}
 
@@ -319,6 +284,13 @@ where
 	/// Runs the genetic algorithm until either the most fit individual has a
 	/// fitness of 0 or the population has converged and is no longer changing.
 	pub fn run(&mut self) -> Result<GeneticSolution<C>, GeneticError> {
+		init_population(
+			&mut self.population,
+			self.population_size,
+			&self.initial_chromosome,
+			self.maybe_limit.as_ref(),
+		)?;
+
 		let time = Instant::now();
 
 		let mut total_mutations = self.iterate()?;
@@ -327,10 +299,31 @@ where
 		let mut convergence_count: u64 = 0;
 		let mut last_fittest = self.population[0].clone();
 
-		while !last_fittest.is_optimal()
-			&& convergence_count < self.convergence_limit
-			&& time.elapsed().lt(&self.max_runtime)
-		{
+		while !last_fittest.is_optimal() {
+			if let Some(limit) = &self.maybe_limit {
+				match limit {
+					GeneticLimit::Runtime(max_runtime)
+						if time.elapsed().gt(max_runtime) =>
+					{
+						break;
+					},
+
+					GeneticLimit::Generations(max_generations)
+						if generation_count >= *max_generations =>
+					{
+						break;
+					},
+
+					GeneticLimit::Convergence(max_convergence)
+						if convergence_count >= *max_convergence =>
+					{
+						break;
+					},
+
+					_ => {},
+				}
+			}
+
 			total_mutations += self.iterate()?;
 
 			let fittest = &self.population[0];
@@ -362,6 +355,14 @@ where
 	fn iterate(&mut self) -> Result<u64, GeneticError> {
 		let population_size = self.population.len();
 
+		let maybe_max_runtime =
+			self.maybe_limit
+				.as_ref()
+				.and_then(|limit| match limit {
+					GeneticLimit::Runtime(max_runtime) => Some(max_runtime),
+					_ => None,
+				});
+
 		let new_offpring = (0..population_size)
 			.into_par_iter()
 			.map(|_| {
@@ -372,7 +373,7 @@ where
 					&mut rng,
 					parent2,
 					self.mutation_probability,
-					&self.max_runtime,
+					maybe_max_runtime,
 				)
 			})
 			.collect::<Result<Vec<Offspring<C>>, GeneticError>>()?;
@@ -419,7 +420,7 @@ fn init_population<C>(
 	population: &mut Vec<Individual<C>>,
 	population_size: usize,
 	initial_chromosome: &C,
-	max_runtime: &Duration,
+	maybe_limit: Option<&GeneticLimit>,
 ) -> Result<(), GeneticError>
 where
 	C: Chromosome + Send + Sync,
@@ -431,7 +432,7 @@ where
 		.into_par_iter()
 		.map(|_| {
 			let chromosome =
-				init_mutated_chromosome(initial_chromosome, max_runtime)?;
+				init_mutated_chromosome(initial_chromosome, maybe_limit)?;
 
 			Ok(chromosome.into())
 		})
@@ -444,7 +445,7 @@ where
 
 fn init_mutated_chromosome<C>(
 	chromosome: &C,
-	max_runtime: &Duration,
+	maybe_limit: Option<&GeneticLimit>,
 ) -> Result<C, GeneticError>
 where
 	C: Chromosome,
@@ -454,7 +455,7 @@ where
 	let mut rng = SmallRng::from_rng(&mut rand::rng());
 	let mut mutated_genes = vec![None; chromosome.len()];
 
-	while time.elapsed().lt(max_runtime) {
+	loop {
 		let mut gene_indexes = (0..chromosome.len()).collect::<Vec<_>>();
 		gene_indexes.shuffle(&mut rng);
 
@@ -483,9 +484,14 @@ where
 
 		mutated_genes.clear();
 		mutated_genes.resize(chromosome.len(), None);
-	}
 
-	Err(GeneticError::InitialPopulationTimeout)
+		if let Some(limit) = maybe_limit
+			&& let GeneticLimit::Runtime(max_runtime) = limit
+			&& time.elapsed().lt(max_runtime)
+		{
+			return Err(GeneticError::InitialPopulationTimeout);
+		}
+	}
 }
 
 fn init_mating_dist(
