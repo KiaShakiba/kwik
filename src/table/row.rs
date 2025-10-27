@@ -5,7 +5,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::io::{self, Write};
+use std::{
+	fmt::Display,
+	io::{self, Write},
+};
 
 use crate::{
 	file::csv::{RowData, WriteRow},
@@ -76,9 +79,9 @@ impl Row {
 	#[must_use]
 	pub fn push<T>(mut self, value: T, align: Align, style: Style) -> Self
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
-		let value = value.as_ref().to_string();
+		let value = value.to_string();
 		let len = value.len();
 		let cell = Cell::new(value, align, style);
 
