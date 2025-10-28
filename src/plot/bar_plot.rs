@@ -302,15 +302,15 @@ impl BarGroup {
 	/// Sets the bar group's label.
 	pub fn set_label<T>(&mut self, label: T)
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
-		self.label = Some(label.as_ref().to_string());
+		self.label = Some(label.to_string());
 	}
 
 	/// Sets the bar group's label.
 	pub fn with_label<T>(mut self, label: T) -> Self
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
 		self.set_label(label);
 		self
@@ -355,15 +355,15 @@ impl Bar {
 	/// Sets the bar's label.
 	pub fn set_label<T>(&mut self, label: T)
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
-		self.label = Some(label.as_ref().to_string());
+		self.label = Some(label.to_string());
 	}
 
 	/// Sets the bar's label.
 	pub fn with_label<T>(mut self, label: T) -> Self
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
 		self.set_label(label);
 		self

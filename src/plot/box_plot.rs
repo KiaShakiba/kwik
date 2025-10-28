@@ -322,10 +322,10 @@ impl BoxPlot {
 	/// box with the supplied label.
 	pub fn add<T>(&mut self, label: T, value: impl AsPrimitive<f64>)
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
 		self.map
-			.entry(label.as_ref().to_string())
+			.entry(label.to_string())
 			.and_modify(|values| values.push(value.as_()))
 			.or_insert(vec![value.as_()]);
 	}

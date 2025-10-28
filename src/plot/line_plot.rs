@@ -454,15 +454,15 @@ impl LinePlot {
 	/// Sets the plot's y2-axis label.
 	pub fn set_y2_label<T>(&mut self, label: T)
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
-		self.y2_label = Some(label.as_ref().to_string());
+		self.y2_label = Some(label.to_string());
 	}
 
 	/// Sets the plot's y2-axis label.
 	pub fn with_y2_label<T>(mut self, label: T) -> Self
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
 		self.set_y2_label(label);
 		self
@@ -811,15 +811,15 @@ impl Line {
 	/// Sets the line's label.
 	pub fn set_label<T>(&mut self, label: T)
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
-		self.label = Some(label.as_ref().to_string());
+		self.label = Some(label.to_string());
 	}
 
 	/// Sets the line's label.
 	pub fn with_label<T>(mut self, label: T) -> Self
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
 		self.set_label(label);
 		self
