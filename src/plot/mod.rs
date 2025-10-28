@@ -11,6 +11,8 @@ pub mod figure;
 pub mod line_plot;
 pub mod scatter_plot;
 
+use std::fmt::Display;
+
 use gnuplot::{AutoOption, Axes2D};
 use num_traits::AsPrimitive;
 
@@ -52,32 +54,32 @@ pub trait Plot {
 	/// Sets the plot's title.
 	fn set_title<T>(&mut self, title: T)
 	where
-		T: AsRef<str>;
+		T: Display;
 
 	/// Sets the plot's title.
 	fn with_title<T>(self, title: T) -> Self
 	where
-		T: AsRef<str>;
+		T: Display;
 
 	/// Sets the plot's x-axis label.
 	fn set_x_label<T>(&mut self, label: T)
 	where
-		T: AsRef<str>;
+		T: Display;
 
 	/// Sets the plot's x-axis label.
 	fn with_x_label<T>(self, label: T) -> Self
 	where
-		T: AsRef<str>;
+		T: Display;
 
 	/// Sets the plot's y-axis label.
 	fn set_y_label<T>(&mut self, label: T)
 	where
-		T: AsRef<str>;
+		T: Display;
 
 	/// Sets the plot's y-axis label.
 	fn with_y_label<T>(self, label: T) -> Self
 	where
-		T: AsRef<str>;
+		T: Display;
 
 	/// Configures the supplied `Gnuplot` `Axes2D` with the
 	/// plot's data.

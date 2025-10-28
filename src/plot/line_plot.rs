@@ -5,7 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::slice;
+use std::{fmt::Display, slice};
 
 use gnuplot::{
 	AlignType,
@@ -161,14 +161,14 @@ impl Plot for LinePlot {
 
 	fn set_title<T>(&mut self, title: T)
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
-		self.title = Some(title.as_ref().to_string());
+		self.title = Some(title.to_string());
 	}
 
 	fn with_title<T>(mut self, title: T) -> Self
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
 		self.set_title(title);
 		self
@@ -176,14 +176,14 @@ impl Plot for LinePlot {
 
 	fn set_x_label<T>(&mut self, label: T)
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
-		self.x_label = Some(label.as_ref().to_string());
+		self.x_label = Some(label.to_string());
 	}
 
 	fn with_x_label<T>(mut self, label: T) -> Self
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
 		self.set_x_label(label);
 		self
@@ -191,14 +191,14 @@ impl Plot for LinePlot {
 
 	fn set_y_label<T>(&mut self, label: T)
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
-		self.y_label = Some(label.as_ref().to_string());
+		self.y_label = Some(label.to_string());
 	}
 
 	fn with_y_label<T>(mut self, label: T) -> Self
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
 		self.set_y_label(label);
 		self
