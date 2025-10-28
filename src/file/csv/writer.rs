@@ -6,6 +6,7 @@
  */
 
 use std::{
+	fmt::Display,
 	fs::File,
 	io::{self, Seek, SeekFrom},
 	marker::PhantomData,
@@ -134,7 +135,7 @@ where
 	/// written.
 	pub fn set_headers<H>(&mut self, headers: &[H]) -> io::Result<()>
 	where
-		H: AsRef<str>,
+		H: Display,
 	{
 		if self.count > 0 {
 			return Err(io::Error::new(
@@ -147,7 +148,7 @@ where
 		self.count += 1;
 
 		for header in headers {
-			self.buf.data.push_field(header.as_ref());
+			self.buf.data.push_field(&header.to_string());
 		}
 
 		self.file
@@ -196,7 +197,7 @@ where
 	/// written.
 	pub fn with_headers<H>(mut self, headers: &[H]) -> io::Result<Self>
 	where
-		H: AsRef<str>,
+		H: Display,
 	{
 		self.set_headers(headers)?;
 		Ok(self)

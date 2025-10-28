@@ -6,6 +6,7 @@
  */
 
 use std::{
+	fmt::Display,
 	fs::File,
 	io::{self, LineWriter, Seek, SeekFrom, Write},
 	path::Path,
@@ -68,13 +69,13 @@ impl TextWriter {
 	#[inline]
 	pub fn write_line<T>(&mut self, line: T) -> io::Result<()>
 	where
-		T: AsRef<str>,
+		T: Display,
 	{
 		self.count += 1;
 
 		self.file.write_all(
 			&[
-				line.as_ref().as_bytes(),
+				line.to_string().as_bytes(),
 				b"\n",
 			]
 			.concat(),
