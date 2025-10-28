@@ -26,13 +26,13 @@ use rand::{
 };
 use rayon::prelude::*;
 
-use crate::genetic::limit::GeneticLimit;
 pub use crate::genetic::{
 	chromosome::Chromosome,
 	error::GeneticError,
 	fitness::{Fitness, FitnessOrd},
 	gene::Gene,
 	individual::Individual,
+	limit::GeneticLimit,
 	offspring::Offspring,
 	solution::GeneticSolution,
 };
