@@ -303,7 +303,7 @@ where
 			if let Some(limit) = &self.maybe_limit {
 				match limit {
 					GeneticLimit::Runtime(max_runtime)
-						if time.elapsed().gt(max_runtime) =>
+						if time.elapsed().ge(max_runtime) =>
 					{
 						break;
 					},
@@ -485,9 +485,8 @@ where
 		mutated_genes.clear();
 		mutated_genes.resize(chromosome.len(), None);
 
-		if let Some(limit) = maybe_limit
-			&& let GeneticLimit::Runtime(max_runtime) = limit
-			&& time.elapsed().lt(max_runtime)
+		if let Some(GeneticLimit::Runtime(max_runtime)) = maybe_limit
+			&& time.elapsed().ge(max_runtime)
 		{
 			return Err(GeneticError::InitialPopulationTimeout);
 		}
