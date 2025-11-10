@@ -22,31 +22,6 @@ struct Entry<T> {
 	height: usize,
 }
 
-/////
-impl<T> std::fmt::Debug for Entry<T>
-where
-	T: std::fmt::Debug,
-{
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		let data = unsafe { self.data.assume_init_ref() };
-		write!(f, "Entry<{data:?}, |{}|>", self.height)
-	}
-}
-
-impl<T> HashTree<T>
-where
-	T: std::fmt::Debug,
-{
-	fn print_entries(&self) {
-		println!("*** entries ***");
-		for entry in self.map.values() {
-			let entry = unsafe { entry.as_ref() };
-			println!("{entry:?}");
-		}
-	}
-}
-/////
-
 struct DataRef<T> {
 	data: *const T,
 }
@@ -173,7 +148,7 @@ impl<T> Entry<T> {
 			left: ptr::null_mut(),
 			right: ptr::null_mut(),
 
-			height: 0,
+			height: 1,
 		};
 
 		let boxed = Box::new(entry);
@@ -545,45 +520,225 @@ mod tests {
 	fn it_inserts_correctly() {
 		let mut tree = HashTree::<u64>::default();
 
+		// insert 1
 		assert_eq!(tree.insert(1), None);
-		tree.print_entries();
-		let (root_data, root_height) = get_entry_info(tree.root);
-		assert_eq!(root_data, 1);
-		assert_eq!(root_height, 0);
 
-		assert_eq!(tree.insert(2), None);
-		tree.print_entries();
 		let (root_data, root_height) = get_entry_info(tree.root);
 		assert_eq!(root_data, 1);
 		assert_eq!(root_height, 1);
 
+		let (l, r) = get_entry_children(tree.root);
+		assert!(l.is_null());
+		assert!(r.is_null());
+
+		// insert 2
+		assert_eq!(tree.insert(2), None);
+
+		let (root_data, root_height) = get_entry_info(tree.root);
+		assert_eq!(root_data, 1);
+		assert_eq!(root_height, 2);
+
+		let (l, r) = get_entry_children(tree.root);
+		assert!(l.is_null());
+		assert!(!r.is_null());
+
+		let (r_data, r_height) = get_entry_info(r);
+		assert_eq!(r_data, 2);
+		assert_eq!(r_height, 1);
+
+		// insert 3
 		assert_eq!(tree.insert(3), None);
-		tree.print_entries();
+
 		let (root_data, root_height) = get_entry_info(tree.root);
 		assert_eq!(root_data, 2);
-		assert_eq!(root_height, 1);
+		assert_eq!(root_height, 2);
 
-		/* assert_eq!(tree.insert(4), None);
-		assert_eq!(tree.insert(5), None);
-		assert_eq!(tree.insert(1), Some(1));
+		let (l, r) = get_entry_children(tree.root);
+		assert!(!l.is_null());
+		assert!(!r.is_null());
 
-		assert!(!tree.root.is_null());
+		let (l_data, l_height) = get_entry_info(l);
+		assert_eq!(l_data, 1);
+		assert_eq!(l_height, 1);
+
+		let (r_data, r_height) = get_entry_info(r);
+		assert_eq!(r_data, 3);
+		assert_eq!(r_height, 1);
+
+		// insert 4
+		assert_eq!(tree.insert(4), None);
 
 		let (root_data, root_height) = get_entry_info(tree.root);
 		assert_eq!(root_data, 2);
 		assert_eq!(root_height, 3);
 
-		let (left, right) = get_entry_children(tree.root);
-		assert!(!left.is_null());
-		assert!(!right.is_null());
+		let (l, r) = get_entry_children(tree.root);
+		assert!(!l.is_null());
+		assert!(!r.is_null());
 
-		let (left_data, left_height) = get_entry_info(left);
-		assert_eq!(left_data, 1);
-		assert_eq!(left_height, 1);
+		let (l_data, l_height) = get_entry_info(l);
+		assert_eq!(l_data, 1);
+		assert_eq!(l_height, 1);
 
-		let (right_data, right_height) = get_entry_info(right);
-		assert_eq!(right_data, 4);
-		assert_eq!(right_height, 2); */
+		let (r_data, r_height) = get_entry_info(r);
+		assert_eq!(r_data, 3);
+		assert_eq!(r_height, 2);
+
+		let (rl, rr) = get_entry_children(r);
+		assert!(rl.is_null());
+		assert!(!rr.is_null());
+
+		let (rr_data, rr_height) = get_entry_info(rr);
+		assert_eq!(rr_data, 4);
+		assert_eq!(rr_height, 1);
+
+		// insert 5
+		assert_eq!(tree.insert(5), None);
+
+		let (root_data, root_height) = get_entry_info(tree.root);
+		assert_eq!(root_data, 2);
+		assert_eq!(root_height, 3);
+
+		let (l, r) = get_entry_children(tree.root);
+		assert!(!l.is_null());
+		assert!(!r.is_null());
+
+		let (l_data, l_height) = get_entry_info(l);
+		assert_eq!(l_data, 1);
+		assert_eq!(l_height, 1);
+
+		let (r_data, r_height) = get_entry_info(r);
+		assert_eq!(r_data, 4);
+		assert_eq!(r_height, 2);
+
+		let (rl, rr) = get_entry_children(r);
+		assert!(!rl.is_null());
+		assert!(!rr.is_null());
+
+		let (rl_data, rl_height) = get_entry_info(rl);
+		assert_eq!(rl_data, 3);
+		assert_eq!(rl_height, 1);
+
+		let (rr_data, rr_height) = get_entry_info(rr);
+		assert_eq!(rr_data, 5);
+		assert_eq!(rr_height, 1);
+
+		// insert 6
+		assert_eq!(tree.insert(6), None);
+
+		let (root_data, root_height) = get_entry_info(tree.root);
+		assert_eq!(root_data, 4);
+		assert_eq!(root_height, 3);
+
+		let (l, r) = get_entry_children(tree.root);
+		assert!(!l.is_null());
+		assert!(!r.is_null());
+
+		let (l_data, l_height) = get_entry_info(l);
+		assert_eq!(l_data, 2);
+		assert_eq!(l_height, 2);
+
+		let (ll, lr) = get_entry_children(l);
+		assert!(!ll.is_null());
+		assert!(!lr.is_null());
+
+		let (ll_data, ll_height) = get_entry_info(ll);
+		assert_eq!(ll_data, 1);
+		assert_eq!(ll_height, 1);
+
+		let (lr_data, lr_height) = get_entry_info(lr);
+		assert_eq!(lr_data, 3);
+		assert_eq!(lr_height, 1);
+
+		let (r_data, r_height) = get_entry_info(r);
+		assert_eq!(r_data, 5);
+		assert_eq!(r_height, 2);
+
+		let (rl, rr) = get_entry_children(r);
+		assert!(rl.is_null());
+		assert!(!rr.is_null());
+
+		let (rr_data, rr_height) = get_entry_info(rr);
+		assert_eq!(rr_data, 6);
+		assert_eq!(rr_height, 1);
+
+		// re-insert 1
+		assert_eq!(tree.insert(1), Some(1));
+
+		let (root_data, root_height) = get_entry_info(tree.root);
+		assert_eq!(root_data, 4);
+		assert_eq!(root_height, 3);
+
+		let (l, r) = get_entry_children(tree.root);
+		assert!(!l.is_null());
+		assert!(!r.is_null());
+
+		let (l_data, l_height) = get_entry_info(l);
+		assert_eq!(l_data, 2);
+		assert_eq!(l_height, 2);
+
+		let (ll, lr) = get_entry_children(l);
+		assert!(!ll.is_null());
+		assert!(!lr.is_null());
+
+		let (ll_data, ll_height) = get_entry_info(ll);
+		assert_eq!(ll_data, 1);
+		assert_eq!(ll_height, 1);
+
+		let (lr_data, lr_height) = get_entry_info(lr);
+		assert_eq!(lr_data, 3);
+		assert_eq!(lr_height, 1);
+
+		let (r_data, r_height) = get_entry_info(r);
+		assert_eq!(r_data, 5);
+		assert_eq!(r_height, 2);
+
+		let (rl, rr) = get_entry_children(r);
+		assert!(rl.is_null());
+		assert!(!rr.is_null());
+
+		let (rr_data, rr_height) = get_entry_info(rr);
+		assert_eq!(rr_data, 6);
+		assert_eq!(rr_height, 1);
+
+		// re-insert 4
+		assert_eq!(tree.insert(4), Some(4));
+
+		let (root_data, root_height) = get_entry_info(tree.root);
+		assert_eq!(root_data, 3);
+		assert_eq!(root_height, 3);
+
+		let (l, r) = get_entry_children(tree.root);
+		assert!(!l.is_null());
+		assert!(!r.is_null());
+
+		let (l_data, l_height) = get_entry_info(l);
+		assert_eq!(l_data, 2);
+		assert_eq!(l_height, 2);
+
+		let (ll, lr) = get_entry_children(l);
+		assert!(!ll.is_null());
+		assert!(lr.is_null());
+
+		let (ll_data, ll_height) = get_entry_info(ll);
+		assert_eq!(ll_data, 1);
+		assert_eq!(ll_height, 1);
+
+		let (r_data, r_height) = get_entry_info(r);
+		assert_eq!(r_data, 5);
+		assert_eq!(r_height, 2);
+
+		let (rl, rr) = get_entry_children(r);
+		assert!(!rl.is_null());
+		assert!(!rr.is_null());
+
+		let (rl_data, rl_height) = get_entry_info(rl);
+		assert_eq!(rl_data, 4);
+		assert_eq!(rl_height, 1);
+
+		let (rr_data, rr_height) = get_entry_info(rr);
+		assert_eq!(rr_data, 6);
+		assert_eq!(rr_height, 1);
 	}
 
 	#[test]
@@ -775,7 +930,6 @@ mod tests {
 		entry: *mut Entry<T>,
 	) -> (*mut Entry<T>, *mut Entry<T>) {
 		let left = unsafe { (*entry).left };
-
 		let right = unsafe { (*entry).right };
 
 		(left, right)
@@ -783,7 +937,6 @@ mod tests {
 
 	fn get_entry_info<T>(entry: *mut Entry<T>) -> (T, usize) {
 		let data = unsafe { (*entry).data.assume_init_read() };
-
 		let height = unsafe { (*entry).height };
 
 		(data, height)
