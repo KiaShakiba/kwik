@@ -52,6 +52,7 @@ where
 	/// assert_eq!(tree.insert(3), None);
 	/// assert_eq!(tree.insert(2), Some(2));
 	/// ```
+	#[inline]
 	pub fn insert(&mut self, data: T) -> Option<T> {
 		let maybe_old_entry = self.map.remove(&DataRef::from_ref(&data));
 
@@ -69,6 +70,35 @@ where
 
 		maybe_old_entry
 			.map(|old_entry| Entry::<T>::into_data(old_entry.as_ptr()))
+	}
+
+	/// Removes and returns the entry which has the corresponding
+	/// hash of that of the supplied key or `None` if such an entry
+	/// does not exist.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashTree;
+	///
+	/// let mut list = HashTree::<u64>::default();
+	///
+	/// list.insert(1);
+	/// list.insert(2);
+	///
+	/// assert_eq!(list.remove(&1), Some(1));
+	/// assert_eq!(list.remove(&3), None);
+	/// ```
+	#[inline]
+	pub fn remove<K>(&mut self, key: &K) -> Option<T>
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		let entry = self.map.remove(KeyWrapper::from_ref(key))?;
+		let entry_ptr = entry.as_ptr();
+
+		self.root = remove_entry(self.root, entry_ptr);
+		Some(Entry::<T>::into_data(entry_ptr))
 	}
 }
 
