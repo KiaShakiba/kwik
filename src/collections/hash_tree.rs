@@ -101,6 +101,80 @@ where
 		Some(data)
 	}
 
+	/// Returns a reference to the left (smaller) child entry of that
+	/// which has the corresponding hash of the supplied key or `None`
+	/// if such an entry does not exist.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashTree;
+	///
+	/// let mut tree = HashTree::<u64>::default();
+	///
+	/// tree.insert(1);
+	/// tree.insert(2);
+	/// tree.insert(3);
+	///
+	/// assert_eq!(tree.left(&2), Some(&1));
+	/// assert_eq!(tree.left(&1), None);
+	/// assert_eq!(tree.left(&3), None);
+	/// ```
+	#[inline]
+	pub fn left<K>(&self, key: &K) -> Option<&T>
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		let entry = self.map.get(KeyWrapper::from_ref(key))?;
+		let entry_ptr = entry.as_ptr();
+		let left_ptr = unsafe { (*entry_ptr).left };
+
+		if left_ptr.is_null() {
+			return None;
+		}
+
+		let data = unsafe { (*left_ptr).data.assume_init_ref() };
+
+		Some(data)
+	}
+
+	/// Returns a reference to the right (larger) child entry of that
+	/// which has the corresponding hash of the supplied key or `None`
+	/// if such an entry does not exist.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashTree;
+	///
+	/// let mut tree = HashTree::<u64>::default();
+	///
+	/// tree.insert(1);
+	/// tree.insert(2);
+	/// tree.insert(3);
+	///
+	/// assert_eq!(tree.right(&2), Some(&3));
+	/// assert_eq!(tree.right(&1), None);
+	/// assert_eq!(tree.right(&3), None);
+	/// ```
+	#[inline]
+	pub fn right<K>(&self, key: &K) -> Option<&T>
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		let entry = self.map.get(KeyWrapper::from_ref(key))?;
+		let entry_ptr = entry.as_ptr();
+		let right_ptr = unsafe { (*entry_ptr).right };
+
+		if right_ptr.is_null() {
+			return None;
+		}
+
+		let data = unsafe { (*right_ptr).data.assume_init_ref() };
+
+		Some(data)
+	}
+
 	/// Removes and returns the entry which has the corresponding
 	/// hash of that of the supplied key or `None` if such an entry
 	/// does not exist.
