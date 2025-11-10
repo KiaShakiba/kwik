@@ -58,6 +58,7 @@ where
 
 		if let Some(old_entry) = maybe_old_entry {
 			self.root = remove_entry(self.root, old_entry.as_ptr());
+			reset_entry(old_entry.as_ptr());
 		}
 
 		let entry = Entry::new(data);
@@ -207,12 +208,19 @@ where
 		let entry_ptr = entry.as_ptr();
 		let data = unsafe { &mut *(*entry_ptr).data.as_mut_ptr() };
 
+		// updating the entry may change its postition in the tree, so we
+		// have to remove it and later re-insert it
+		self.root = remove_entry(self.root, entry_ptr);
+		reset_entry(entry_ptr);
+
 		f(data);
 
 		let data_ref = DataRef::from_ref(data);
 
+		self.root = insert_entry(self.root, entry_ptr);
+
 		// updating the entry may have modified its resulting hash, so we
-		// have to remove and reinsert it
+		// have to remove and re-insert it
 		self.map.insert(data_ref, entry);
 	}
 
@@ -467,6 +475,14 @@ where
 				right_min
 			}
 		},
+	}
+}
+
+fn reset_entry<T>(entry: *mut Entry<T>) {
+	unsafe {
+		(*entry).left = ptr::null_mut();
+		(*entry).right = ptr::null_mut();
+		(*entry).height = 1;
 	}
 }
 
@@ -1098,6 +1114,70 @@ mod tests {
 			assert_eq!((*entry_two).height, 2);
 			assert_eq!((*entry_three).height, 1);
 		}
+	}
+
+	#[test]
+	fn it_reorders_updates() {
+		let mut tree = HashTree::<u64>::default();
+
+		tree.insert(1);
+		tree.insert(2);
+		tree.insert(3);
+
+		// before update
+		let (data, height) = get_entry_info(tree.root);
+		assert_eq!(data, 2);
+		assert_eq!(height, 2);
+
+		let (l, r) = get_entry_children(tree.root);
+		assert!(!l.is_null());
+		assert!(!r.is_null());
+
+		let (l_data, l_height) = get_entry_info(l);
+		assert_eq!(l_data, 1);
+		assert_eq!(l_height, 1);
+
+		let (r_data, r_height) = get_entry_info(r);
+		assert_eq!(r_data, 3);
+		assert_eq!(r_height, 1);
+
+		// after update to leaf
+		tree.update(&2, |value| *value = 4);
+
+		let (data, height) = get_entry_info(tree.root);
+		assert_eq!(data, 3);
+		assert_eq!(height, 2);
+
+		let (l, r) = get_entry_children(tree.root);
+		assert!(!l.is_null());
+		assert!(!r.is_null());
+
+		let (l_data, l_height) = get_entry_info(l);
+		assert_eq!(l_data, 1);
+		assert_eq!(l_height, 1);
+
+		let (r_data, r_height) = get_entry_info(r);
+		assert_eq!(r_data, 4);
+		assert_eq!(r_height, 1);
+
+		// after update to root
+		tree.update(&4, |value| *value = 2);
+
+		let (data, height) = get_entry_info(tree.root);
+		assert_eq!(data, 2);
+		assert_eq!(height, 2);
+
+		let (l, r) = get_entry_children(tree.root);
+		assert!(!l.is_null());
+		assert!(!r.is_null());
+
+		let (l_data, l_height) = get_entry_info(l);
+		assert_eq!(l_data, 1);
+		assert_eq!(l_height, 1);
+
+		let (r_data, r_height) = get_entry_info(r);
+		assert_eq!(r_data, 3);
+		assert_eq!(r_height, 1);
 	}
 
 	fn get_entry_children<T>(

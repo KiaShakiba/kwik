@@ -494,7 +494,7 @@ where
 		let data_ref = DataRef::from_ref(data);
 
 		// updating the entry may have modified its resulting hash, so we
-		// have to remove and reinsert it
+		// have to remove and re-insert it
 		self.map.insert(data_ref, entry);
 	}
 
