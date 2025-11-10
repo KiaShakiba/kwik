@@ -72,6 +72,35 @@ where
 			.map(|old_entry| Entry::<T>::into_data(old_entry.as_ptr()))
 	}
 
+	/// Returns a reference to the entry which has the corresponding
+	/// hash of that of the supplied key or `None` if such an entry
+	/// does not exist.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashTree;
+	///
+	/// let mut tree = HashTree::<u64>::default();
+	///
+	/// tree.insert(1);
+	/// tree.insert(2);
+	///
+	/// assert_eq!(tree.get(&1), Some(&1));
+	/// assert_eq!(tree.get(&3), None);
+	/// ```
+	#[inline]
+	pub fn get<K>(&self, key: &K) -> Option<&T>
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		let entry = self.map.get(KeyWrapper::from_ref(key))?;
+		let entry_ptr = entry.as_ptr();
+		let data = unsafe { (*entry_ptr).data.assume_init_ref() };
+
+		Some(data)
+	}
+
 	/// Removes and returns the entry which has the corresponding
 	/// hash of that of the supplied key or `None` if such an entry
 	/// does not exist.
@@ -80,13 +109,13 @@ where
 	/// ```
 	/// use kwik::collections::HashTree;
 	///
-	/// let mut list = HashTree::<u64>::default();
+	/// let mut tree = HashTree::<u64>::default();
 	///
-	/// list.insert(1);
-	/// list.insert(2);
+	/// tree.insert(1);
+	/// tree.insert(2);
 	///
-	/// assert_eq!(list.remove(&1), Some(1));
-	/// assert_eq!(list.remove(&3), None);
+	/// assert_eq!(tree.remove(&1), Some(1));
+	/// assert_eq!(tree.remove(&3), None);
 	/// ```
 	#[inline]
 	pub fn remove<K>(&mut self, key: &K) -> Option<T>
