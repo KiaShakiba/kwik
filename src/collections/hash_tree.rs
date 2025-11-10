@@ -175,6 +175,47 @@ where
 		Some(data)
 	}
 
+	/// Updates the entry which has the corresponding hash of that
+	/// of the supplied key. Does nothing if such an entry does
+	/// not exist.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashTree;
+	///
+	/// let mut tree = HashTree::<u64>::default();
+	///
+	/// tree.insert(1);
+	/// assert_eq!(tree.get(&1), Some(&1));
+	///
+	/// tree.update(&1, |value| *value += 1);
+	///
+	/// assert_eq!(tree.get(&1), None);
+	/// assert_eq!(tree.get(&2), Some(&2));
+	/// ```
+	#[inline]
+	pub fn update<K, F>(&mut self, key: &K, mut f: F)
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+		F: FnMut(&mut T),
+	{
+		let Some(entry) = self.map.remove(KeyWrapper::from_ref(key)) else {
+			return;
+		};
+
+		let entry_ptr = entry.as_ptr();
+		let data = unsafe { &mut *(*entry_ptr).data.as_mut_ptr() };
+
+		f(data);
+
+		let data_ref = DataRef::from_ref(data);
+
+		// updating the entry may have modified its resulting hash, so we
+		// have to remove and reinsert it
+		self.map.insert(data_ref, entry);
+	}
+
 	/// Removes and returns the entry which has the corresponding
 	/// hash of that of the supplied key or `None` if such an entry
 	/// does not exist.
