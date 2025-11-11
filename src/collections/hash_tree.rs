@@ -2,7 +2,9 @@ use std::{
 	borrow::Borrow,
 	cmp::{self, Ordering},
 	collections::HashMap,
+	fmt::{self, Debug, Formatter},
 	hash::{BuildHasher, Hash, Hasher, RandomState},
+	iter::FusedIterator,
 	mem::MaybeUninit,
 	ptr::{self, NonNull},
 };
@@ -29,11 +31,48 @@ struct DataRef<T> {
 #[repr(transparent)]
 struct KeyWrapper<K>(K);
 
+pub struct Iter<'a, T, S> {
+	// we hold a reference to the tree to ensure the entries have
+	// correct lifetimes and to inform the size hint
+	tree: &'a HashTree<T, S>,
+
+	root: *mut Entry<T>,
+}
+
+pub struct IntoIter<T, S> {
+	tree: HashTree<T, S>,
+}
+
 impl<T, S> HashTree<T, S>
 where
 	T: Eq + Ord + Hash,
 	S: BuildHasher,
 {
+	/// Returns `true` if the hash tree contains an entry with the corresponding
+	/// hash of that of the supplied key.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashTree;
+	///
+	/// let mut tree = HashTree::<u64>::default();
+	///
+	/// tree.insert(1);
+	/// tree.insert(2);
+	/// tree.insert(3);
+	///
+	/// assert!(tree.contains(&2));
+	/// assert!(!tree.contains(&4));
+	/// ```
+	#[inline]
+	pub fn contains<K>(&self, key: &K) -> bool
+	where
+		T: Borrow<K>,
+		K: Eq + Hash,
+	{
+		self.map.contains_key(KeyWrapper::from_ref(key))
+	}
+
 	/// Inserts an entry into the hash tree.
 	///
 	/// If the hash tree did not have this entry, `None` is returned.
@@ -71,6 +110,68 @@ where
 
 		maybe_old_entry
 			.map(|old_entry| Entry::<T>::into_data(old_entry.as_ptr()))
+	}
+
+	/// Removes the smallest entry and returns it, or `None` if the hash tree
+	/// is empty.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashTree;
+	///
+	/// let mut tree = HashTree::<u64>::default();
+	///
+	/// tree.insert(1);
+	/// tree.insert(2);
+	///
+	/// assert_eq!(tree.pop_smallest(), Some(1));
+	/// assert_eq!(tree.pop_smallest(), Some(2));
+	/// assert_eq!(tree.pop_smallest(), None);
+	/// ```
+	#[inline]
+	pub fn pop_smallest(&mut self) -> Option<T> {
+		if self.root.is_null() {
+			return None;
+		}
+
+		let entry_ptr = find_min(self.root);
+		self.root = remove_entry(self.root, entry_ptr);
+
+		let data_ref = DataRef::from_entry_ptr(entry_ptr);
+		self.map.remove(&data_ref).unwrap();
+
+		Some(Entry::<T>::into_data(entry_ptr))
+	}
+
+	/// Removes the largest entry and returns it, or `None` if the hash tree
+	/// is empty.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashTree;
+	///
+	/// let mut tree = HashTree::<u64>::default();
+	///
+	/// tree.insert(1);
+	/// tree.insert(2);
+	///
+	/// assert_eq!(tree.pop_largest(), Some(2));
+	/// assert_eq!(tree.pop_largest(), Some(1));
+	/// assert_eq!(tree.pop_largest(), None);
+	/// ```
+	#[inline]
+	pub fn pop_largest(&mut self) -> Option<T> {
+		if self.root.is_null() {
+			return None;
+		}
+
+		let entry_ptr = find_max(self.root);
+		self.root = remove_entry(self.root, entry_ptr);
+
+		let data_ref = DataRef::from_entry_ptr(entry_ptr);
+		self.map.remove(&data_ref).unwrap();
+
+		Some(Entry::<T>::into_data(entry_ptr))
 	}
 
 	/// Returns a reference to the entry which has the corresponding
@@ -252,6 +353,27 @@ where
 		self.root = remove_entry(self.root, entry_ptr);
 		Some(Entry::<T>::into_data(entry_ptr))
 	}
+
+	/// Clears the hash tree, removing all entries.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashTree;
+	///
+	/// let mut tree = HashTree::<u64>::default();
+	///
+	/// tree.insert(1);
+	/// tree.insert(2);
+	/// tree.insert(3);
+	///
+	/// tree.clear();
+	///
+	/// assert_eq!(tree.len(), 0);
+	/// ```
+	#[inline]
+	pub fn clear(&mut self) {
+		while self.pop_smallest().is_some() {}
+	}
 }
 
 impl<T, S> HashTree<T, S> {
@@ -296,6 +418,29 @@ impl<T, S> HashTree<T, S> {
 	/// ```
 	pub fn len(&self) -> usize {
 		self.map.len()
+	}
+
+	/// Returns an iterator over the hash tree.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashTree;
+	///
+	/// let tree = HashTree::<u64>::default();
+	///
+	/// // add entries to tree
+	///
+	/// for entry in tree.iter() {
+	///     // use entry
+	/// }
+	/// ```
+	#[inline]
+	pub fn iter(&self) -> Iter<'_, T, S> {
+		Iter {
+			tree: self,
+
+			root: self.root,
+		}
 	}
 }
 
@@ -508,6 +653,28 @@ where
 	}
 }
 
+/// returns the largest entry in the tree
+fn find_max<T>(root: *mut Entry<T>) -> *mut Entry<T>
+where
+	T: Ord,
+{
+	if root.is_null() {
+		return root;
+	}
+
+	let mut current = root;
+
+	loop {
+		let right = unsafe { (*current).right };
+
+		if right.is_null() {
+			return current;
+		}
+
+		current = right;
+	}
+}
+
 fn balance_entry<T>(entry: *mut Entry<T>) -> *mut Entry<T> {
 	let factor = balance_factor(entry);
 
@@ -702,9 +869,176 @@ where
 	}
 }
 
+impl<'a, T, S> Iterator for Iter<'a, T, S> {
+	type Item = &'a T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		todo!();
+	}
+
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		(self.tree.len(), Some(self.tree.len()))
+	}
+}
+
+impl<'a, T, S> IntoIterator for &'a HashTree<T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{
+	type Item = &'a T;
+	type IntoIter = Iter<'a, T, S>;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl<T, S> Iterator for IntoIter<T, S>
+where
+	T: Eq + Ord + Hash,
+	S: BuildHasher,
+{
+	type Item = T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.tree.pop_smallest()
+	}
+}
+
+impl<T, S> ExactSizeIterator for Iter<'_, T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{
+}
+
+impl<T, S> ExactSizeIterator for IntoIter<T, S>
+where
+	T: Eq + Ord + Hash,
+	S: BuildHasher,
+{
+}
+
+impl<T, S> FusedIterator for Iter<'_, T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{
+}
+
+impl<T, S> FusedIterator for IntoIter<T, S>
+where
+	T: Eq + Ord + Hash,
+	S: BuildHasher,
+{
+}
+
+impl<T, S> IntoIterator for HashTree<T, S>
+where
+	T: Eq + Ord + Hash,
+	S: BuildHasher,
+{
+	type Item = T;
+	type IntoIter = IntoIter<T, S>;
+
+	fn into_iter(self) -> Self::IntoIter {
+		IntoIter {
+			tree: self,
+		}
+	}
+}
+
+impl<T, S> FromIterator<T> for HashTree<T, S>
+where
+	T: Eq + Ord + Hash,
+	S: Default + BuildHasher,
+{
+	fn from_iter<I>(iter: I) -> Self
+	where
+		I: IntoIterator<Item = T>,
+	{
+		let mut tree = HashTree::<T, S>::default();
+
+		for value in iter {
+			tree.insert(value);
+		}
+
+		tree
+	}
+}
+
+impl<T, S> Extend<T> for HashTree<T, S>
+where
+	T: Eq + Ord + Hash,
+	S: BuildHasher,
+{
+	fn extend<I>(&mut self, iter: I)
+	where
+		I: IntoIterator<Item = T>,
+	{
+		for value in iter {
+			self.insert(value);
+		}
+	}
+}
+
+impl<T, S> Hash for HashTree<T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{
+	fn hash<H>(&self, state: &mut H)
+	where
+		H: Hasher,
+	{
+		self.len().hash(state);
+
+		for value in self {
+			value.hash(state);
+		}
+	}
+}
+
+impl<T, S> Debug for HashTree<T, S>
+where
+	T: Eq + Hash + Debug,
+	S: BuildHasher,
+{
+	fn fmt(&self, fmt: &mut Formatter<'_>) -> fmt::Result {
+		fmt.write_str("HashTree(")?;
+		fmt.debug_list().entries(self).finish()?;
+		fmt.write_str(")")?;
+
+		Ok(())
+	}
+}
+
+impl<T, S> Drop for HashTree<T, S> {
+	fn drop(&mut self) {
+		self.map.drain().for_each(|(_, entry)| unsafe {
+			let mut entry = *Box::from_raw(entry.as_ptr());
+			ptr::drop_in_place(entry.data.as_mut_ptr());
+		});
+	}
+}
+
 #[cfg(test)]
 mod tests {
+	use std::{
+		borrow::Borrow,
+		cmp::Ordering,
+		hash::{Hash, Hasher},
+	};
+
+	use droptest::{DropGuard, DropRegistry, assert_drop, assert_no_drop};
+
 	use crate::collections::hash_tree::{Entry, HashTree};
+
+	struct DroppableObject<'a> {
+		id: u64,
+		guard: DropGuard<'a, ()>,
+	}
 
 	#[test]
 	fn it_inserts_correctly() {
@@ -1180,6 +1514,44 @@ mod tests {
 		assert_eq!(r_height, 1);
 	}
 
+	#[test]
+	fn it_drops_removed_object() {
+		let registry = DropRegistry::default();
+		let mut tree = HashTree::<DroppableObject>::default();
+
+		let object1 = DroppableObject::new(&registry, 1);
+		let object2 = DroppableObject::new(&registry, 2);
+
+		let object1_guard_id = object1.guard.id();
+		let object2_guard_id = object2.guard.id();
+
+		tree.insert(object1);
+		tree.insert(object2);
+		tree.remove(&1);
+
+		assert_drop!(registry, object1_guard_id);
+		assert_no_drop!(registry, object2_guard_id);
+	}
+
+	#[test]
+	fn it_drops_cleared_objects() {
+		let registry = DropRegistry::default();
+		let mut tree = HashTree::<DroppableObject>::default();
+
+		let object1 = DroppableObject::new(&registry, 1);
+		let object2 = DroppableObject::new(&registry, 2);
+
+		let object1_guard_id = object1.guard.id();
+		let object2_guard_id = object2.guard.id();
+
+		tree.insert(object1);
+		tree.insert(object2);
+		tree.clear();
+
+		assert_drop!(registry, object1_guard_id);
+		assert_drop!(registry, object2_guard_id);
+	}
+
 	fn get_entry_children<T>(
 		entry: *mut Entry<T>,
 	) -> (*mut Entry<T>, *mut Entry<T>) {
@@ -1194,5 +1566,49 @@ mod tests {
 		let height = unsafe { (*entry).height };
 
 		(data, height)
+	}
+
+	impl<'a> DroppableObject<'a> {
+		fn new(registry: &'a DropRegistry, id: u64) -> Self {
+			DroppableObject {
+				id,
+				guard: registry.new_guard(),
+			}
+		}
+	}
+
+	impl PartialEq for DroppableObject<'_> {
+		fn eq(&self, other: &Self) -> bool {
+			self.id == other.id
+		}
+	}
+
+	impl Eq for DroppableObject<'_> {}
+
+	impl PartialOrd for DroppableObject<'_> {
+		fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+			Some(self.cmp(other))
+		}
+	}
+
+	impl Ord for DroppableObject<'_> {
+		fn cmp(&self, other: &Self) -> Ordering {
+			self.id.cmp(&other.id)
+		}
+	}
+
+	impl Borrow<u64> for DroppableObject<'_> {
+		fn borrow(&self) -> &u64 {
+			&self.id
+		}
+	}
+
+	impl Hash for DroppableObject<'_> {
+		fn hash<H>(&self, state: &mut H)
+		where
+			H: Hasher,
+		{
+			self.id.hash(state)
+		}
 	}
 }

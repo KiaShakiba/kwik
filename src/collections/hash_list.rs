@@ -10,7 +10,7 @@ use std::{
 	collections::HashMap,
 	fmt::{self, Debug, Formatter},
 	hash::{BuildHasher, Hash, Hasher, RandomState},
-	iter::{FromIterator, FusedIterator},
+	iter::FusedIterator,
 	marker::PhantomData,
 	mem::MaybeUninit,
 	ptr::{self, NonNull},
@@ -1347,6 +1347,25 @@ mod tests {
 
 		assert_drop!(registry, object1_guard_id);
 		assert_no_drop!(registry, object2_guard_id);
+	}
+
+	#[test]
+	fn it_drops_cleared_objects() {
+		let registry = DropRegistry::default();
+		let mut list = HashList::<DroppableObject>::default();
+
+		let object1 = DroppableObject::new(&registry, 1);
+		let object2 = DroppableObject::new(&registry, 2);
+
+		let object1_guard_id = object1.guard.id();
+		let object2_guard_id = object2.guard.id();
+
+		list.push_front(object1);
+		list.push_front(object2);
+		list.clear();
+
+		assert_drop!(registry, object1_guard_id);
+		assert_drop!(registry, object2_guard_id);
 	}
 
 	#[test]
