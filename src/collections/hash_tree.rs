@@ -12,8 +12,14 @@ use std::{
 	fmt::{self, Debug, Formatter},
 	hash::{BuildHasher, Hash, Hasher, RandomState},
 	iter::FusedIterator,
+	marker::PhantomData,
 	mem::MaybeUninit,
 	ptr::{self, NonNull},
+};
+
+use serde::{
+	de::{Deserialize, Deserializer, SeqAccess, Visitor},
+	ser::{Serialize, SerializeSeq, Serializer},
 };
 
 /// A hash AVL tree.
@@ -487,6 +493,17 @@ where
 		HashTree::<T, S>::with_hasher(S::default())
 	}
 }
+
+impl<T, S> PartialEq for HashTree<T, S>
+where
+	T: PartialEq,
+{
+	fn eq(&self, other: &Self) -> bool {
+		self.len() == other.len() && self.iter().eq(other.iter())
+	}
+}
+
+impl<T, S> Eq for HashTree<T, S> where T: Eq {}
 
 impl<T> Entry<T> {
 	fn new(data: T) -> NonNull<Self> {
@@ -1093,6 +1110,74 @@ impl<T, S> Drop for HashTree<T, S> {
 	}
 }
 
+impl<T, S> Serialize for HashTree<T, S>
+where
+	T: Eq + Hash + Serialize,
+	S: BuildHasher,
+{
+	fn serialize<Se>(&self, serializer: Se) -> Result<Se::Ok, Se::Error>
+	where
+		Se: Serializer,
+	{
+		let mut seq = serializer.serialize_seq(Some(self.len()))?;
+
+		for value in self {
+			seq.serialize_element(value)?;
+		}
+
+		seq.end()
+	}
+}
+
+struct HashTreeVisitor<T, S> {
+	marker: PhantomData<(T, S)>,
+}
+
+impl<'de, T, S> Visitor<'de> for HashTreeVisitor<T, S>
+where
+	T: Eq + Ord + Hash + Deserialize<'de>,
+	S: Default + BuildHasher,
+{
+	type Value = HashTree<T, S>;
+
+	fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+		formatter.write_str("a hash tree")
+	}
+
+	fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+	where
+		A: SeqAccess<'de>,
+	{
+		let mut tree = HashTree::<T, S>::default();
+
+		while let Some(value) = seq.next_element()? {
+			tree.insert(value);
+		}
+
+		Ok(tree)
+	}
+}
+
+impl<'de, T, S> Deserialize<'de> for HashTree<T, S>
+where
+	T: Eq + Ord + Hash + Deserialize<'de>,
+	S: Default + BuildHasher,
+{
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		let visitor = HashTreeVisitor {
+			marker: PhantomData,
+		};
+
+		deserializer.deserialize_seq(visitor)
+	}
+}
+
+unsafe impl<T, S> Send for HashTree<T, S> {}
+unsafe impl<T, S> Sync for HashTree<T, S> {}
+
 #[cfg(test)]
 mod tests {
 	use std::{
@@ -1102,6 +1187,7 @@ mod tests {
 	};
 
 	use droptest::{DropGuard, DropRegistry, assert_drop, assert_no_drop};
+	use serde_test::{Token, assert_tokens};
 
 	use crate::collections::hash_tree::{Entry, HashTree};
 
@@ -1624,7 +1710,7 @@ mod tests {
 
 	#[test]
 	fn it_iters_correctly() {
-		let mut tree = HashTree::<u64>::default();
+		let mut tree = HashTree::<u32>::default();
 
 		tree.insert(5);
 		tree.insert(3);
@@ -1641,6 +1727,36 @@ mod tests {
 		assert_eq!(iter.next(), Some(&6));
 		assert_eq!(iter.next(), Some(&7));
 		assert!(iter.next().is_none());
+	}
+
+	#[test]
+	fn it_ser_de_empty() {
+		let tree = HashTree::<u32>::default();
+
+		assert_tokens(&tree, &[
+			Token::Seq {
+				len: Some(0),
+			},
+			Token::SeqEnd,
+		]);
+	}
+
+	#[test]
+	fn it_ser_de() {
+		let tree: HashTree<u32> = [1, 2, 3, 4, 5, 6].into_iter().collect();
+
+		assert_tokens(&tree, &[
+			Token::Seq {
+				len: Some(6),
+			},
+			Token::U32(1),
+			Token::U32(2),
+			Token::U32(3),
+			Token::U32(4),
+			Token::U32(5),
+			Token::U32(6),
+			Token::SeqEnd,
+		]);
 	}
 
 	fn get_entry_children<T>(
