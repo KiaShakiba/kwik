@@ -444,12 +444,16 @@ impl<T, S> HashTree<T, S> {
 	/// ```
 	#[inline]
 	pub fn iter(&self) -> Iter<'_, T, S> {
+		let mut stack = Vec::<IterVisitor<T>>::new();
+
+		if !self.root.is_null() {
+			stack.push(IterVisitor::new(self.root))
+		}
+
 		Iter {
 			tree: self,
 
-			stack: vec![IterVisitor::new(
-				self.root,
-			)],
+			stack,
 		}
 	}
 }
@@ -884,26 +888,26 @@ impl<'a, T, S> Iterator for Iter<'a, T, S> {
 
 	fn next(&mut self) -> Option<Self::Item> {
 		loop {
-			let visitor = self.stack.last()?;
+			let visitor = self.stack.last_mut()?;
 
-			if !visitor.visited_left && visitor.has_left() {
-				self.stack.push(visitor.get_left_visitor());
+			if !visitor.visited_left {
+				visitor.visited_left = true;
+
+				let left_visitor = visitor.get_left_visitor();
+				self.stack.push(left_visitor);
+			} else if !visitor.visited_self {
+				visitor.visited_self = true;
+
+				return Some(visitor.get_ref());
+			} else if !visitor.visited_right {
+				visitor.visited_right = true;
+
+				let right_visitor = visitor.get_right_visitor();
+				self.stack.push(right_visitor);
 			} else {
-				break;
+				self.stack.pop();
 			}
 		}
-
-		let visitor = self.stack.last_mut()?;
-
-		if !visitor.visited_self {
-			visitor.visited_self = true;
-			return Some(visitor.get_ref());
-		}
-
-		let visitor = visitor.get_right_visitor();
-		self.stack.push(visitor);
-
-		todo!();
 	}
 
 	fn size_hint(&self) -> (usize, Option<usize>) {
@@ -927,18 +931,6 @@ impl<T> IterVisitor<T> {
 
 	fn get_ref<'a>(&self) -> &'a T {
 		unsafe { (*self.entry).data.assume_init_ref() }
-	}
-
-	fn visited_all(&self) -> bool {
-		self.visited_self && self.visited_left && self.visited_right
-	}
-
-	fn has_left(&self) -> bool {
-		unsafe { !(*self.entry).left.is_null() }
-	}
-
-	fn has_right(&self) -> bool {
-		unsafe { !(*self.entry).right.is_null() }
 	}
 
 	fn get_left_visitor(&self) -> Self {
@@ -1621,6 +1613,27 @@ mod tests {
 
 		assert_drop!(registry, object1_guard_id);
 		assert_drop!(registry, object2_guard_id);
+	}
+
+	#[test]
+	fn it_iters_correctly() {
+		let mut tree = HashTree::<u64>::default();
+
+		tree.insert(5);
+		tree.insert(3);
+		tree.insert(7);
+		tree.insert(1);
+		tree.insert(2);
+		tree.insert(6);
+
+		let mut iter = tree.iter();
+		assert_eq!(iter.next(), Some(&1));
+		assert_eq!(iter.next(), Some(&2));
+		assert_eq!(iter.next(), Some(&3));
+		assert_eq!(iter.next(), Some(&5));
+		assert_eq!(iter.next(), Some(&6));
+		assert_eq!(iter.next(), Some(&7));
+		assert!(iter.next().is_none());
 	}
 
 	fn get_entry_children<T>(
