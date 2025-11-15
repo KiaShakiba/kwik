@@ -36,7 +36,15 @@ pub struct Iter<'a, T, S> {
 	// correct lifetimes and to inform the size hint
 	tree: &'a HashTree<T, S>,
 
-	root: *mut Entry<T>,
+	stack: Vec<IterVisitor<T>>,
+}
+
+struct IterVisitor<T> {
+	entry: *const Entry<T>,
+
+	visited_self: bool,
+	visited_left: bool,
+	visited_right: bool,
 }
 
 pub struct IntoIter<T, S> {
@@ -439,7 +447,9 @@ impl<T, S> HashTree<T, S> {
 		Iter {
 			tree: self,
 
-			root: self.root,
+			stack: vec![IterVisitor::new(
+				self.root,
+			)],
 		}
 	}
 }
@@ -873,11 +883,72 @@ impl<'a, T, S> Iterator for Iter<'a, T, S> {
 	type Item = &'a T;
 
 	fn next(&mut self) -> Option<Self::Item> {
+		loop {
+			let visitor = self.stack.last()?;
+
+			if !visitor.visited_left && visitor.has_left() {
+				self.stack.push(visitor.get_left_visitor());
+			} else {
+				break;
+			}
+		}
+
+		let visitor = self.stack.last_mut()?;
+
+		if !visitor.visited_self {
+			visitor.visited_self = true;
+			return Some(visitor.get_ref());
+		}
+
+		let visitor = visitor.get_right_visitor();
+		self.stack.push(visitor);
+
 		todo!();
 	}
 
 	fn size_hint(&self) -> (usize, Option<usize>) {
 		(self.tree.len(), Some(self.tree.len()))
+	}
+}
+
+impl<T> IterVisitor<T> {
+	fn new(entry: *const Entry<T>) -> Self {
+		let visited_left = unsafe { (*entry).left.is_null() };
+		let visited_right = unsafe { (*entry).right.is_null() };
+
+		IterVisitor {
+			entry,
+
+			visited_self: false,
+			visited_left,
+			visited_right,
+		}
+	}
+
+	fn get_ref<'a>(&self) -> &'a T {
+		unsafe { (*self.entry).data.assume_init_ref() }
+	}
+
+	fn visited_all(&self) -> bool {
+		self.visited_self && self.visited_left && self.visited_right
+	}
+
+	fn has_left(&self) -> bool {
+		unsafe { !(*self.entry).left.is_null() }
+	}
+
+	fn has_right(&self) -> bool {
+		unsafe { !(*self.entry).right.is_null() }
+	}
+
+	fn get_left_visitor(&self) -> Self {
+		let left = unsafe { (*self.entry).left };
+		IterVisitor::<T>::new(left)
+	}
+
+	fn get_right_visitor(&self) -> Self {
+		let right = unsafe { (*self.entry).right };
+		IterVisitor::<T>::new(right)
 	}
 }
 
