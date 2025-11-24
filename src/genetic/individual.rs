@@ -73,16 +73,22 @@ where
 
 			for index in gene_indexes {
 				let gene = match get_mate_result(rng, mutation_probability) {
-					MateResult::Parent1 => self.chromosome.get(index).clone(),
+					MateResult::Parent1 => {
+						let mut gene = self.chromosome.get(index).clone();
+						gene.modify(&child_genes);
+						gene
+					},
+
 					MateResult::Parent2 => {
-						partner.chromosome.get(index).clone()
+						let mut gene = partner.chromosome.get(index).clone();
+						gene.modify(&child_genes);
+						gene
 					},
 
 					MateResult::Mutation => {
 						mutations += 1;
 
 						let mut gene = self.chromosome.get(index).clone();
-
 						gene.mutate(rng, &child_genes);
 						gene
 					},

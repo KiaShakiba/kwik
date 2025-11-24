@@ -34,4 +34,11 @@ where
 	/// the acceptable range of possible values. The current (potentially
 	/// partially filled) chromosome is provided.
 	fn mutate(&mut self, rng: &mut impl Rng, genes: &[Option<Self>]);
+
+	/// Modifies the value of the gene, if necessary. Unlike `mutate`, this
+	/// function only gets called on genes that are inherited from a parent. It
+	/// should be used to perform necessary modifications on the gene to ensure
+	/// a valid individual is produced. The current (potentially partially
+	/// filled) chromosome is provided.
+	fn modify(&mut self, _genes: &[Option<Self>]) {}
 }
