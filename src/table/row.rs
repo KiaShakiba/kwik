@@ -5,10 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-use std::{
-	fmt::Display,
-	io::{self, Write},
-};
+use std::{fmt::Display, io::Write};
 
 use crate::{
 	file::csv::{RowData, WriteRow},
@@ -175,11 +172,9 @@ impl Row {
 }
 
 impl WriteRow for Row {
-	fn as_row(&self, row_data: &mut RowData) -> io::Result<()> {
+	fn as_row(&self, row_data: &mut RowData) {
 		for cell in &self.cells {
 			row_data.push(cell.value());
 		}
-
-		Ok(())
 	}
 }
