@@ -12,7 +12,7 @@ categories = ["algorithms", "data-structures", "filesystem"]
 [dependencies]
 csv = "1.4.0"
 gnuplot = "0.0.46"
-indexmap = "2.12.0"
+indexmap = "2.12.1"
 md-5 = "0.10.6"
 num-format = "0.4.4"
 num-traits = "0.2.19"
