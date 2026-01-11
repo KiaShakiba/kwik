@@ -10,3 +10,6 @@ pub use crate::collections::hash_list::HashList;
 
 pub mod hash_tree;
 pub use crate::collections::hash_tree::HashTree;
+
+pub mod hash_graph;
+pub use crate::collections::hash_graph::HashGraph;

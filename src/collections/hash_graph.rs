@@ -1,0 +1,202 @@
+use std::{
+	borrow::Borrow,
+	collections::HashMap,
+	hash::{BuildHasher, Hash, Hasher, RandomState},
+	mem::MaybeUninit,
+	ptr::NonNull,
+};
+
+pub struct HashGraph<T, S = RandomState> {
+	map: HashMap<DataRef<T>, NonNull<Entry<T>>, S>,
+}
+
+struct Entry<T> {
+	data: MaybeUninit<T>,
+	adj: Vec<*mut Entry<T>>,
+}
+
+struct DataRef<T> {
+	data: *const T,
+}
+
+#[repr(transparent)]
+struct KeyWrapper<K>(K);
+
+impl<T, S> HashGraph<T, S>
+where
+	T: Eq + Hash,
+	S: BuildHasher,
+{
+	/// Inserts a disconnected entry into the hash graph.
+	///
+	/// If the hash graph did not have this entry, `None` is returned.
+	///
+	/// If the hash graph did have this entry, the new entry is inserted
+	/// and the old entry is returned.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashGraph;
+	///
+	/// let mut graph = HashGraph::<u64>::default();
+	///
+	/// assert_eq!(graph.insert(1), None);
+	/// assert_eq!(graph.insert(2), None);
+	/// assert_eq!(graph.insert(3), None);
+	/// assert_eq!(graph.insert(2), Some(2));
+	/// ```
+	#[inline]
+	pub fn insert(&mut self, data: T) -> Option<T> {
+		let maybe_old_entry = self.map.remove(&DataRef::from_ref(&data));
+
+		let entry = Entry::new(data);
+		let entry_ptr = entry.as_ptr();
+
+		let data_ref = DataRef::from_entry_ptr(entry_ptr);
+		self.map.insert(data_ref, entry);
+
+		maybe_old_entry
+			.map(|old_entry| Entry::<T>::into_data(old_entry.as_ptr()))
+	}
+
+	/// Connects two entries in the hash graph.
+	///
+	/// If the hash graph does not contain either entry, or the entries
+	/// are already connected, nothing is updated.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashGraph;
+	///
+	/// let mut graph = HashGraph::<u64>::default();
+	///
+	/// graph.insert(1);
+	/// graph.insert(2);
+	/// graph.insert(3);
+	///
+	/// graph.connect(&1, &2);
+	/// ```
+	#[inline]
+	pub fn connect<K1, K2>(&mut self, a: &K1, b: &K2)
+	where
+		T: Borrow<K1> + Borrow<K2>,
+		K1: Eq + Hash,
+		K2: Eq + Hash,
+	{
+		let Some((a_ref, b_ref)) = self
+			.map
+			.get(KeyWrapper::from_ref(a))
+			.zip(self.map.get(KeyWrapper::from_ref(b)))
+		else {
+			return;
+		};
+
+		let a_ptr = a_ref.as_ptr();
+		let b_ptr = b_ref.as_ptr();
+
+		unsafe {
+			(*a_ptr).adj.push(b_ptr);
+			(*b_ptr).adj.push(a_ptr);
+		}
+
+		todo!();
+	}
+}
+
+impl<T> Entry<T> {
+	fn new(data: T) -> NonNull<Self> {
+		let entry = Entry {
+			data: MaybeUninit::new(data),
+			adj: Vec::new(),
+		};
+
+		let boxed = Box::new(entry);
+		unsafe { NonNull::new_unchecked(Box::into_raw(boxed)) }
+	}
+
+	fn into_data(entry_ptr: *mut Entry<T>) -> T {
+		unsafe {
+			let entry = *Box::from_raw(entry_ptr);
+			entry.data.assume_init()
+		}
+	}
+}
+
+impl<T> DataRef<T> {
+	fn from_ref(data: &T) -> Self {
+		DataRef {
+			data,
+		}
+	}
+
+	fn from_entry_ptr(entry_ptr: *mut Entry<T>) -> Self {
+		let data_ptr = unsafe { (*entry_ptr).data.as_ptr() };
+
+		DataRef {
+			data: data_ptr,
+		}
+	}
+}
+
+impl<T> Hash for DataRef<T>
+where
+	T: Hash,
+{
+	fn hash<H>(&self, state: &mut H)
+	where
+		H: Hasher,
+	{
+		unsafe { (*self.data).hash(state) }
+	}
+}
+
+impl<T> PartialEq for DataRef<T>
+where
+	T: PartialEq,
+{
+	fn eq(&self, other: &Self) -> bool {
+		unsafe { (*self.data).eq(&*other.data) }
+	}
+}
+
+impl<T> Eq for DataRef<T> where T: Eq {}
+
+impl<K> KeyWrapper<K> {
+	fn from_ref(key: &K) -> &Self {
+		unsafe { &*(key as *const K as *const KeyWrapper<K>) }
+	}
+}
+
+impl<K> Hash for KeyWrapper<K>
+where
+	K: Hash,
+{
+	fn hash<H>(&self, state: &mut H)
+	where
+		H: Hasher,
+	{
+		self.0.hash(state)
+	}
+}
+
+impl<K> PartialEq for KeyWrapper<K>
+where
+	K: PartialEq,
+{
+	fn eq(&self, other: &Self) -> bool {
+		self.0.eq(&other.0)
+	}
+}
+
+impl<K> Eq for KeyWrapper<K> where K: Eq {}
+
+impl<K, T> Borrow<KeyWrapper<K>> for DataRef<T>
+where
+	T: Borrow<K>,
+{
+	fn borrow(&self) -> &KeyWrapper<K> {
+		let data_ref = unsafe { &*self.data }.borrow();
+
+		KeyWrapper::from_ref(data_ref)
+	}
+}

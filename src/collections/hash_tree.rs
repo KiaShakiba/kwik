@@ -516,7 +516,6 @@ impl<T> Entry<T> {
 		};
 
 		let boxed = Box::new(entry);
-
 		unsafe { NonNull::new_unchecked(Box::into_raw(boxed)) }
 	}
 
