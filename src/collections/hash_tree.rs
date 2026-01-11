@@ -24,14 +24,14 @@ use serde::{
 
 /// A hash AVL tree.
 pub struct HashTree<T, S = RandomState> {
-	map: HashMap<DataRef<T>, NonNull<Entry<T>>, S>,
+	map:  HashMap<DataRef<T>, NonNull<Entry<T>>, S>,
 	root: *mut Entry<T>,
 }
 
 struct Entry<T> {
 	data: MaybeUninit<T>,
 
-	left: *mut Entry<T>,
+	left:  *mut Entry<T>,
 	right: *mut Entry<T>,
 
 	height: usize,
@@ -55,8 +55,8 @@ pub struct Iter<'a, T, S> {
 struct IterVisitor<T> {
 	entry: *const Entry<T>,
 
-	visited_self: bool,
-	visited_left: bool,
+	visited_self:  bool,
+	visited_left:  bool,
 	visited_right: bool,
 }
 
@@ -129,8 +129,7 @@ where
 		let data_ref = DataRef::from_entry_ptr(entry_ptr);
 		self.map.insert(data_ref, entry);
 
-		maybe_old_entry
-			.map(|old_entry| Entry::<T>::into_data(old_entry.as_ptr()))
+		maybe_old_entry.map(|old_entry| Entry::<T>::into_data(old_entry.as_ptr()))
 	}
 
 	/// Removes the smallest entry and returns it, or `None` if the hash tree
@@ -410,7 +409,7 @@ impl<T, S> HashTree<T, S> {
 	/// ```
 	pub fn with_hasher(hasher: S) -> Self {
 		HashTree {
-			map: HashMap::with_hasher(hasher),
+			map:  HashMap::with_hasher(hasher),
 			root: ptr::null_mut(),
 		}
 	}
@@ -510,7 +509,7 @@ impl<T> Entry<T> {
 		let entry = Entry {
 			data: MaybeUninit::new(data),
 
-			left: ptr::null_mut(),
+			left:  ptr::null_mut(),
 			right: ptr::null_mut(),
 
 			height: 1,
@@ -839,7 +838,7 @@ impl<T> DataRef<T> {
 		let data_ptr = unsafe { (*entry_ptr).data.as_ptr() };
 
 		DataRef {
-			data: data_ptr,
+			data: data_ptr
 		}
 	}
 }
@@ -1031,7 +1030,7 @@ where
 
 	fn into_iter(self) -> Self::IntoIter {
 		IntoIter {
-			tree: self,
+			tree: self
 		}
 	}
 }
@@ -1192,7 +1191,7 @@ mod tests {
 	use crate::collections::hash_tree::{Entry, HashTree};
 
 	struct DroppableObject<'a> {
-		id: u64,
+		id:    u64,
 		guard: DropGuard<'a, ()>,
 	}
 
@@ -1735,7 +1734,7 @@ mod tests {
 
 		assert_tokens(&tree, &[
 			Token::Seq {
-				len: Some(0),
+				len: Some(0)
 			},
 			Token::SeqEnd,
 		]);
@@ -1747,7 +1746,7 @@ mod tests {
 
 		assert_tokens(&tree, &[
 			Token::Seq {
-				len: Some(6),
+				len: Some(6)
 			},
 			Token::U32(1),
 			Token::U32(2),
@@ -1759,9 +1758,7 @@ mod tests {
 		]);
 	}
 
-	fn get_entry_children<T>(
-		entry: *mut Entry<T>,
-	) -> (*mut Entry<T>, *mut Entry<T>) {
+	fn get_entry_children<T>(entry: *mut Entry<T>) -> (*mut Entry<T>, *mut Entry<T>) {
 		let left = unsafe { (*entry).left };
 		let right = unsafe { (*entry).right };
 

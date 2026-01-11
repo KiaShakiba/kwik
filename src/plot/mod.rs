@@ -19,8 +19,8 @@ use num_traits::AsPrimitive;
 use crate::fmt::MEMORY_UNITS;
 
 const COLORS: &[&str] = &[
-	"#c4342b", "#0071ad", "#71ad00", "#554ec9", "#f7790d", "#e0ca3c",
-	"#47a8bd", "#006a67", "#f29f05",
+	"#c4342b", "#0071ad", "#71ad00", "#554ec9", "#f7790d", "#e0ca3c", "#47a8bd", "#006a67",
+	"#f29f05",
 ];
 
 const DEFAULT_FONT_FAMILY: &str = "Arial";
@@ -121,12 +121,12 @@ trait Scaler {
 struct NoScaler;
 
 struct MemoryScaler {
-	unit: Option<&'static str>,
+	unit:        Option<&'static str>,
 	denominator: f64,
 }
 
 struct TimeScaler {
-	unit: Option<&'static str>,
+	unit:        Option<&'static str>,
 	denominator: f64,
 }
 
@@ -244,10 +244,7 @@ impl Scaler for NumberScaler {
 	}
 }
 
-fn init_scaler(
-	format: Option<AxisFormat>,
-	max_value: impl AsPrimitive<u64>,
-) -> Box<dyn Scaler> {
+fn init_scaler(format: Option<AxisFormat>, max_value: impl AsPrimitive<u64>) -> Box<dyn Scaler> {
 	let no_scaler = Box::new(NoScaler::new(max_value));
 
 	let Some(format) = format else {

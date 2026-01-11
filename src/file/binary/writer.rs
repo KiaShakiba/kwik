@@ -19,8 +19,8 @@ pub struct BinaryWriter<T>
 where
 	T: WriteChunk,
 {
-	file: BufWriter<File>,
-	buf: Vec<u8>,
+	file:  BufWriter<File>,
+	buf:   Vec<u8>,
 	count: u64,
 
 	_marker: PhantomData<T>,
@@ -79,8 +79,8 @@ where
 		Self: Sized,
 	{
 		let writer = BinaryWriter {
-			file: BufWriter::new(file),
-			buf: Vec::<u8>::with_capacity(T::chunk_size()),
+			file:  BufWriter::new(file),
+			buf:   Vec::<u8>::with_capacity(T::chunk_size()),
 			count: 0,
 
 			_marker: PhantomData,
@@ -196,10 +196,7 @@ where
 				value.as_chunk(buf)?;
 
 				if T::chunk_size() > E::chunk_size() {
-					let zeros = std::iter::repeat_n(
-						0,
-						T::chunk_size() - E::chunk_size(),
-					);
+					let zeros = std::iter::repeat_n(0, T::chunk_size() - E::chunk_size());
 					buf.extend(zeros);
 				}
 			},
@@ -208,10 +205,7 @@ where
 				err.as_chunk(buf)?;
 
 				if E::chunk_size() > T::chunk_size() {
-					let zeros = std::iter::repeat_n(
-						0,
-						E::chunk_size() - T::chunk_size(),
-					);
+					let zeros = std::iter::repeat_n(0, E::chunk_size() - T::chunk_size());
 					buf.extend(zeros);
 				}
 			},

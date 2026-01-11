@@ -158,14 +158,14 @@ where
 	/// ```
 	#[inline]
 	pub fn push_front(&mut self, data: T) -> Option<T> {
-		let maybe_old_data =
-			self.map
-				.remove(&DataRef::from_ref(&data))
-				.map(|old_entry| {
-					let old_entry_ptr = old_entry.as_ptr();
-					self.detach(old_entry_ptr);
-					Entry::<T>::into_data(old_entry_ptr)
-				});
+		let maybe_old_data = self
+			.map
+			.remove(&DataRef::from_ref(&data))
+			.map(|old_entry| {
+				let old_entry_ptr = old_entry.as_ptr();
+				self.detach(old_entry_ptr);
+				Entry::<T>::into_data(old_entry_ptr)
+			});
 
 		let entry = Entry::<T>::new(data);
 		let entry_ptr = entry.as_ptr();
@@ -198,14 +198,14 @@ where
 	/// ```
 	#[inline]
 	pub fn push_back(&mut self, data: T) -> Option<T> {
-		let maybe_old_data =
-			self.map
-				.remove(&DataRef::from_ref(&data))
-				.map(|old_entry| {
-					let old_entry_ptr = old_entry.as_ptr();
-					self.detach(old_entry_ptr);
-					Entry::<T>::into_data(old_entry_ptr)
-				});
+		let maybe_old_data = self
+			.map
+			.remove(&DataRef::from_ref(&data))
+			.map(|old_entry| {
+				let old_entry_ptr = old_entry.as_ptr();
+				self.detach(old_entry_ptr);
+				Entry::<T>::into_data(old_entry_ptr)
+			});
 
 		let entry = Entry::<T>::new(data);
 		let entry_ptr = entry.as_ptr();
@@ -757,7 +757,7 @@ impl<T> DataRef<T> {
 		let data_ptr = unsafe { (*entry_ptr).data.as_ptr() };
 
 		DataRef {
-			data: data_ptr,
+			data: data_ptr
 		}
 	}
 }
@@ -952,7 +952,7 @@ where
 
 	fn into_iter(self) -> Self::IntoIter {
 		IntoIter {
-			list: self,
+			list: self
 		}
 	}
 }
@@ -1112,7 +1112,7 @@ mod tests {
 	use crate::collections::HashList;
 
 	struct DroppableObject<'a> {
-		id: u64,
+		id:    u64,
 		guard: DropGuard<'a, ()>,
 	}
 
@@ -1374,7 +1374,7 @@ mod tests {
 
 		assert_tokens(&list, &[
 			Token::Seq {
-				len: Some(0),
+				len: Some(0)
 			},
 			Token::SeqEnd,
 		]);
@@ -1386,7 +1386,7 @@ mod tests {
 
 		assert_tokens(&list, &[
 			Token::Seq {
-				len: Some(6),
+				len: Some(6)
 			},
 			Token::U32(1),
 			Token::U32(2),

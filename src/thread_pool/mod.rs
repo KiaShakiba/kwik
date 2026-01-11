@@ -15,7 +15,7 @@ use crate::thread_pool::worker::{Job, Worker};
 
 pub struct ThreadPool {
 	workers: Vec<Worker>,
-	sender: Option<mpsc::Sender<Job>>,
+	sender:  Option<mpsc::Sender<Job>>,
 }
 
 /// A thread pool implementaton that creates a number of threads

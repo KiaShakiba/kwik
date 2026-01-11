@@ -13,7 +13,7 @@ use thiserror::Error;
 pub struct Acf {
 	values: Vec<f64>,
 
-	cached_mean: Option<f64>,
+	cached_mean:     Option<f64>,
 	cached_variance: Option<f64>,
 }
 
@@ -95,10 +95,7 @@ impl Acf {
 	/// let coefficient = acf.coefficient(4).unwrap();
 	/// assert_eq!(coefficient, 0.0);
 	/// ```
-	pub fn coefficient(
-		&mut self,
-		lag: impl AsPrimitive<usize>,
-	) -> Result<f64, AcfError> {
+	pub fn coefficient(&mut self, lag: impl AsPrimitive<usize>) -> Result<f64, AcfError> {
 		if self.values.is_empty() {
 			return Err(AcfError::EmptyValues);
 		}
@@ -118,10 +115,7 @@ impl Acf {
 		Ok(sum / ((self.values.len() - lag) as f64 * self.variance(mean)?))
 	}
 
-	fn variance(
-		&mut self,
-		mean: impl AsPrimitive<f64>,
-	) -> Result<f64, AcfError> {
+	fn variance(&mut self, mean: impl AsPrimitive<f64>) -> Result<f64, AcfError> {
 		if let Some(variance) = self.cached_variance {
 			return Ok(variance);
 		};

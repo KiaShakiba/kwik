@@ -37,10 +37,7 @@ pub fn number(value: impl AsPrimitive<u64>) -> String {
 /// ```
 #[inline]
 #[must_use]
-pub fn memory(
-	value: impl AsPrimitive<u64>,
-	precision: Option<usize>,
-) -> String {
+pub fn memory(value: impl AsPrimitive<u64>, precision: Option<usize>) -> String {
 	let value = value.as_();
 	let mut copy: f64 = value.as_();
 

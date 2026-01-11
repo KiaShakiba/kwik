@@ -22,8 +22,8 @@ pub use crate::table::{
 
 #[derive(Default)]
 pub struct Table {
-	header: Option<Row>,
-	rows: Vec<Row>,
+	header:  Option<Row>,
+	rows:    Vec<Row>,
 	spacers: HashSet<usize>,
 
 	row_len: usize,

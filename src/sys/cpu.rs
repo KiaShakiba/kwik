@@ -20,11 +20,11 @@ pub enum CpuError {
 
 // A per-process CPU usage monitor.
 pub struct CpuUsage {
-	pid: SysPid,
+	pid:    SysPid,
 	system: System,
 
 	cached_total_usage: Option<f64>,
-	last_refresh: Instant,
+	last_refresh:       Instant,
 }
 
 /// Returns an instance of `CpuUsage` which can be polled periodically to
@@ -62,11 +62,11 @@ pub fn usage(pid: Option<Pid>) -> Result<CpuUsage, CpuError> {
 impl CpuUsage {
 	fn new(pid: Pid) -> Self {
 		CpuUsage {
-			pid: SysPid::from_u32(pid),
+			pid:    SysPid::from_u32(pid),
 			system: System::new_all(),
 
 			cached_total_usage: None,
-			last_refresh: Instant::now(),
+			last_refresh:       Instant::now(),
 		}
 	}
 
@@ -101,8 +101,7 @@ impl CpuUsage {
 
 	fn refresh_cached_usage(&mut self) -> Result<(), CpuError> {
 		if self.cached_total_usage.is_some()
-			&& self.last_refresh.elapsed()
-				< sysinfo::MINIMUM_CPU_UPDATE_INTERVAL
+			&& self.last_refresh.elapsed() < sysinfo::MINIMUM_CPU_UPDATE_INTERVAL
 		{
 			return Ok(());
 		}

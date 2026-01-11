@@ -16,7 +16,7 @@ use crate::file::FileWriter;
 
 /// Writes a text file line-by-line.
 pub struct TextWriter {
-	file: LineWriter<File>,
+	file:  LineWriter<File>,
 	count: u64,
 }
 
@@ -34,7 +34,7 @@ impl FileWriter for TextWriter {
 		Self: Sized,
 	{
 		let writer = TextWriter {
-			file: LineWriter::new(file),
+			file:  LineWriter::new(file),
 			count: 0,
 		};
 

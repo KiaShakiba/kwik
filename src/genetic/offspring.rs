@@ -12,7 +12,7 @@ where
 	C: Chromosome,
 {
 	individual: Individual<C>,
-	mutations: u64,
+	mutations:  u64,
 }
 
 impl<C> Offspring<C>

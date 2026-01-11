@@ -21,8 +21,8 @@ pub struct CsvReader<T>
 where
 	T: ReadRow,
 {
-	file: Reader<File>,
-	buf: RowData,
+	file:  Reader<File>,
+	buf:   RowData,
 	count: u64,
 
 	_marker: PhantomData<T>,
@@ -98,8 +98,8 @@ where
 			.from_reader(file);
 
 		let reader = CsvReader {
-			file: reader,
-			buf: RowData::default(),
+			file:  reader,
+			buf:   RowData::default(),
 			count: 0,
 
 			_marker: PhantomData,
@@ -333,7 +333,7 @@ where
 	#[inline]
 	pub fn iter(&mut self) -> Iter<'_, T> {
 		Iter {
-			reader: self,
+			reader: self
 		}
 	}
 }
@@ -375,7 +375,7 @@ where
 
 	fn into_iter(self) -> Self::IntoIter {
 		IntoIter {
-			reader: self,
+			reader: self
 		}
 	}
 }

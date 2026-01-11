@@ -28,21 +28,21 @@ const PULSE_INTERVAL: Duration = Duration::from_secs(1);
 pub struct Progress {
 	width: u64,
 
-	filled_character: char,
-	current_character: char,
+	filled_character:    char,
+	current_character:   char,
 	remaining_character: char,
 
-	total: u64,
+	total:   u64,
 	current: u64,
 
 	stopped: bool,
 
 	tags: Vec<Tag>,
 
-	rate_count: u64,
+	rate_count:    u64,
 	previous_rate: u64,
 
-	instants: [Option<Instant>; 101],
+	instants:      [Option<Instant>; 101],
 	pulse_instant: Instant,
 }
 
@@ -170,10 +170,7 @@ impl Progress {
 	/// Sets the progress bar's remaining character. The default is ' '.
 	#[inline]
 	#[must_use]
-	pub fn with_remaining_character(
-		mut self,
-		remaining_character: char,
-	) -> Self {
+	pub fn with_remaining_character(mut self, remaining_character: char) -> Self {
 		self.set_remaining_character(remaining_character);
 		self
 	}
@@ -263,10 +260,7 @@ impl Progress {
 		let pulse_duration = self.pulse(&now);
 		let rate = self.get_rate(pulse_duration);
 
-		if amount == previous_amount
-			&& amount != 100
-			&& pulse_duration.is_none()
-		{
+		if amount == previous_amount && amount != 100 && pulse_duration.is_none() {
 			return;
 		}
 
@@ -367,8 +361,7 @@ impl Progress {
 				return None;
 			}
 
-			let duration_ms =
-				((self.total - self.current) as f64 / rate) as u64;
+			let duration_ms = ((self.total - self.current) as f64 / rate) as u64;
 			let duration = Duration::from_millis(duration_ms);
 
 			return Some(duration);
@@ -382,20 +375,10 @@ impl Progress {
 		let m = y2 - y1;
 		let b = y1 - m * x1 as u32;
 
-		Some(
-			*now - (b + Duration::from_millis(
-				(m.as_millis() as f64 * x) as u64,
-			)),
-		)
+		Some(*now - (b + Duration::from_millis((m.as_millis() as f64 * x) as u64)))
 	}
 
-	fn draw(
-		&self,
-		amount: u8,
-		rate: u64,
-		eta: Option<Duration>,
-		elapsed: Duration,
-	) {
+	fn draw(&self, amount: u8, rate: u64, eta: Option<Duration>, elapsed: Duration) {
 		if amount == 100 {
 			return self.draw_final(amount, elapsed);
 		}

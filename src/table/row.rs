@@ -14,7 +14,7 @@ use crate::{
 
 #[derive(Default)]
 pub struct Row {
-	cells: Vec<Cell>,
+	cells:   Vec<Cell>,
 	max_len: usize,
 }
 
@@ -126,22 +126,13 @@ impl Row {
 
 	/// Prints the column to the supplied stream.
 	#[inline]
-	pub fn print(
-		&self,
-		stdout: &mut impl Write,
-		sizes: &Vec<usize>,
-		join_type: ColumnJoinType,
-	) {
+	pub fn print(&self, stdout: &mut impl Write, sizes: &Vec<usize>, join_type: ColumnJoinType) {
 		writeln!(stdout, "{}", self.to_string(Some(sizes), join_type)).unwrap();
 	}
 
 	/// Returns the string value of the row.
 	#[must_use]
-	fn to_string(
-		&self,
-		sizes: Option<&Vec<usize>>,
-		join_type: ColumnJoinType,
-	) -> String {
+	fn to_string(&self, sizes: Option<&Vec<usize>>, join_type: ColumnJoinType) -> String {
 		let join_str = match join_type {
 			ColumnJoinType::Normal => "|",
 			ColumnJoinType::Spaced => " | ",

@@ -149,12 +149,12 @@ where
 	C: Chromosome + Send + Sync,
 {
 	initial_chromosome: C,
-	population: Vec<Individual<C>>,
+	population:         Vec<Individual<C>>,
 
-	population_size: usize,
-	maybe_limit: Option<GeneticLimit>,
+	population_size:      usize,
+	maybe_limit:          Option<GeneticLimit>,
 	mutation_probability: f64,
-	tournament_size: usize,
+	tournament_size:      usize,
 
 	mating_dist: Uniform<usize>,
 }
@@ -243,10 +243,7 @@ where
 
 	/// Sets the mutation probability.
 	#[inline]
-	pub fn set_mutation_probability(
-		&mut self,
-		mutation_probability: impl AsPrimitive<f64>,
-	) {
+	pub fn set_mutation_probability(&mut self, mutation_probability: impl AsPrimitive<f64>) {
 		self.mutation_probability = mutation_probability.as_();
 	}
 
@@ -263,20 +260,14 @@ where
 
 	/// Sets the tournament size.
 	#[inline]
-	pub fn set_tournament_size(
-		&mut self,
-		tournament_size: impl AsPrimitive<usize>,
-	) {
+	pub fn set_tournament_size(&mut self, tournament_size: impl AsPrimitive<usize>) {
 		self.tournament_size = tournament_size.as_();
 	}
 
 	/// Sets the tournament size.
 	#[inline]
 	#[must_use]
-	pub fn with_tournament_size(
-		mut self,
-		tournament_size: impl AsPrimitive<usize>,
-	) -> Self {
+	pub fn with_tournament_size(mut self, tournament_size: impl AsPrimitive<usize>) -> Self {
 		self.set_tournament_size(tournament_size);
 		self
 	}
@@ -302,9 +293,7 @@ where
 		while !last_fittest.is_optimal() {
 			if let Some(limit) = &self.maybe_limit {
 				match limit {
-					GeneticLimit::Runtime(max_runtime)
-						if time.elapsed().ge(max_runtime) =>
-					{
+					GeneticLimit::Runtime(max_runtime) if time.elapsed().ge(max_runtime) => {
 						break;
 					},
 
@@ -355,13 +344,13 @@ where
 	fn iterate(&mut self) -> Result<u64, GeneticError> {
 		let population_size = self.population.len();
 
-		let maybe_max_runtime =
-			self.maybe_limit
-				.as_ref()
-				.and_then(|limit| match limit {
-					GeneticLimit::Runtime(max_runtime) => Some(max_runtime),
-					_ => None,
-				});
+		let maybe_max_runtime = self
+			.maybe_limit
+			.as_ref()
+			.and_then(|limit| match limit {
+				GeneticLimit::Runtime(max_runtime) => Some(max_runtime),
+				_ => None,
+			});
 
 		let new_offpring = (0..population_size)
 			.into_par_iter()
@@ -393,10 +382,7 @@ where
 	}
 
 	/// Selects two individuals to mate
-	fn gen_mating_pair(
-		&self,
-		rng: &mut impl Rng,
-	) -> (&Individual<C>, &Individual<C>) {
+	fn gen_mating_pair(&self, rng: &mut impl Rng) -> (&Individual<C>, &Individual<C>) {
 		let index1 = self.gen_tournament_parent(rng);
 		let mut index2 = self.gen_tournament_parent(rng);
 
@@ -431,8 +417,7 @@ where
 	let mutated_population = (0..(population_size - 1))
 		.into_par_iter()
 		.map(|_| {
-			let chromosome =
-				init_mutated_chromosome(initial_chromosome, maybe_limit)?;
+			let chromosome = init_mutated_chromosome(initial_chromosome, maybe_limit)?;
 
 			Ok(chromosome.into())
 		})
@@ -493,9 +478,7 @@ where
 	}
 }
 
-fn init_mating_dist(
-	population_size: usize,
-) -> Result<Uniform<usize>, GeneticError> {
+fn init_mating_dist(population_size: usize) -> Result<Uniform<usize>, GeneticError> {
 	Uniform::try_from(0..population_size).map_err(|_| GeneticError::Internal)
 }
 
@@ -518,7 +501,7 @@ mod tests {
 
 		fn base(&self) -> Self {
 			TestConfig {
-				config: Vec::new(),
+				config: Vec::new()
 			}
 		}
 
@@ -590,23 +573,22 @@ mod tests {
 		let mut initial_chromosome = TestConfig::default();
 
 		initial_chromosome.push(TestData {
-			data: 0,
+			data: 0
 		});
 		initial_chromosome.push(TestData {
-			data: 0,
+			data: 0
 		});
 		initial_chromosome.push(TestData {
-			data: 0,
+			data: 0
 		});
 		initial_chromosome.push(TestData {
-			data: 0,
+			data: 0
 		});
 		initial_chromosome.push(TestData {
-			data: 0,
+			data: 0
 		});
 
-		let mut genetic =
-			Genetic::<TestConfig>::new(initial_chromosome).unwrap();
+		let mut genetic = Genetic::<TestConfig>::new(initial_chromosome).unwrap();
 
 		let result = genetic.run().unwrap();
 

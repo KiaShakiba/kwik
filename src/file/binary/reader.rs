@@ -19,8 +19,8 @@ pub struct BinaryReader<T>
 where
 	T: ReadChunk,
 {
-	file: BufReader<File>,
-	buf: Box<[u8]>,
+	file:  BufReader<File>,
+	buf:   Box<[u8]>,
 	count: u64,
 
 	_marker: PhantomData<T>,
@@ -96,8 +96,8 @@ where
 		Self: Sized,
 	{
 		let reader = BinaryReader {
-			file: BufReader::new(file),
-			buf: vec![0; T::chunk_size()].into_boxed_slice(),
+			file:  BufReader::new(file),
+			buf:   vec![0; T::chunk_size()].into_boxed_slice(),
 			count: 0,
 
 			_marker: PhantomData,
@@ -215,7 +215,7 @@ where
 	#[inline]
 	pub fn iter(&mut self) -> Iter<'_, T> {
 		Iter {
-			reader: self,
+			reader: self
 		}
 	}
 }
@@ -257,7 +257,7 @@ where
 
 	fn into_iter(self) -> Self::IntoIter {
 		IntoIter {
-			reader: self,
+			reader: self
 		}
 	}
 }

@@ -67,8 +67,7 @@ where
 				return Err(GeneticError::MateTimeout);
 			}
 
-			let mut gene_indexes =
-				(0..self.chromosome.len()).collect::<Vec<_>>();
+			let mut gene_indexes = (0..self.chromosome.len()).collect::<Vec<_>>();
 			gene_indexes.shuffle(rng);
 
 			for index in gene_indexes {
@@ -170,10 +169,7 @@ where
 
 impl<C> Eq for Individual<C> where C: Chromosome {}
 
-fn get_mate_result(
-	rng: &mut impl Rng,
-	mutation_probability: f64,
-) -> MateResult {
+fn get_mate_result(rng: &mut impl Rng, mutation_probability: f64) -> MateResult {
 	let random: f64 = rng.random();
 
 	if random < (1.0 - mutation_probability) / 2.0 {

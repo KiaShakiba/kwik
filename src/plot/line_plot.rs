@@ -51,28 +51,28 @@ pub struct LinePlot {
 
 	title: Option<String>,
 
-	x_label: Option<String>,
-	y_label: Option<String>,
+	x_label:  Option<String>,
+	y_label:  Option<String>,
 	y2_label: Option<String>,
 
 	x_min: Option<f64>,
 	x_max: Option<f64>,
 
-	y_min: Option<f64>,
-	y_max: Option<f64>,
+	y_min:  Option<f64>,
+	y_max:  Option<f64>,
 	y2_min: Option<f64>,
 	y2_max: Option<f64>,
 
-	x_tick: Option<f64>,
-	y_tick: Option<f64>,
+	x_tick:  Option<f64>,
+	y_tick:  Option<f64>,
 	y2_tick: Option<f64>,
 
-	x_format: Option<AxisFormat>,
-	y_format: Option<AxisFormat>,
+	x_format:  Option<AxisFormat>,
+	y_format:  Option<AxisFormat>,
 	y2_format: Option<AxisFormat>,
 
-	x_log_base: Option<f64>,
-	y_log_base: Option<f64>,
+	x_log_base:  Option<f64>,
+	y_log_base:  Option<f64>,
 	y2_log_base: Option<f64>,
 
 	legend_position: Option<LegendPosition>,
@@ -118,7 +118,7 @@ pub struct Point {
 	y: f64,
 
 	symbol: char,
-	size: f64,
+	size:   f64,
 }
 
 impl Plot for LinePlot {
@@ -261,17 +261,11 @@ impl Plot for LinePlot {
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(
-				&x_scaler.apply_unit(x_label),
-				slice::from_ref(&font),
-			);
+			axes.set_x_label(&x_scaler.apply_unit(x_label), slice::from_ref(&font));
 		}
 
 		if let Some(y_label) = &self.y_label {
-			axes.set_y_label(
-				&y_scaler.apply_unit(y_label),
-				slice::from_ref(&font),
-			);
+			axes.set_y_label(&y_scaler.apply_unit(y_label), slice::from_ref(&font));
 		}
 
 		if let Some(base) = self.x_log_base {
@@ -437,15 +431,11 @@ impl Plot for LinePlot {
 		}
 
 		for point in &self.points {
-			axes.points(
-				[x_scaler.scale(point.x)],
-				[y_scaler.scale(point.y)],
-				&[
-					PlotOption::PointSymbol(point.symbol),
-					PlotOption::PointSize(point.size),
-					PlotOption::Color(ColorType::RGBString("blue")),
-				],
-			);
+			axes.points([x_scaler.scale(point.x)], [y_scaler.scale(point.y)], &[
+				PlotOption::PointSymbol(point.symbol),
+				PlotOption::PointSize(point.size),
+				PlotOption::Color(ColorType::RGBString("blue")),
+			]);
 		}
 	}
 }
@@ -925,7 +915,7 @@ impl Point {
 			y: y.as_(),
 
 			symbol: 'o',
-			size: 1.0,
+			size:   1.0,
 		}
 	}
 

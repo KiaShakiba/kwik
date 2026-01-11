@@ -22,8 +22,8 @@ pub struct CsvWriter<T>
 where
 	T: WriteRow,
 {
-	file: Writer<File>,
-	buf: RowData,
+	file:  Writer<File>,
+	buf:   RowData,
 	count: u64,
 
 	_marker: PhantomData<T>,

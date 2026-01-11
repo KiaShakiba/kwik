@@ -47,7 +47,7 @@ pub struct BarPlot {
 
 	y_max: Option<f64>,
 
-	y_format: Option<AxisFormat>,
+	y_format:   Option<AxisFormat>,
 	y_log_base: Option<f64>,
 
 	bar_groups: Vec<BarGroup>,
@@ -57,7 +57,7 @@ pub struct BarPlot {
 #[derive(Default, Clone)]
 pub struct BarGroup {
 	label: Option<String>,
-	bars: Vec<Bar>,
+	bars:  Vec<Bar>,
 }
 
 /// An individial bar on the bar plot.
@@ -215,19 +215,18 @@ impl Plot for BarPlot {
 		}
 
 		for bar_index in 0..self.bar_groups[0].bars.len() {
-			let x_values = self.bar_groups.iter().enumerate().map(
-				|(bar_group_index, bar_group)| {
-					bar_group.bar_x_value(
-						bar_group_index,
-						bar_group.bars.len(),
-						bar_index,
-					)
-				},
-			);
+			let x_values =
+				self.bar_groups
+					.iter()
+					.enumerate()
+					.map(|(bar_group_index, bar_group)| {
+						bar_group.bar_x_value(bar_group_index, bar_group.bars.len(), bar_index)
+					});
 
-			let y_values = self.bar_groups.iter().map(|bar_group| {
-				y_scaler.scale(bar_group.bars[bar_index].value)
-			});
+			let y_values = self
+				.bar_groups
+				.iter()
+				.map(|bar_group| y_scaler.scale(bar_group.bars[bar_index].value));
 
 			let widths = self
 				.bar_groups
@@ -329,12 +328,7 @@ impl BarGroup {
 		.unwrap()
 	}
 
-	fn bar_x_value(
-		&self,
-		bar_group_index: usize,
-		num_bars: usize,
-		bar_index: usize,
-	) -> f64 {
+	fn bar_x_value(&self, bar_group_index: usize, num_bars: usize, bar_index: usize) -> f64 {
 		let center = bar_group_index as f64 + 1.0;
 		let offset = num_bars as f64 / 2.0 - 0.5;
 		let width = self.bar_width();

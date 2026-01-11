@@ -17,9 +17,9 @@ pub struct Figure {
 	figure: GnuplotFigure,
 
 	columns: usize,
-	count: usize,
+	count:   usize,
 
-	plot_width_px: f32,
+	plot_width_px:  f32,
 	plot_height_px: f32,
 }
 
@@ -41,9 +41,9 @@ impl Figure {
 			figure: GnuplotFigure::new(),
 
 			columns: 1,
-			count: 0,
+			count:   0,
 
-			plot_width_px: DEFAULT_WIDTH_PX,
+			plot_width_px:  DEFAULT_WIDTH_PX,
 			plot_height_px: DEFAULT_HEIGHT_PX,
 		}
 	}
@@ -112,10 +112,7 @@ impl Figure {
 	/// let figure = Figure::default()
 	///     .with_plot_width(200.0);
 	/// ```
-	pub fn with_plot_width(
-		mut self,
-		plot_width_px: impl AsPrimitive<f32>,
-	) -> Self {
+	pub fn with_plot_width(mut self, plot_width_px: impl AsPrimitive<f32>) -> Self {
 		self.set_plot_width(plot_width_px);
 		self
 	}
@@ -144,10 +141,7 @@ impl Figure {
 	/// let figure = Figure::default()
 	///     .with_plot_height(200.0);
 	/// ```
-	pub fn with_plot_height(
-		mut self,
-		plot_height_px: impl AsPrimitive<f32>,
-	) -> Self {
+	pub fn with_plot_height(mut self, plot_height_px: impl AsPrimitive<f32>) -> Self {
 		self.set_plot_height(plot_height_px);
 		self
 	}

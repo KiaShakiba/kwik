@@ -22,14 +22,14 @@ pub struct TimeMovingAverage {
 pub struct WindowIter<'a> {
 	tma: &'a TimeMovingAverage,
 
-	window: Duration,
+	window:  Duration,
 	current: Option<Instant>,
 }
 
 pub struct IntoWindowIter {
 	tma: TimeMovingAverage,
 
-	window: Duration,
+	window:  Duration,
 	current: Option<Instant>,
 }
 
@@ -105,11 +105,7 @@ impl TimeMovingAverage {
 	/// assert_eq!(invalid_average, None);
 	/// ```
 	#[inline]
-	pub fn get_windowed_average(
-		&self,
-		instant: Instant,
-		window: Duration,
-	) -> Option<f64> {
+	pub fn get_windowed_average(&self, instant: Instant, window: Duration) -> Option<f64> {
 		let shift = window / 2;
 
 		let start = Bound::Included(instant - shift);

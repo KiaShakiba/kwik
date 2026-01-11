@@ -65,8 +65,8 @@ pub struct Point {
 	y: f64,
 
 	symbol: char,
-	size: f64,
-	color: ColorType,
+	size:   f64,
+	color:  ColorType,
 }
 
 impl Plot for ScatterPlot {
@@ -201,10 +201,7 @@ impl Plot for ScatterPlot {
 		}
 
 		if let Some(x_label) = &self.x_label {
-			axes.set_x_label(
-				&x_scaler.apply_unit(x_label),
-				slice::from_ref(&font),
-			);
+			axes.set_x_label(&x_scaler.apply_unit(x_label), slice::from_ref(&font));
 		}
 
 		if let Some(y_label) = &self.y_label {
@@ -220,15 +217,11 @@ impl Plot for ScatterPlot {
 		}
 
 		for point in &self.points {
-			axes.points(
-				[x_scaler.scale(point.x)],
-				[y_scaler.scale(point.y)],
-				&[
-					PlotOption::PointSymbol(point.symbol),
-					PlotOption::PointSize(point.size),
-					PlotOption::Color(point.color.to_ref()),
-				],
-			);
+			axes.points([x_scaler.scale(point.x)], [y_scaler.scale(point.y)], &[
+				PlotOption::PointSymbol(point.symbol),
+				PlotOption::PointSize(point.size),
+				PlotOption::Color(point.color.to_ref()),
+			]);
 		}
 	}
 }
@@ -370,8 +363,8 @@ impl Point {
 			y: y.as_(),
 
 			symbol: 'o',
-			size: 1.0,
-			color: COLORS[0].into(),
+			size:   1.0,
+			color:  COLORS[0].into(),
 		}
 	}
 

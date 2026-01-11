@@ -19,7 +19,7 @@ where
 	chromosome: C,
 
 	generations: u64,
-	mutations: u64,
+	mutations:   u64,
 
 	runtime: Duration,
 }
@@ -28,12 +28,7 @@ impl<C> GeneticSolution<C>
 where
 	C: Chromosome,
 {
-	pub fn new(
-		chromosome: C,
-		generations: u64,
-		mutations: u64,
-		runtime: Duration,
-	) -> Self {
+	pub fn new(chromosome: C, generations: u64, mutations: u64, runtime: Duration) -> Self {
 		GeneticSolution {
 			chromosome,
 

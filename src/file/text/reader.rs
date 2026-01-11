@@ -15,8 +15,8 @@ use crate::file::FileReader;
 
 /// Reads a text file line-by-line.
 pub struct TextReader {
-	file: BufReader<File>,
-	buf: String,
+	file:  BufReader<File>,
+	buf:   String,
 	count: u64,
 }
 
@@ -42,8 +42,8 @@ impl FileReader for TextReader {
 		Self: Sized,
 	{
 		let reader = TextReader {
-			file: BufReader::new(file),
-			buf: String::new(),
+			file:  BufReader::new(file),
+			buf:   String::new(),
 			count: 0,
 		};
 
@@ -135,7 +135,7 @@ impl TextReader {
 	#[inline]
 	pub fn iter(&mut self) -> Iter<'_> {
 		Iter {
-			reader: self,
+			reader: self
 		}
 	}
 }
@@ -168,7 +168,7 @@ impl IntoIterator for TextReader {
 
 	fn into_iter(self) -> Self::IntoIter {
 		IntoIter {
-			reader: self,
+			reader: self
 		}
 	}
 }

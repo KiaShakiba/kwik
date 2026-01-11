@@ -48,7 +48,7 @@ pub struct BoxPlot {
 
 	y_tick: Option<f64>,
 
-	y_format: Option<AxisFormat>,
+	y_format:   Option<AxisFormat>,
 	y_log_base: Option<f64>,
 
 	map: IndexMap<String, Vec<f64>>,
@@ -60,7 +60,7 @@ struct Stats {
 	min: f64,
 	max: f64,
 
-	mean: f64,
+	mean:   f64,
 	median: f64,
 
 	q1: f64,
@@ -362,7 +362,7 @@ impl Stats {
 			min: data.min(),
 			max: data.max(),
 
-			mean: data
+			mean:   data
 				.mean()
 				.expect("Could not calculate mean of data."),
 			median: data.median(),
