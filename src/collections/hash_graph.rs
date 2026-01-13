@@ -6,13 +6,20 @@ use std::{
 	ptr::{self, NonNull},
 };
 
+use num_traits::AsPrimitive;
+
 pub struct HashGraph<T, S = RandomState> {
 	map: HashMap<DataRef<T>, NonNull<Entry<T>>, S>,
 }
 
 struct Entry<T> {
-	data: MaybeUninit<T>,
-	adj:  Vec<*mut Entry<T>>,
+	data:  MaybeUninit<T>,
+	conns: Vec<Connection<T>>,
+}
+
+struct Connection<T> {
+	to:     NonNull<Entry<T>>,
+	weight: f64,
 }
 
 struct DataRef<T> {
@@ -61,7 +68,10 @@ where
 	/// Connects two entries in the hash graph.
 	///
 	/// If the hash graph does not contain either entry, or the entries
-	/// are already connected, nothing is updated.
+	/// are already connected with the same weight, nothing is updated.
+	///
+	/// If the entries exist and are connected with a different weight,
+	/// the weight is updated.
 	///
 	/// # Examples
 	/// ```
@@ -73,42 +83,36 @@ where
 	/// graph.insert(2);
 	/// graph.insert(3);
 	///
-	/// graph.connect(&1, &2);
+	/// graph.connect(&1, &2, 1);
 	/// ```
 	#[inline]
-	pub fn connect<K1, K2>(&mut self, a: &K1, b: &K2)
+	pub fn connect<K1, K2>(&mut self, from: &K1, to: &K2, weight: impl AsPrimitive<f64>)
 	where
 		T: Borrow<K1> + Borrow<K2>,
 		K1: Eq + Hash,
 		K2: Eq + Hash,
 	{
-		let Some((a_ref, b_ref)) = self
+		let Some((from_ref, to_ref)) = self
 			.map
-			.get(KeyWrapper::from_ref(a))
-			.zip(self.map.get(KeyWrapper::from_ref(b)))
+			.get(KeyWrapper::from_ref(from))
+			.zip(self.map.get(KeyWrapper::from_ref(to)))
 		else {
 			return;
 		};
 
-		let a_ptr = a_ref.as_ptr();
-		let b_ptr = b_ref.as_ptr();
+		let from_ptr = from_ref.as_ptr();
+		let to_ptr = to_ref.as_ptr();
 
-		let a_adj = unsafe { (*a_ptr).adj.as_slice() };
-		let b_adj = unsafe { (*b_ptr).adj.as_slice() };
+		let from_conns = unsafe { &mut (*from_ptr).conns };
 
-		let a_connected = a_adj.iter().any(|entry| ptr::eq(*entry, b_ptr));
-		let b_connected = b_adj.iter().any(|entry| ptr::eq(*entry, a_ptr));
+		let maybe_conn = from_conns
+			.iter_mut()
+			.find(|conn| ptr::eq(conn.to.as_ptr(), to_ptr));
 
-		if a_connected && b_connected {
-			return;
-		}
-
-		if !a_connected {
-			unsafe { (*a_ptr).adj.push(b_ptr) };
-		}
-
-		if !b_connected {
-			unsafe { (*b_ptr).adj.push(a_ptr) };
+		if let Some(conn) = maybe_conn {
+			conn.weight = weight.as_();
+		} else {
+			from_conns.push(Connection::new(*to_ref, weight));
 		}
 	}
 
@@ -126,37 +130,71 @@ where
 	/// graph.insert(2);
 	/// graph.insert(3);
 	///
-	/// graph.connect(&1, &2);
+	/// graph.connect(&1, &2, 1);
 	///
 	/// assert!(graph.is_connected(&1, &2));
 	/// assert!(!graph.is_connected(&1, &3));
 	/// assert!(!graph.is_connected(&1, &4));
 	/// ```
 	#[inline]
-	pub fn is_connected<K1, K2>(&self, a: &K1, b: &K2) -> bool
+	pub fn is_connected<K1, K2>(&self, from: &K1, to: &K2) -> bool
 	where
 		T: Borrow<K1> + Borrow<K2>,
 		K1: Eq + Hash,
 		K2: Eq + Hash,
 	{
-		let Some((a_ref, b_ref)) = self
+		let Some((from_ref, to_ref)) = self
 			.map
-			.get(KeyWrapper::from_ref(a))
-			.zip(self.map.get(KeyWrapper::from_ref(b)))
+			.get(KeyWrapper::from_ref(from))
+			.zip(self.map.get(KeyWrapper::from_ref(to)))
 		else {
 			return false;
 		};
 
-		let a_ptr = a_ref.as_ptr();
-		let b_ptr = b_ref.as_ptr();
+		let from_ptr = from_ref.as_ptr();
+		let to_ptr = to_ref.as_ptr();
 
-		let a_adj = unsafe { (*a_ptr).adj.as_slice() };
-		let b_adj = unsafe { (*b_ptr).adj.as_slice() };
+		let from_conns = unsafe { &mut (*from_ptr).conns };
 
-		let a_connected = a_adj.iter().any(|entry| ptr::eq(*entry, b_ptr));
-		let b_connected = b_adj.iter().any(|entry| ptr::eq(*entry, a_ptr));
+		from_conns
+			.iter()
+			.any(|conn| ptr::eq(conn.to.as_ptr(), to_ptr))
+	}
 
-		a_connected && b_connected
+	/// Returns the shortest path from entry `from` to entry `to`.
+	///
+	/// If no path exists, `None` is returned.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashGraph;
+	///
+	/// let mut graph = HashGraph::<u64>::default();
+	///
+	/// graph.insert(1);
+	/// graph.insert(2);
+	/// graph.insert(3);
+	///
+	/// graph.connect(&1, &2, 1);
+	/// graph.connect(&2, &3, 1);
+	///
+	/// assert_eq!(graph.path(&1, &3), vec![&1, &2, &3]);
+	/// ```
+	pub fn path<K1, K2>(&self, from: &K1, to: &K2) -> Option<Vec<&T>>
+	where
+		T: Borrow<K1> + Borrow<K2>,
+		K1: Eq + Hash,
+		K2: Eq + Hash,
+	{
+		let (from_ref, to_ref) = self
+			.map
+			.get(KeyWrapper::from_ref(from))
+			.zip(self.map.get(KeyWrapper::from_ref(to)))?;
+
+		let from_ptr = from_ref.as_ptr();
+		let to_ptr = to_ref.as_ptr();
+
+		todo!();
 	}
 }
 
@@ -245,8 +283,8 @@ where
 impl<T> Entry<T> {
 	fn new(data: T) -> NonNull<Self> {
 		let entry = Entry {
-			data: MaybeUninit::new(data),
-			adj:  Vec::new(),
+			data:  MaybeUninit::new(data),
+			conns: Vec::new(),
 		};
 
 		let boxed = Box::new(entry);
@@ -257,6 +295,15 @@ impl<T> Entry<T> {
 		unsafe {
 			let entry = *Box::from_raw(entry_ptr);
 			entry.data.assume_init()
+		}
+	}
+}
+
+impl<T> Connection<T> {
+	fn new(to: NonNull<Entry<T>>, weight: impl AsPrimitive<f64>) -> Self {
+		Connection {
+			to,
+			weight: weight.as_(),
 		}
 	}
 }
