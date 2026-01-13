@@ -3,7 +3,7 @@ use std::{
 	collections::HashMap,
 	hash::{BuildHasher, Hash, Hasher, RandomState},
 	mem::MaybeUninit,
-	ptr::NonNull,
+	ptr::{self, NonNull},
 };
 
 pub struct HashGraph<T, S = RandomState> {
@@ -12,7 +12,7 @@ pub struct HashGraph<T, S = RandomState> {
 
 struct Entry<T> {
 	data: MaybeUninit<T>,
-	adj: Vec<*mut Entry<T>>,
+	adj:  Vec<*mut Entry<T>>,
 }
 
 struct DataRef<T> {
@@ -55,8 +55,7 @@ where
 		let data_ref = DataRef::from_entry_ptr(entry_ptr);
 		self.map.insert(data_ref, entry);
 
-		maybe_old_entry
-			.map(|old_entry| Entry::<T>::into_data(old_entry.as_ptr()))
+		maybe_old_entry.map(|old_entry| Entry::<T>::into_data(old_entry.as_ptr()))
 	}
 
 	/// Connects two entries in the hash graph.
@@ -94,20 +93,160 @@ where
 		let a_ptr = a_ref.as_ptr();
 		let b_ptr = b_ref.as_ptr();
 
-		unsafe {
-			(*a_ptr).adj.push(b_ptr);
-			(*b_ptr).adj.push(a_ptr);
+		let a_adj = unsafe { (*a_ptr).adj.as_slice() };
+		let b_adj = unsafe { (*b_ptr).adj.as_slice() };
+
+		let a_connected = a_adj.iter().any(|entry| ptr::eq(*entry, b_ptr));
+		let b_connected = b_adj.iter().any(|entry| ptr::eq(*entry, a_ptr));
+
+		if a_connected && b_connected {
+			return;
 		}
 
-		todo!();
+		if !a_connected {
+			unsafe { (*a_ptr).adj.push(b_ptr) };
+		}
+
+		if !b_connected {
+			unsafe { (*b_ptr).adj.push(a_ptr) };
+		}
+	}
+
+	/// Returns `true` if the supplied entries are connected in the graph.
+	///
+	/// If the hash graph does not contain either entry, `false` is returned.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashGraph;
+	///
+	/// let mut graph = HashGraph::<u64>::default();
+	///
+	/// graph.insert(1);
+	/// graph.insert(2);
+	/// graph.insert(3);
+	///
+	/// graph.connect(&1, &2);
+	///
+	/// assert!(graph.is_connected(&1, &2));
+	/// assert!(!graph.is_connected(&1, &3));
+	/// assert!(!graph.is_connected(&1, &4));
+	/// ```
+	#[inline]
+	pub fn is_connected<K1, K2>(&self, a: &K1, b: &K2) -> bool
+	where
+		T: Borrow<K1> + Borrow<K2>,
+		K1: Eq + Hash,
+		K2: Eq + Hash,
+	{
+		let Some((a_ref, b_ref)) = self
+			.map
+			.get(KeyWrapper::from_ref(a))
+			.zip(self.map.get(KeyWrapper::from_ref(b)))
+		else {
+			return false;
+		};
+
+		let a_ptr = a_ref.as_ptr();
+		let b_ptr = b_ref.as_ptr();
+
+		let a_adj = unsafe { (*a_ptr).adj.as_slice() };
+		let b_adj = unsafe { (*b_ptr).adj.as_slice() };
+
+		let a_connected = a_adj.iter().any(|entry| ptr::eq(*entry, b_ptr));
+		let b_connected = b_adj.iter().any(|entry| ptr::eq(*entry, a_ptr));
+
+		a_connected && b_connected
 	}
 }
+
+impl<T, S> HashGraph<T, S> {
+	/// Creates a new hash graph with the supplied hasher.
+	///
+	/// # Examples
+	/// ```
+	/// use std::hash::RandomState;
+	/// use kwik::collections::HashGraph;
+	///
+	/// let s = RandomState::new();
+	/// let graph = HashGraph::<u64, RandomState>::with_hasher(s);
+	/// ```
+	#[inline]
+	pub fn with_hasher(hasher: S) -> Self {
+		HashGraph {
+			map: HashMap::with_hasher(hasher),
+		}
+	}
+
+	/// Returns `true` if the hash graph contains no entries.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashGraph;
+	///
+	/// let graph = HashGraph::<u64>::default();
+	/// assert!(graph.is_empty());
+	/// ```
+	#[inline]
+	pub fn is_empty(&self) -> bool {
+		self.map.is_empty()
+	}
+
+	/// Returns the number of entries in the hash graph.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashGraph;
+	///
+	/// let graph = HashGraph::<u64>::default();
+	/// assert_eq!(graph.len(), 0);
+	/// ```
+	#[inline]
+	pub fn len(&self) -> usize {
+		self.map.len()
+	}
+}
+
+impl<T> HashGraph<T, RandomState> {
+	/// Creates a new hash graph.
+	///
+	/// # Examples
+	/// ```
+	/// use kwik::collections::HashGraph;
+	///
+	/// let graph = HashGraph::<u64>::new();
+	/// ```
+	#[inline]
+	pub fn new() -> Self {
+		HashGraph::with_hasher(RandomState::new())
+	}
+}
+
+impl<T, S> Default for HashGraph<T, S>
+where
+	S: Default,
+{
+	fn default() -> Self {
+		HashGraph::<T, S>::with_hasher(S::default())
+	}
+}
+
+// impl<T, S> PartialEq for HashGraph<T, S>
+// where
+// 	T: PartialEq,
+// {
+// 	fn eq(&self, other: &Self) -> bool {
+// 		self.len() == other.len() && self.iter().eq(other.iter())
+// 	}
+// }
+
+// impl<T, S> Eq for HashGraph<T, S> where T: Eq {}
 
 impl<T> Entry<T> {
 	fn new(data: T) -> NonNull<Self> {
 		let entry = Entry {
 			data: MaybeUninit::new(data),
-			adj: Vec::new(),
+			adj:  Vec::new(),
 		};
 
 		let boxed = Box::new(entry);
@@ -133,7 +272,7 @@ impl<T> DataRef<T> {
 		let data_ptr = unsafe { (*entry_ptr).data.as_ptr() };
 
 		DataRef {
-			data: data_ptr,
+			data: data_ptr
 		}
 	}
 }
