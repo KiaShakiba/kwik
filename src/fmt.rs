@@ -18,7 +18,7 @@ pub const MEMORY_UNITS: &[&str] = &[
 /// ```
 /// use kwik::fmt;
 ///
-/// assert_eq!(fmt::number(1234567), "1,234,567");
+/// assert_eq!(fmt::number(1_234_567), "1,234,567");
 /// ```
 #[inline]
 #[must_use]
@@ -33,7 +33,7 @@ pub fn number(value: impl AsPrimitive<u64>) -> String {
 /// ```
 /// use kwik::fmt;
 ///
-/// assert_eq!(fmt::memory(1234567, Some(2)), "1.18 MiB");
+/// assert_eq!(fmt::memory(1_234_567, Some(2)), "1.18 MiB");
 /// ```
 #[inline]
 #[must_use]
@@ -60,7 +60,7 @@ pub fn memory(value: impl AsPrimitive<u64>, precision: Option<usize>) -> String 
 /// ```
 /// use kwik::fmt;
 ///
-/// assert_eq!(fmt::timespan(1234567), "20:34.567");
+/// assert_eq!(fmt::timespan(1_234_567), "20:34.567");
 /// ```
 #[must_use]
 pub fn timespan(value: impl AsPrimitive<u64>) -> String {
@@ -92,11 +92,30 @@ mod tests {
 	use crate::fmt;
 
 	#[test]
+	fn it_fmts_number() {
+		assert_eq!(fmt::number(0), "0");
+		assert_eq!(fmt::number(999), "999");
+		assert_eq!(fmt::number(9_999), "9,999");
+		assert_eq!(fmt::number(123_456_789), "123,456,789");
+	}
+
+	#[test]
+	fn it_fmts_memory() {
+		assert_eq!(fmt::memory(0, None), "0 B");
+		assert_eq!(fmt::memory(100, None), "100 B");
+		assert_eq!(fmt::memory(1_024, None), "1 KiB");
+		assert_eq!(fmt::memory(1_024, Some(2)), "1.00 KiB");
+		assert_eq!(fmt::memory(1_048_576, None), "1 MiB");
+		assert_eq!(fmt::memory(123_456_789, Some(2)), "117.74 MiB");
+	}
+
+	#[test]
 	fn it_fmts_timespan_ms() {
 		assert_eq!(fmt::timespan(0), "0");
 		assert_eq!(fmt::timespan(1), "1");
 		assert_eq!(fmt::timespan(10), "10");
 		assert_eq!(fmt::timespan(100), "100");
+		assert_eq!(fmt::timespan(999), "999");
 	}
 
 	#[test]
