@@ -7,6 +7,7 @@
 
 use std::{fs::File, io, path::Path};
 
+use digest_io::IoWrapper;
 use md5::Md5;
 use sha2::{Digest, Sha256, Sha512};
 
@@ -26,11 +27,11 @@ where
 	P: AsRef<Path>,
 {
 	let mut file = File::open(path)?;
-	let mut hasher = Sha256::new();
+	let mut hasher = IoWrapper(Sha256::new());
 
 	io::copy(&mut file, &mut hasher)?;
 
-	Ok(format!("{:x}", hasher.finalize()))
+	Ok(hex::encode(hasher.0.finalize()))
 }
 
 /// Computes the SHA512 hash of the file at the provided path.
@@ -49,11 +50,11 @@ where
 	P: AsRef<Path>,
 {
 	let mut file = File::open(path)?;
-	let mut hasher = Sha512::new();
+	let mut hasher = IoWrapper(Sha512::new());
 
 	io::copy(&mut file, &mut hasher)?;
 
-	Ok(format!("{:x}", hasher.finalize()))
+	Ok(hex::encode(hasher.0.finalize()))
 }
 
 /// Computes the MD5 hash of the file at the provided path.
@@ -72,9 +73,9 @@ where
 	P: AsRef<Path>,
 {
 	let mut file = File::open(path)?;
-	let mut hasher = Md5::new();
+	let mut hasher = IoWrapper(Md5::new());
 
 	io::copy(&mut file, &mut hasher)?;
 
-	Ok(format!("{:x}", hasher.finalize()))
+	Ok(hex::encode(hasher.0.finalize()))
 }

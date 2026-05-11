@@ -10,7 +10,7 @@ use std::{
 	time::{Duration, Instant},
 };
 
-use rand::{Rng, seq::SliceRandom};
+use rand::{Rng, RngExt, seq::SliceRandom};
 
 use crate::genetic::{
 	chromosome::{Chromosome, Gene},
