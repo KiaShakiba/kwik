@@ -20,6 +20,7 @@ pub use crate::genetic::gene::Gene;
 ///     Fitness,
 ///     FitnessOrd,
 ///     Rng,
+///     RngExt,
 /// };
 ///
 /// #[derive(Clone)]
@@ -98,7 +99,7 @@ pub use crate::genetic::gene::Gene;
 ///
 /// impl Gene for MyData {
 ///     fn mutate(&mut self, rng: &mut impl Rng, _genes: &[Option<Self>]) {
-///         self.data = rng.gen_range(0..10);
+///         self.data = rng.random_range(0..10);
 ///     }
 /// }
 /// ```

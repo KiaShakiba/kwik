@@ -16,7 +16,7 @@ pub struct GeneticSolution<C>
 where
 	C: Chromosome,
 {
-	chromosome: C,
+	chromosomes: Vec<C>,
 
 	generations: u64,
 	mutations:   u64,
@@ -28,9 +28,9 @@ impl<C> GeneticSolution<C>
 where
 	C: Chromosome,
 {
-	pub fn new(chromosome: C, generations: u64, mutations: u64, runtime: Duration) -> Self {
+	pub fn new(chromosomes: Vec<C>, generations: u64, mutations: u64, runtime: Duration) -> Self {
 		GeneticSolution {
-			chromosome,
+			chromosomes,
 
 			generations,
 			mutations,
@@ -41,8 +41,14 @@ where
 
 	/// Returns a reference to the fittest individual's chromosome.
 	#[inline]
-	pub fn chromosome(&self) -> &C {
-		&self.chromosome
+	pub fn fittest(&self) -> &C {
+		&self.chromosomes[0]
+	}
+
+	/// Returns a reference to the individuals' chromosomes, ordered by most to
+	/// least fit.
+	pub fn chromosomes(&self) -> &[C] {
+		&self.chromosomes
 	}
 
 	/// Returns the number of generations processed during the run.

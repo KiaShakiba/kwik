@@ -17,7 +17,7 @@ mod solution;
 use std::time::Instant;
 
 use num_traits::AsPrimitive;
-pub use rand::Rng;
+pub use rand::{Rng, RngExt};
 use rand::{
 	SeedableRng,
 	distr::{Distribution, Uniform},
@@ -51,6 +51,7 @@ const DEFAULT_TOURNAMENT_SIZE: usize = 3;
 ///     Fitness,
 ///     FitnessOrd,
 ///     Rng,
+///     RngExt,
 /// };
 ///
 /// #[derive(Clone)]
@@ -140,7 +141,7 @@ const DEFAULT_TOURNAMENT_SIZE: usize = 3;
 ///
 /// impl Gene for MyData {
 ///     fn mutate(&mut self, rng: &mut impl Rng, _genes: &[Option<Self>]) {
-///         self.data = rng.gen_range(0..50);
+///         self.data = rng.random_range(0..50);
 ///     }
 /// }
 /// ```
@@ -327,8 +328,14 @@ where
 			generation_count += 1;
 		}
 
+		let chromosomes = self
+			.population
+			.iter()
+			.map(|individual| individual.chromosome().clone())
+			.collect();
+
 		let solution = GeneticSolution::new(
-			self.population[0].chromosome().clone(),
+			chromosomes,
 			generation_count,
 			total_mutations,
 			time.elapsed(),
@@ -484,6 +491,8 @@ fn init_mating_dist(population_size: usize) -> Result<Uniform<usize>, GeneticErr
 
 #[cfg(test)]
 mod tests {
+	use rand::RngExt;
+
 	use crate::genetic::{Chromosome, Fitness, FitnessOrd, Gene, Genetic, Rng};
 
 	#[derive(Clone)]
@@ -594,6 +603,6 @@ mod tests {
 
 		assert_ne!(result.generations(), 0);
 		assert_ne!(result.mutations(), 0);
-		assert_eq!(result.chromosome().sum(), 100);
+		assert_eq!(result.fittest().sum(), 100);
 	}
 }

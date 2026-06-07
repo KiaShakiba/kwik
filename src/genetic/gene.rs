@@ -13,7 +13,7 @@ use rand::Rng;
 ///
 /// # Examples
 /// ```
-/// use kwik::genetic::{Gene, Chromosome, Rng};
+/// use kwik::genetic::{Gene, Chromosome, Rng, RngExt};
 ///
 /// #[derive(Clone)]
 /// struct MyData {
@@ -22,7 +22,7 @@ use rand::Rng;
 ///
 /// impl Gene for MyData {
 ///     fn mutate(&mut self, rng: &mut impl Rng, _genes: &[Option<Self>]) {
-///         self.data = rng.gen_range(0..10);
+///         self.data = rng.random_range(0..10);
 ///     }
 /// }
 /// ```
