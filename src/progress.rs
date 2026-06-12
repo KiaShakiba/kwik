@@ -46,10 +46,13 @@ pub struct Progress {
 	pulse_instant: Instant,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Tag {
 	/// Ticks per second
 	Tps,
+
+	/// Data per second
+	Dps,
 
 	/// Estimated remaining time
 	Eta,
@@ -184,6 +187,7 @@ impl Progress {
 	/// let mut progress = Progress::new(100);
 	///
 	/// progress.set_tag(Tag::Tps);
+	/// progress.set_tag(Tag::Dps);
 	/// progress.set_tag(Tag::Eta);
 	/// progress.set_tag(Tag::Time);
 	/// ```
@@ -209,6 +213,7 @@ impl Progress {
 	///
 	/// let progress = Progress::new(100)
 	///     .with_tag(Tag::Tps)
+	///     .with_tag(Tag::Dps)
 	///     .with_tag(Tag::Eta)
 	///     .with_tag(Tag::Time);
 	/// ```
@@ -404,7 +409,13 @@ impl Progress {
 			match tag {
 				Tag::Tps => {
 					if rate > 0 {
-						print_rate(&mut lock, rate);
+						print_tps(&mut lock, rate);
+					}
+				},
+
+				Tag::Dps => {
+					if rate > 0 {
+						print_dps(&mut lock, rate);
 					}
 				},
 
@@ -461,8 +472,12 @@ impl Progress {
 	}
 }
 
-fn print_rate(lock: &mut StdoutLock, rate: u64) {
+fn print_tps(lock: &mut StdoutLock, rate: u64) {
 	write!(lock, " ({} tps)", fmt::number(rate),).unwrap();
+}
+
+fn print_dps(lock: &mut StdoutLock, rate: u64) {
+	write!(lock, " ({}/s)", fmt::memory(rate, Some(2)),).unwrap();
 }
 
 fn print_eta(lock: &mut StdoutLock, eta: Duration) {
