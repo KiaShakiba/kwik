@@ -226,6 +226,8 @@ impl Progress {
 
 impl Drop for Progress {
 	fn drop(&mut self) {
+		self.state.stopped.store(true, Ordering::Relaxed);
+
 		if let Some(thread) = self.worker.thread.take() {
 			let _ = thread.join();
 		}
