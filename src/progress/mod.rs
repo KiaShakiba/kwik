@@ -10,6 +10,7 @@ mod worker;
 
 use std::{
 	fmt::Debug,
+	io::Write,
 	sync::{Arc, atomic::Ordering},
 };
 
@@ -63,6 +64,20 @@ impl Progress {
 			state,
 			worker,
 		}
+	}
+
+	/// Sets the progress bar's writer. The default is stdout.
+	#[inline]
+	pub fn set_writer(&self, writer: impl 'static + Write + Send) {
+		let writer: Box<dyn Write + Send> = Box::new(writer);
+		*self.state.writer.lock() = writer;
+	}
+
+	/// Sets the progress bar's writer. The default is stdout.
+	#[inline]
+	pub fn with_writer(self, writer: impl 'static + Write + Send) -> Self {
+		self.set_writer(writer);
+		self
 	}
 
 	/// Sets the progress bar's width. The default is 70.

@@ -7,7 +7,7 @@
 
 use std::{
 	cmp::Ordering,
-	io::{self, StdoutLock, Write},
+	io::{self, Write},
 	sync::Arc,
 	thread,
 	time::Duration,
@@ -34,10 +34,10 @@ impl ProgressWorker {
 		let thread = Some(thread::spawn(move || {
 			loop {
 				if local_state.is_complete() {
-					draw_final(&local_state);
+					draw_final(&local_state).unwrap();
 					break;
 				} else {
-					draw(&local_state);
+					draw(&local_state).unwrap();
 				}
 
 				thread::sleep(DRAW_DELAY);
@@ -51,15 +51,15 @@ impl ProgressWorker {
 	}
 }
 
-fn draw(state: &LocalProgressState) {
+fn draw(state: &LocalProgressState) -> io::Result<()> {
 	let curr_amount = state.get_curr_progress_amount() as u8;
 	let position = state.get_progress_position(curr_amount);
 	let maybe_rate = state.get_rate();
 	let eta = state.get_eta();
 	let elapsed = state.get_total_duration();
 
-	let mut lock = io::stdout().lock();
-	write!(lock, "\x1B[2K\r[").unwrap();
+	let mut writer = state.writer.lock();
+	write!(writer, "\x1B[2K\r[")?;
 
 	for i in 0..state.width {
 		let character = match i.cmp(&position) {
@@ -68,49 +68,53 @@ fn draw(state: &LocalProgressState) {
 			Ordering::Equal => state.curr_character,
 		};
 
-		write!(lock, "\x1B[33m{character}\x1B[0m").unwrap();
+		write!(writer, "\x1B[33m{character}\x1B[0m")?;
 	}
 
-	write!(lock, "] \x1B[33m{curr_amount} %\x1B[0m").unwrap();
+	write!(writer, "] \x1B[33m{curr_amount} %\x1B[0m")?;
 
 	for tag in &state.tags {
 		match tag {
 			ProgressTag::Tps => {
 				if let Some(rate) = maybe_rate {
-					print_tps(&mut lock, rate);
+					print_tps(writer.as_mut(), rate)?;
 				}
 			},
 
 			ProgressTag::Dps => {
 				if let Some(rate) = maybe_rate {
-					print_dps(&mut lock, rate);
+					print_dps(writer.as_mut(), rate)?;
 				}
 			},
 
 			ProgressTag::Eta => {
-				if eta.is_some_and(|eta| !eta.is_zero()) {
-					print_eta(&mut lock, eta.unwrap());
+				if let Some(eta) = eta
+					&& !eta.is_zero()
+				{
+					print_eta(writer.as_mut(), eta)?;
 				}
 			},
 
 			ProgressTag::Time => {
 				if !elapsed.is_zero() {
-					print_time(&mut lock, elapsed);
+					print_time(writer.as_mut(), elapsed)?;
 				}
 			},
 		}
 	}
 
-	write!(lock, "\r").unwrap();
-	lock.flush().unwrap();
+	write!(writer, "\r")?;
+	writer.flush()?;
+
+	Ok(())
 }
 
-fn draw_final(state: &LocalProgressState) {
+fn draw_final(state: &LocalProgressState) -> io::Result<()> {
 	let curr_amount = state.get_curr_progress_amount() as u8;
 	let position = state.get_progress_position(curr_amount);
 
-	let mut lock = io::stdout().lock();
-	write!(lock, "\x1B[2K[").unwrap();
+	let mut writer = state.writer.lock();
+	write!(writer, "\x1B[2K[")?;
 
 	for i in 0..state.width {
 		let character = match i.cmp(&position) {
@@ -120,38 +124,40 @@ fn draw_final(state: &LocalProgressState) {
 		};
 
 		if curr_amount < 100 {
-			write!(lock, "\x1B[31m{character}\x1B[0m").unwrap();
+			write!(writer, "\x1B[31m{character}\x1B[0m")?;
 		} else {
-			write!(lock, "\x1B[32m{character}\x1B[0m").unwrap();
+			write!(writer, "\x1B[32m{character}\x1B[0m")?;
 		}
 	}
 
 	if curr_amount < 100 {
-		write!(lock, "] \x1B[31m{curr_amount} %\x1B[0m").unwrap();
+		write!(writer, "] \x1B[31m{curr_amount} %\x1B[0m")?;
 	} else {
-		write!(lock, "] \x1B[32m{curr_amount} %\x1B[0m").unwrap();
+		write!(writer, "] \x1B[32m{curr_amount} %\x1B[0m")?;
 	}
 
 	if state.tags.contains(&ProgressTag::Time) {
-		print_time(&mut lock, state.get_total_duration());
+		print_time(writer.as_mut(), state.get_total_duration())?;
 	}
 
-	writeln!(lock).unwrap();
-	lock.flush().unwrap();
+	writeln!(writer)?;
+	writer.flush()?;
+
+	Ok(())
 }
 
-fn print_tps(lock: &mut StdoutLock, rate: u64) {
-	write!(lock, " ({} tps)", fmt::number(rate)).unwrap();
+fn print_tps(mut writer: impl Write, rate: u64) -> io::Result<()> {
+	write!(writer, " ({} tps)", fmt::number(rate))
 }
 
-fn print_dps(lock: &mut StdoutLock, rate: u64) {
-	write!(lock, " ({}/s)", fmt::memory(rate, Some(2))).unwrap();
+fn print_dps(mut writer: impl Write, rate: u64) -> io::Result<()> {
+	write!(writer, " ({}/s)", fmt::memory(rate, Some(2)))
 }
 
-fn print_eta(lock: &mut StdoutLock, eta: Duration) {
-	write!(lock, " (eta {})", fmt::timespan(eta.as_millis())).unwrap();
+fn print_eta(mut writer: impl Write, eta: Duration) -> io::Result<()> {
+	write!(writer, " (eta {})", fmt::timespan(eta.as_millis()))
 }
 
-fn print_time(lock: &mut StdoutLock, elapsed: Duration) {
-	write!(lock, " (time {})", fmt::timespan(elapsed.as_millis())).unwrap();
+fn print_time(mut writer: impl Write, elapsed: Duration) -> io::Result<()> {
+	write!(writer, " (time {})", fmt::timespan(elapsed.as_millis()))
 }

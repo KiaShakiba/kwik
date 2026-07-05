@@ -7,16 +7,21 @@
 
 use std::{
 	cmp,
-	sync::atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering},
+	io::{self, Write},
+	sync::{
+		Arc,
+		atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering},
+	},
 	time::{Duration, Instant},
 };
 
-use parking_lot::RwLock;
+use parking_lot::{Mutex, RwLock};
 
 use crate::{math, progress::ProgressTag};
 
-#[derive(Debug)]
 pub struct ProgressState {
+	pub writer: Arc<Mutex<Box<dyn Write + Send>>>,
+
 	pub width: AtomicU64,
 
 	pub filled_character:    AtomicU8,
@@ -31,8 +36,9 @@ pub struct ProgressState {
 	pub tags: RwLock<Vec<ProgressTag>>,
 }
 
-#[derive(Debug)]
 pub struct LocalProgressState {
+	pub writer: Arc<Mutex<Box<dyn Write + Send>>>,
+
 	pub width: u64,
 
 	pub filled_character:    char,
@@ -54,7 +60,11 @@ pub struct LocalProgressState {
 
 impl ProgressState {
 	pub fn new(total: u64) -> Self {
+		let writer: Box<dyn Write + Send> = Box::new(io::stdout());
+
 		ProgressState {
+			writer: Arc::new(Mutex::new(writer)),
+
 			width: AtomicU64::new(70),
 
 			filled_character: AtomicU8::new(b'='),
@@ -102,6 +112,8 @@ impl LocalProgressState {
 			curr_instant: now,
 
 			tags,
+
+			writer: state.writer.clone(),
 		}
 	}
 
