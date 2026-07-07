@@ -21,7 +21,8 @@ use crate::{
 	},
 };
 
-const DRAW_DELAY: Duration = Duration::from_millis(150);
+const DRAW_LONG_DELAY: Duration = Duration::from_millis(100);
+const DRAW_SHORT_DELAY: Duration = Duration::from_millis(10);
 
 pub struct ProgressWorker {
 	pub thread: Option<thread::JoinHandle<()>>,
@@ -30,17 +31,27 @@ pub struct ProgressWorker {
 impl ProgressWorker {
 	pub fn new(state: Arc<ProgressState>) -> Self {
 		let mut local_state = LocalProgressState::new(&state);
+		let mut prev_amount = local_state.get_curr_progress_amount() as u8;
 
 		let thread = Some(thread::spawn(move || {
 			loop {
 				if local_state.is_complete() {
 					draw_final(&local_state).unwrap();
 					break;
-				} else {
-					draw(&local_state).unwrap();
 				}
 
-				thread::sleep(DRAW_DELAY);
+				let curr_amount = local_state.get_curr_progress_amount() as u8;
+
+				let delay = if curr_amount - prev_amount > 1 {
+					DRAW_SHORT_DELAY
+				} else {
+					DRAW_LONG_DELAY
+				};
+
+				draw(&local_state).unwrap();
+				prev_amount = curr_amount;
+
+				thread::sleep(delay);
 				local_state.update(&state);
 			}
 		}));
